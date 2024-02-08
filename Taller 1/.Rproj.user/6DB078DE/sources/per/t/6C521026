@@ -3,7 +3,7 @@
     "path": "D:/Users/jelondos/OneDrive - Crystal S.A.S/Desktop/propios/Big Data/Modulo 1 Taller/Curso-Big-Data/Taller 1/Taller 1.Rmd",
     "project_path": "Taller 1.Rmd",
     "type": "r_markdown",
-    "hash": "1792452929",
+    "hash": "2559014503",
     "contents": "",
     "dirty": false,
     "created": 1707336688615.0,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "1,0",
-        "scrollLine": "0"
+        "cursorPosition": "23,0",
+        "scrollLine": "18"
     },
     "folds": "",
-    "lastKnownWriteTime": 1707336740,
+    "lastKnownWriteTime": 1707395666,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1707336741042,
+    "last_content_update": 1707395666036,
     "read_only": false,
     "read_only_alternatives": []
 }
