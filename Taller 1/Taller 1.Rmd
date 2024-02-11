@@ -5,6 +5,14 @@ date: "2024-02-07"
 ---
 
 ```{r}
+library(gridExtra)
+```
+
+
+
+
+
+```{r}
 t1<-Sys.time()
 
 library(rvest)
@@ -26,6 +34,106 @@ data<-dplyr::bind_rows(tables_list)
 t2<-Sys.time()
 Tiempo_ejecucion<-t2-t1
 Tiempo_ejecucion
+```
+
+
+
+# Introduccion 
+
+* En este apartado debemos consultar algunos papers que nos puedan dar idea de cuales son las variables mas importantes para predecir el salario.
+
+Por lo que ya sabemos podemos iniciar con un analisis de las siguientes variables:
+
+* Edad : age
+* Cuenta propia
+* Estrato
+* Formal
+* Horas trabajadas: Actual hours worked previus week
+* Usual weekly hours wworked
+* Informal
+* Ingreso total
+* educacion: max. Education level attained
+* Oficio
+* educacion: p6210
+* Experiencia: p6426
+* Salario: p6500
+* Sexo: sex
+* Horas trabajadas: totalHoursWor
+
+# Datos
+
+```{r}
+# Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
+
+data <- data %>%
+  filter(age >18) 
+
+
+
+data <- data %>%
+    rename(
+      Edad= age,
+      Estrato=estrato1,
+      Ingreso=ingtot,
+      Educacion=p6210,
+      Experiencia= p6426,
+      Salario=p6500,
+      Sexo=sex,
+      Horas_trabajadas=totalHoursWorked
+  )  %>%
+  
+    mutate(
+      across(c(cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Sexo),as.character) 
+  )
+
+
 
 ```
+## AEDE individual
+
+En este apartado observamos como se comportan las variables incluidas en el modelo , con el objetivo de analizar su distribucion e iniciar con el proceso de limpieza
+
+```{r}
+data_h <- data %>%
+  select(Edad,cuentaPropia,Estrato,formal,informal,Ingreso,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
+```
+
+* Nota importante willian: Hay que discutir muy bien como vamos a trabajar con los factores de expansion.
+
+
+
+
+```{r}
+str(data_h)
+```
+
+```{r}
+character_cols <- data_h %>%
+  select(where(is.character))
+
+
+character_plots <- map2(character_cols, names(character_cols), ~ ggplot(data_h, aes(x = .x)) +
+                         geom_bar() +
+                         ggtitle(paste("Distribucion", .y)) +  
+                         theme_minimal() +
+                         theme(plot.title = element_text(color = "black", hjust = 0)))
+
+
+character_grid <- grid.arrange(grobs = character_plots, ncol = 2)
+```
+
+```{r}
+numeric_cols <- data_h %>%
+  select(where(is.numeric))
+
+numeric_plots <- map2(numeric_cols, names(numeric_cols), ~ ggplot(data_h, aes(x = .x)) +
+                         geom_histogram(fill = "skyblue", color = "black", bins = 10) +
+                         ggtitle(paste("Distribucion of", .y)) +  # Set the title to the column name
+                         theme_minimal() +
+                         theme(plot.title = element_text(color = "black", hjust = 0)))
+
+
+numeric_grid <- grid.arrange(grobs = numeric_plots, ncol = 2)
+```
+
 
