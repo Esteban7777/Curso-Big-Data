@@ -1,0 +1,55 @@
+---
+title: "Clase 1"
+author: "John Esteban"
+date: "2024-01-27"
+output: html_document
+---
+```{r}
+if(!require(pacman)) install.packages("pacman") ; require(pacman)
+```
+
+
+```{r}
+p_load(rio, # import/export data
+       tidyverse, # tidy-data
+       skimr, # summary data
+       visdat, ## visualizing missing data
+       corrplot, ## Correlation Plots 
+       stargazer)
+```
+
+```{r}
+df <- import("https://github.com/ignaciomsarmiento/datasets/blob/main/GEIH_sample1.Rds?raw=true")
+db <- as.tibble(df)
+```
+
+```{r}
+skim(db) %>% head()  # Obtener un resumen detallado de los datos
+```
+```{r}
+summary(db$y_salary_m)
+```
+
+```{r}
+des <- c('y_salary_m','sex','age')
+stargazer(df[des],type='text')
+```
+
+```{r}
+ggplot(data=db,mapping = aes(x=age,y=y_ingLab_m)) +
+  geom_point(col='red',size=0.5)
+```
+
+
+
+```{r}
+ggplot(data=db,mapping = aes(x=age,y=y_ingLab_m,group=as.factor(formal),color=as.factor(formal))) +
+  geom_point()
+```
+
+
+
+
+
+
+

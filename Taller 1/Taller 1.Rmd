@@ -137,3 +137,18 @@ numeric_grid <- grid.arrange(grobs = numeric_plots, ncol = 2)
 ```
 
 
+
+# Analisis de regresion
+
+EL proposito es estimar el siguiente modelo:
+
+$$log(w) = \beta_{1} + \beta_{2}Edad + \beta_{3}Edad^2$$
+
+# Modelo de genero
+
+
+$$log(w) = \beta_{1} + \beta_{2}Mujer$$
+
+# 5 Prediccion
+
+
