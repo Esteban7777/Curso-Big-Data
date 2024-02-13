@@ -59,6 +59,7 @@ Por lo que ya sabemos podemos iniciar con un analisis de las siguientes variable
 * Salario: p6500
 * Sexo: sex
 * Horas trabajadas: totalHoursWor
+* Tamaño de la empresa
 
 # Datos
 
@@ -66,7 +67,7 @@ Por lo que ya sabemos podemos iniciar con un analisis de las siguientes variable
 # Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
 
 data <- data %>%
-  filter(age >18) 
+  filter(Edad >18 & dsi !="1") 
 
 
 
@@ -86,6 +87,11 @@ data <- data %>%
       across(c(cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Sexo),as.character) 
   )
 
+### Tratamiento de factores de expansióm
+
+
+### Filtro por población economica activa
+
 
 
 ```
@@ -101,6 +107,11 @@ data_h <- data %>%
 * Nota importante willian: Hay que discutir muy bien como vamos a trabajar con los factores de expansion.
 
 
+```{r}
+data %>% 
+  group_by(oficio) %>% 
+  summarise(n())
+```
 
 
 ```{r}
