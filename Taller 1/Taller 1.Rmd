@@ -39,7 +39,30 @@ Tiempo_ejecucion<-t2-t1
 Tiempo_ejecucion
 ```
 
+La estrategia propuesta para conservar la representatividad de la muestra que permite el factor de expansión consiste en transformar esta variable en un factor de ponderación de manera que conservemos su proporción con respecto al universo sin afectar el tamaño original de la muestra, de esta manera se ahorra recursos computacionales la ejecución de los algoritmos y el tratamiento de los datos.
 
+```{r}
+base_no_ponderada<-length(data$fex_c)
+universo_representado<-sum(data$fex_c)
+
+data<-  data %>%
+  mutate(data, peso=fex_c/universo_representado) %>% 
+  mutate(data,fponderacion=peso*base_no_ponderada)
+
+base_ponderada<-sum(data$fponderacion)
+unidades_muestrales_fex<-length(unique(data$fex_c))
+unidades_muestrales_fpon<-length(unique(data$fponderacion))
+
+tabla1<-t(tibble(base_no_ponderada,base_ponderada,unidades_muestrales_fex,unidades_muestrales_fpon,universo_representado))
+tabla1
+```
+Para trabajar con los datos ponderados se replica cada registro tantas unidades muestrales represente.
+```{r}
+data_ponderada<-uncount(data,weights = round(data$fponderacion))
+base_ponderada<-length(data_ponderada$directorio)
+base_ponderada
+base_no_ponderada
+```
 
 # Introduccion 
 
@@ -172,28 +195,5 @@ $$log(w) = \beta_{1} + \beta_{2}Mujer$$
 
 El dia de hoy estime 
 
-La estrategia propuesta para conservar la representatividad de la muestra que permite el factor de expansión consiste en transformar esta variable en un factor de ponderación de manera que conservemos su proporción con respecto al universo sin afectar el tamaño original de la muestra, de esta manera se ahorra recursos computacionales la ejecución de los algoritmos y el tratamiento de los datos.
 
-```{r}
-base_no_ponderada<-length(data$fex_c)
-universo_representado<-sum(data$fex_c)
-
-data<-  data %>%
-  mutate(data, peso=fex_c/universo_representado) %>% 
-  mutate(data,fponderacion=peso*base_no_ponderada)
-
-base_ponderada<-sum(data$fponderacion)
-unidades_muestrales_fex<-length(unique(data$fex_c))
-unidades_muestrales_fpon<-length(unique(data$fponderacion))
-
-tabla1<-t(tibble(base_no_ponderada,base_ponderada,unidades_muestrales_fex,unidades_muestrales_fpon,universo_representado))
-tabla1
-```
-Para trabajar con los datos ponderados se replica cada registro tantas unidades muestrales represente.
-```{r}
-data_ponderada<-uncount(data,weights = round(data$fponderacion))
-base_ponderada<-length(data_ponderada$directorio)
-base_ponderada
-base_no_ponderada
-```
 
