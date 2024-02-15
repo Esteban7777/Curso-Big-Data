@@ -163,3 +163,9 @@ $$log(w) = \beta_{1} + \beta_{2}Mujer$$
 # 5 Prediccion
 
 
+
+
+
+
+El dia de hoy estime 
+
