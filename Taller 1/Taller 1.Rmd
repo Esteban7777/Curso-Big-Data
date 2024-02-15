@@ -5,6 +5,14 @@ date: "2024-02-07"
 ---
 
 ```{r}
+library(gridExtra)
+```
+
+
+
+
+
+```{r}
 t1<-Sys.time()
 
 library(rvest)
@@ -18,19 +26,151 @@ url_base<-my_url <- "https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/g
 tables_list <- list()
 
 for (i in 1:10){
-  bucle_url<-paste0(url_base, i, ".html")
+  bucle_url<-paste0(url_base, i, ".html")  # Bucle
   my_html=read_html(bucle_url)
   table<-my_html %>% html_table()
   tables_list[[i]] <- table
 }
 
-data<-dplyr::bind_rows(tables_list)
+data<-dplyr::bind_rows(tables_list)  # Dataframe 
 
 t2<-Sys.time()
 Tiempo_ejecucion<-t2-t1
 Tiempo_ejecucion
+```
+
+
+
+# Introduccion 
+
+* En este apartado debemos consultar algunos papers que nos puedan dar idea de cuales son las variables mas importantes para predecir el salario.
+
+Por lo que ya sabemos podemos iniciar con un analisis de las siguientes variables:
+
+* Edad : age
+* Cuenta propia
+* Estrato
+* Formal
+* Horas trabajadas: Actual hours worked previus week
+* Usual weekly hours wworked
+* Informal
+* Ingreso total
+* educacion: max. Education level attained
+* Oficio
+* educacion: p6210
+* Experiencia: p6426
+* Salario: p6500
+* Sexo: sex
+* Horas trabajadas: totalHoursWor
+* Tamaño de la empresa
+
+# Datos
+
+```{r}
+# Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
+
+data <- data %>%
+  filter(Edad >18 & dsi !="1") 
+
+
+
+data <- data %>%
+    rename(
+      Edad= age,
+      Estrato=estrato1,
+      Ingreso=ingtot,
+      Educacion=p6210,
+      Experiencia= p6426,
+      Salario=p6500,
+      Sexo=sex,
+      Horas_trabajadas=totalHoursWorked
+  )  %>%
+  
+    mutate(
+      across(c(cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Sexo),as.character) 
+  )
+
+### Tratamiento de factores de expansióm
+
+
+### Filtro por población economica activa
+
+
 
 ```
+## AEDE individual
+
+En este apartado observamos como se comportan las variables incluidas en el modelo , con el objetivo de analizar su distribucion e iniciar con el proceso de limpieza
+
+```{r}
+data_h <- data %>%
+  select(Edad,cuentaPropia,Estrato,formal,informal,Ingreso,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
+```
+
+* Nota importante willian: Hay que discutir muy bien como vamos a trabajar con los factores de expansion.
+
+
+```{r}
+data %>% 
+  group_by(oficio) %>% 
+  summarise(n())
+```
+
+
+```{r}
+str(data_h)
+```
+
+```{r}
+character_cols <- data_h %>%
+  select(where(is.character))
+
+
+character_plots <- map2(character_cols, names(character_cols), ~ ggplot(data_h, aes(x = .x)) +
+                         geom_bar() +
+                         ggtitle(paste("Distribucion", .y)) +  
+                         theme_minimal() +
+                         theme(plot.title = element_text(color = "black", hjust = 0)))
+
+
+character_grid <- grid.arrange(grobs = character_plots, ncol = 2)
+```
+
+```{r}
+numeric_cols <- data_h %>%
+  select(where(is.numeric))
+
+numeric_plots <- map2(numeric_cols, names(numeric_cols), ~ ggplot(data_h, aes(x = .x)) +
+                         geom_histogram(fill = "skyblue", color = "black", bins = 10) +
+                         ggtitle(paste("Distribucion of", .y)) +  # Set the title to the column name
+                         theme_minimal() +
+                         theme(plot.title = element_text(color = "black", hjust = 0)))
+
+
+numeric_grid <- grid.arrange(grobs = numeric_plots, ncol = 2)
+```
+
+
+
+# Analisis de regresion
+
+EL proposito es estimar el siguiente modelo:
+
+$$log(w) = \beta_{1} + \beta_{2}Edad + \beta_{3}Edad^2$$
+
+# Modelo de genero
+
+
+$$log(w) = \beta_{1} + \beta_{2}Mujer$$
+
+# 5 Prediccion
+
+
+
+
+
+
+El dia de hoy estime 
 
 La estrategia propuesta para conservar la representatividad de la muestra que permite el factor de expansión consiste en transformar esta variable en un factor de ponderación de manera que conservemos su proporción con respecto al universo sin afectar el tamaño original de la muestra, de esta manera se ahorra recursos computacionales la ejecución de los algoritmos y el tratamiento de los datos.
 
