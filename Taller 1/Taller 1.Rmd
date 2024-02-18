@@ -1,45 +1,18 @@
 ---
 title: "Taller 1"
 output: html_document
+author: Andrés Arévalo, John Esteban Londoño, William Aguirre
 date: "2024-02-07"
 ---
-
-```{r}
-library(gridExtra)
-```
-
-
-
-
 
 ```{r}
 t1<-Sys.time()
 
 library(rvest)
 library(tidyverse)
+library(gridExtra)
+library(ggthemes)
 ```
-
-
-```{r}
-url_base<-my_url <- "https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_"
-
-tables_list <- list()
-
-for (i in 1:10){
-  bucle_url<-paste0(url_base, i, ".html")  # Bucle
-  my_html=read_html(bucle_url)
-  table<-my_html %>% html_table()
-  tables_list[[i]] <- table
-}
-
-data<-dplyr::bind_rows(tables_list)  # Dataframe 
-
-t2<-Sys.time()
-Tiempo_ejecucion<-t2-t1
-Tiempo_ejecucion
-```
-
-
 
 # Introduccion 
 
@@ -66,111 +39,28 @@ Por lo que ya sabemos podemos iniciar con un analisis de las siguientes variable
 
 # Datos
 
-```{r}
-# Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
-
-data <- data %>%
-  filter(Edad >18 & dsi !="1") 
-
-
-
-data <- data %>%
-    rename(
-      Edad= age,
-      Estrato=estrato1,
-      Ingreso=ingtot,
-      Educacion=p6210,
-      Experiencia= p6426,
-      Salario=p6500,
-      Sexo=sex,
-      Horas_trabajadas=totalHoursWorked
-  )  %>%
-  
-    mutate(
-      across(c(cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Sexo),as.character) 
-  )
-
-### Tratamiento de factores de expansióm
-
-
-### Filtro por población economica activa
-
-
-
-```
-## AEDE individual
-
-En este apartado observamos como se comportan las variables incluidas en el modelo , con el objetivo de analizar su distribucion e iniciar con el proceso de limpieza
+Se trabaja con la muestra de Bogotá de la Medición de la Pobreza Monetaria y la Desigualdad (GEIH,2018), que se encuentra publicada en el repositorio https://ignaciomsarmiento.
+github.io/GEIH2018 sample/
+Para capturar los datos se utilizó la técnica del webscraping, y dado que los datos se encontraban divividos en 10 chunks se construyó un bucle que permitiera iterar el código a traves de las 10 url donde se encontraban los datos.
 
 ```{r}
-data_h <- data %>%
-  select(Edad,cuentaPropia,Estrato,formal,informal,Ingreso,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
+url_base<-my_url <- "https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_"
+
+tables_list <- list()
+
+for (i in 1:10){
+  bucle_url<-paste0(url_base, i, ".html")  # Bucle
+  my_html=read_html(bucle_url)
+  table<-my_html %>% html_table()
+  tables_list[[i]] <- table
+}
+
+data<-dplyr::bind_rows(tables_list)  # Dataframe 
+
+t2<-Sys.time()
+Tiempo_ejecucion<-t2-t1
+Tiempo_ejecucion
 ```
-
-* Nota importante willian: Hay que discutir muy bien como vamos a trabajar con los factores de expansion.
-
-
-```{r}
-data %>% 
-  group_by(oficio) %>% 
-  summarise(n())
-```
-
-
-```{r}
-str(data_h)
-```
-
-```{r}
-character_cols <- data_h %>%
-  select(where(is.character))
-
-
-character_plots <- map2(character_cols, names(character_cols), ~ ggplot(data_h, aes(x = .x)) +
-                         geom_bar() +
-                         ggtitle(paste("Distribucion", .y)) +  
-                         theme_minimal() +
-                         theme(plot.title = element_text(color = "black", hjust = 0)))
-
-
-character_grid <- grid.arrange(grobs = character_plots, ncol = 2)
-```
-
-```{r}
-numeric_cols <- data_h %>%
-  select(where(is.numeric))
-
-numeric_plots <- map2(numeric_cols, names(numeric_cols), ~ ggplot(data_h, aes(x = .x)) +
-                         geom_histogram(fill = "skyblue", color = "black", bins = 10) +
-                         ggtitle(paste("Distribucion of", .y)) +  # Set the title to the column name
-                         theme_minimal() +
-                         theme(plot.title = element_text(color = "black", hjust = 0)))
-
-
-numeric_grid <- grid.arrange(grobs = numeric_plots, ncol = 2)
-```
-
-
-
-# Analisis de regresion
-
-EL proposito es estimar el siguiente modelo:
-
-$$log(w) = \beta_{1} + \beta_{2}Edad + \beta_{3}Edad^2$$
-
-# Modelo de genero
-
-
-$$log(w) = \beta_{1} + \beta_{2}Mujer$$
-
-# 5 Prediccion
-
-
-
-
-
-
-El dia de hoy estime 
 
 La estrategia propuesta para conservar la representatividad de la muestra que permite el factor de expansión consiste en transformar esta variable en un factor de ponderación de manera que conservemos su proporción con respecto al universo sin afectar el tamaño original de la muestra, de esta manera se ahorra recursos computacionales la ejecución de los algoritmos y el tratamiento de los datos.
 
@@ -196,4 +86,136 @@ base_ponderada<-length(data_ponderada$directorio)
 base_ponderada
 base_no_ponderada
 ```
+
+
+```{r}
+# Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
+data_ponderada <- data_ponderada %>%
+    rename(
+      Edad= age,
+      Estrato=estrato1,
+      Ingreso=ingtot,
+      Educacion=p6210,
+      Experiencia= p6426,
+      Salario=p6500,
+      Sexo=sex,
+      Horas_trabajadas=totalHoursWorked
+  )  %>%
+  
+    mutate(
+      across(c(cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Sexo),as.character) 
+  )
+
+### Filtro por población economica activa
+
+data_ponderada <- data_ponderada %>%
+  filter(Edad >18 & dsi !="1") 
+
+
+data_ponderada <-data_ponderada %>%
+  filter(p6240==1)
+
+```
+
+## AEDE individual
+
+En este apartado observamos como se comportan las variables incluidas en el modelo , con el objetivo de analizar su distribucion e iniciar con el proceso de limpieza
+
+```{r}
+data_h <- data_ponderada %>%
+  select(Edad,cuentaPropia,Estrato,formal,informal,Ingreso,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
+```
+
+
+Se identifica que hay personas que reportaron ingresos iguales a cero a pesar de ser trabajadores y haber reportado horas laboradas, razón por la cual se excluyen estos registros de la muestra. 
+
+```{r}
+data_h1 <-data_h %>%
+filter(Ingreso>0)
+```
+
+Se construyen las variables para la estimación del modelo
+```{r}
+data_h1<-data_h1 %>% mutate(log_salario=log(Ingreso),
+Edad2=Edad^2)
+```
+
+```{r}
+str(data_h1)
+```
+
+```{r}
+character_cols <- data_h1 %>%
+  select(where(is.character))
+
+
+character_plots <- map2(character_cols, names(character_cols), ~ ggplot(data_h1, aes(x = .x)) +
+                         geom_bar() +
+                         ggtitle(paste("Distribucion", .y)) +  
+                         theme_minimal() +
+                         theme(plot.title = element_text(color = "black", hjust = 0)))
+
+
+character_grid <- grid.arrange(grobs = character_plots, ncol = 2)
+```
+
+```{r}
+numeric_cols <- data_h1 %>%
+  select(where(is.numeric))
+
+numeric_plots <- map2(numeric_cols, names(numeric_cols), ~ ggplot(data_h1, aes(x = .x)) +
+                         geom_histogram(fill = "skyblue", color = "black", bins = 10) +
+                         ggtitle(paste("Distribucion of", .y)) +  # Set the title to the column name
+                         theme_minimal() +
+                         theme(plot.title = element_text(color = "black", hjust = 0)))
+
+
+numeric_grid <- grid.arrange(grobs = numeric_plots, ncol = 2)
+```
+
+
+# Analisis de regresion
+
+EL proposito es estimar el siguiente modelo:
+
+$$log(w) = \beta_{1} + \beta_{2}Edad + \beta_{3}Edad^2$$
+```{r}
+modelo1<-lm(log_salario ~  Edad + Edad2,
+data=data_h1)
+stargazer::stargazer(modelo1,type = "text")
+```
+
+
+```{r}
+data_h1<- data_h1 %>% mutate(log_ingreso_gorro=fitted(modelo1))
+data_aux<-data_h1 %>% select(log_salario,log_ingreso_gorro,Edad)
+
+data_aux<-data_aux %>%  pivot_longer(cols = log_salario:log_ingreso_gorro,
+names_to = "Predict",
+values_to = "Valor")
+
+ggplot(data_aux,aes(x=Edad,color=Predict)) +
+geom_point(aes(y=Valor)) +
+labs(title = "Ajuste del modelo a los datos de la muestra",
+x="Edad",
+y="Log Ingreso"
+) +
+theme_stata() +
+scale_fill_stata()
+```
+
+# Modelo de genero
+
+
+$$log(w) = \beta_{1} + \beta_{2}Mujer$$
+
+# 5 Prediccion
+
+
+
+
+
+
+
+
 
