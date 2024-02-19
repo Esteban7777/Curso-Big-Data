@@ -16,29 +16,25 @@ library(tidyverse)
 ```
 
 
-segun  Smith (2010) \cite{smith2010}.
+
 
 ```{r}
+#url_base<-my_url <- "https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_"
 
-```
+#tables_list <- list()
 
-```{r}
-url_base<-my_url <- "https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_"
+#for (i in 1:10){
+ # bucle_url<-paste0(url_base, i, ".html")  # Bucle
+ # my_html=read_html(bucle_url)
+ # table<-my_html %>% html_table()
+  #tables_list[[i]] <- table
+#}
 
-tables_list <- list()
+#data<-dplyr::bind_rows(tables_list)  # Dataframe 
 
-for (i in 1:10){
-  bucle_url<-paste0(url_base, i, ".html")  # Bucle
-  my_html=read_html(bucle_url)
-  table<-my_html %>% html_table()
-  tables_list[[i]] <- table
-}
-
-data<-dplyr::bind_rows(tables_list)  # Dataframe 
-
-t2<-Sys.time()
-Tiempo_ejecucion<-t2-t1
-Tiempo_ejecucion
+#t2<-Sys.time()
+#Tiempo_ejecucion<-t2-t1
+#Tiempo_ejecucion
 ```
 
 La estrategia propuesta para conservar la representatividad de la muestra que permite el factor de expansión consiste en transformar esta variable en un factor de ponderación de manera que conservemos su proporción con respecto al universo sin afectar el tamaño original de la muestra, de esta manera se ahorra recursos computacionales la ejecución de los algoritmos y el tratamiento de los datos.
@@ -68,12 +64,24 @@ base_no_ponderada
 
 # Introduccion 
 
-El objetivo de este informe es encontrar los determinantes del salario de las personas encuestadas en Bogota y realizar una prediccion de este.
+El objetivo de este informe es encontrar los determinantes del salario de las personas encuestadas en Bogota y realizar una prediccion de este. Encontrar los determinantes del salario es importante porque da un guia en terminos personales y de politica economica cuando se quiere aumentar los ingresos de las personas. Por el lado de politica economica aumentar los ingresos reales de las personas puede contribuir al mejoramiento de la calidad de vida, de tal forma que si se conocen que factores pueden aumentar su capacidad adquisitiva es alli donde se deben desarrollar las politicas publicas. Por otro lado , el estudio de los determinantes del salairo tambien sirve para las personas que ya cuentan con un empleo y que aspiran a mejorar sus condiciones de vida, si se encuentra que la eduacuin por ejemplo es clave es aca donde se debe mejorar por parte del trabajador.
+
+Desde el punto de vista teorico para iniciar con el estudio de los determiantes del salario laboral es la ecucacion de mincer. Este es un modelo  a traves del cual se estima el impacto de un ano adicional de estudios en las rentas laborales de los individuos (Mancer,1974). La ecuacion tradicional de Mincer se puede estimar mediante los minimos cuadrados ordinarios, usando como variable dependiente los ingresos y como variables independientes los anos de educacion , la experiencia laboral y el cuadrado de esta.
+
+
+$$ln(w) = \beta_{0} + \beta_{1}S + \beta_{2}Exp + \beta_{3}Exp^2 + \epsilon$$
+Donde:
+- \( w \) son los ingresos del individuo.
+- \( S \) es el número de años de educación formal completada.
+- \( \text{Exp} \) son los años de experiencia laboral.
+- \( \epsilon \) es el término de perturbación aleatoria que se distribuye según una Normal \( \mathcal{N}(0, \sigma_{\epsilon}^2) \).
 
 
 
+Ahora desde el punto de vista empirico a parte de la educacion se recomienda utilizar las variables como la ciudad donde trabaja, el sector economico en que se ubica la empresa , el tamano de la firma , la antiguedad de la empresa (Restrepo,2016). En terminos socioeconomicos se encuentra que tambien pueden existir diferencias a traves del sexo del trabajor, donde es mas probable que sean los hombres que en promedio tengan ingresos mas altos(Gomez,2012;Silva,2013), tambien determinar la edad del empleados ya que si es joven probablemente el salario sea menor (Sanchez,2015).
 
 
+Para este estudio se utiliza informacion de la Gran Encuesta Integrada de Hogares (GEIH). Esta encuesta solicita infomracion sobre lkas condiciones de empleo de las personas y las caracteristicas generales de la poblacion. Por tanto se tienen los insumos para encontrar los determiantes del salario.
 
 Por lo que ya sabemos podemos iniciar con un analisis de las siguientes variables:
 
@@ -98,10 +106,6 @@ Por lo que ya sabemos podemos iniciar con un analisis de las siguientes variable
 
 ```{r}
 # Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
-
-
-
-
 
 data <- data %>%
     rename(
