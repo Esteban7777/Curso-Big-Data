@@ -1,24 +1,26 @@
 ---
 title: "Taller 1"
-output: html_document
+output:
+  word_document: default
+  html_document:
+    citation_package: natbib
 date: "2024-02-07"
+bibliography: bibliografia.bib
 ---
 
-```{r}
+```{r echo=FALSE}
 library(gridExtra)
-```
-
-
-
-
-
-```{r}
 t1<-Sys.time()
-
 library(rvest)
 library(tidyverse)
 ```
 
+
+segun  Smith (2010) \cite{smith2010}.
+
+```{r}
+
+```
 
 ```{r}
 url_base<-my_url <- "https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_"
@@ -66,7 +68,12 @@ base_no_ponderada
 
 # Introduccion 
 
-* En este apartado debemos consultar algunos papers que nos puedan dar idea de cuales son las variables mas importantes para predecir el salario.
+El objetivo de este informe es encontrar los determinantes del salario de las personas encuestadas en Bogota y realizar una prediccion de este.
+
+
+
+
+
 
 Por lo que ya sabemos podemos iniciar con un analisis de las siguientes variables:
 
@@ -194,4 +201,6 @@ $$log(w) = \beta_{1} + \beta_{2}Mujer$$
 El dia de hoy estime 
 
 
+
+# Bibliografía
 
