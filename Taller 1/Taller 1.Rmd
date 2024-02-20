@@ -6,6 +6,9 @@ output:
     citation_package: natbib
 date: "2024-02-07"
 bibliography: bibliografia.bib
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r echo=FALSE}
@@ -17,27 +20,12 @@ library(tidyverse)
 
 
 
-
-```{r}
-#url_base<-my_url <- "https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_"
-
-#tables_list <- list()
-
-#for (i in 1:10){
- # bucle_url<-paste0(url_base, i, ".html")  # Bucle
- # my_html=read_html(bucle_url)
- # table<-my_html %>% html_table()
-  #tables_list[[i]] <- table
-#}
-
-#data<-dplyr::bind_rows(tables_list)  # Dataframe 
-
-#t2<-Sys.time()
-#Tiempo_ejecucion<-t2-t1
-#Tiempo_ejecucion
-```
-
-La estrategia propuesta para conservar la representatividad de la muestra que permite el factor de expansión consiste en transformar esta variable en un factor de ponderación de manera que conservemos su proporción con respecto al universo sin afectar el tamaño original de la muestra, de esta manera se ahorra recursos computacionales la ejecución de los algoritmos y el tratamiento de los datos.
+La estrategia propuesta para conservar la representatividad de la
+muestra que permite el factor de expansión consiste en transformar esta
+variable en un factor de ponderación de manera que conservemos su
+proporción con respecto al universo sin afectar el tamaño original de la
+muestra, de esta manera se ahorra recursos computacionales la ejecución
+de los algoritmos y el tratamiento de los datos.
 
 ```{r}
 base_no_ponderada<-length(data$fex_c)
@@ -54,7 +42,10 @@ unidades_muestrales_fpon<-length(unique(data$fponderacion))
 tabla1<-t(tibble(base_no_ponderada,base_ponderada,unidades_muestrales_fex,unidades_muestrales_fpon,universo_representado))
 tabla1
 ```
-Para trabajar con los datos ponderados se replica cada registro tantas unidades muestrales represente.
+
+Para trabajar con los datos ponderados se replica cada registro tantas
+unidades muestrales represente.
+
 ```{r}
 data_ponderada<-uncount(data,weights = round(data$fponderacion))
 base_ponderada<-length(data_ponderada$directorio)
@@ -62,51 +53,101 @@ base_ponderada
 base_no_ponderada
 ```
 
-# Introduccion 
+# Introduccion
 
-El objetivo de este informe es encontrar los determinantes del salario de las personas encuestadas en Bogota y realizar una prediccion de este. Encontrar los determinantes del salario es importante porque da un guia en terminos personales y de politica economica cuando se quiere aumentar los ingresos de las personas. Por el lado de politica economica aumentar los ingresos reales de las personas puede contribuir al mejoramiento de la calidad de vida, de tal forma que si se conocen que factores pueden aumentar su capacidad adquisitiva es alli donde se deben desarrollar las politicas publicas. Por otro lado , el estudio de los determinantes del salairo tambien sirve para las personas que ya cuentan con un empleo y que aspiran a mejorar sus condiciones de vida, si se encuentra que la eduacuin por ejemplo es clave es aca donde se debe mejorar por parte del trabajador.
+El objetivo de este informe es encontrar los determinantes del salario
+de las personas encuestadas en Bogotá y realizar una predicción del
+mismo. Encontrar los determinantes del salario es importante porque
+proporciona una guía tanto en términos personales como de política
+económica cuando se busca aumentar los ingresos de las personas. Desde
+la perspectiva de la política económica, aumentar los ingresos reales de
+las personas puede contribuir al mejoramiento de su calidad de vida. Por
+lo tanto, si se conocen los factores que pueden aumentar su capacidad
+adquisitiva, es importante desarrollar políticas públicas orientadas en
+ese sentido. Por otro lado, el estudio de los determinantes del salario
+también es útil para las personas que ya tienen un empleo y aspiran a
+mejorar sus condiciones de vida. Si se encuentra, por ejemplo, que la
+educación es clave, es en este ámbito donde el trabajador debe centrar
+sus esfuerzos para mejorar.
 
-Desde el punto de vista teorico para iniciar con el estudio de los determiantes del salario laboral es la ecucacion de mincer. Este es un modelo  a traves del cual se estima el impacto de un ano adicional de estudios en las rentas laborales de los individuos (Mancer,1974). La ecuacion tradicional de Mincer se puede estimar mediante los minimos cuadrados ordinarios, usando como variable dependiente los ingresos y como variables independientes los anos de educacion , la experiencia laboral y el cuadrado de esta.
-
+Desde la teoría económica, la ecuación de Mincer es un punto de partida
+para estudiar los determinantes del salario laboral. Este modelo estima
+el impacto de un año adicional de estudios en las rentas laborales de
+los individuos (Mincer, 1974). La ecuación tradicional de Mincer se
+puede estimar mediante mínimos cuadrados ordinarios (MCO), utilizando
+como variable dependiente los ingresos y como variables independientes
+los años de educación, la experiencia laboral y el cuadrado de esta
+última.
 
 $$ln(w) = \beta_{0} + \beta_{1}S + \beta_{2}Exp + \beta_{3}Exp^2 + \epsilon$$
-Donde:
-- \( w \) son los ingresos del individuo.
-- \( S \) es el número de años de educación formal completada.
-- \( \text{Exp} \) son los años de experiencia laboral.
-- \( \epsilon \) es el término de perturbación aleatoria que se distribuye según una Normal \( \mathcal{N}(0, \sigma_{\epsilon}^2) \).
+Donde: - $w$ son los ingresos del individuo. - $S$ es el número de años
+de educación formal completada. - $\text{Exp}$ son los años de
+experiencia laboral. - $\epsilon$ es el término de perturbación
+aleatoria que se distribuye según una Normal
+$\mathcal{N}(0, \sigma_{\epsilon}^2)$.
 
+Para este estudio, se utilizará información de la Gran Encuesta
+Integrada de Hogares (GEIH). Esta encuesta solicita información sobre
+las condiciones de empleo de las personas y las características
+generales de la población. Por lo tanto, tenemos los insumos necesarios
+para encontrar los determinantes del salario.
 
+Con base en lo anterior, podemos iniciar el análisis de las siguientes
+variables:
 
-Ahora desde el punto de vista empirico a parte de la educacion se recomienda utilizar las variables como la ciudad donde trabaja, el sector economico en que se ubica la empresa , el tamano de la firma , la antiguedad de la empresa (Restrepo,2016). En terminos socioeconomicos se encuentra que tambien pueden existir diferencias a traves del sexo del trabajor, donde es mas probable que sean los hombres que en promedio tengan ingresos mas altos(Gomez,2012;Silva,2013), tambien determinar la edad del empleados ya que si es joven probablemente el salario sea menor (Sanchez,2015).
-
-
-Para este estudio se utiliza informacion de la Gran Encuesta Integrada de Hogares (GEIH). Esta encuesta solicita infomracion sobre lkas condiciones de empleo de las personas y las caracteristicas generales de la poblacion. Por tanto se tienen los insumos para encontrar los determiantes del salario.
-
-Por lo que ya sabemos podemos iniciar con un analisis de las siguientes variables:
-
-* Edad : age
-* Cuenta propia
-* Estrato
-* Formal
-* Horas trabajadas: Actual hours worked previus week
-* Usual weekly hours wworked
-* Informal
-* Ingreso total
-* educacion: max. Education level attained
-* Oficio
-* educacion: p6210
-* Experiencia: p6426
-* Salario: p6500
-* Sexo: sex
-* Horas trabajadas: totalHoursWor
-* Tamaño de la empresa
+-   Edad (Age)
+-   Cuenta propia (Self-employed)
+-   Estrato (Socioeconomic stratum)
+-   Formal (Formal employment)
+-   Horas trabajadas la semana pasada (Actualhours worked previous week)
+-   Horas trabajadas habitualmente (Usual weeklyhours worked)
+-   Informal (Informal employment)
+-   Ingreso total (Totalincome)
+-   Educación (Max. Education level attained)
+-   Oficio (Occupation)
+-   Experiencia (Experience)
+-   Salario (Salary)
+-   Sexo (Sex)
+-   Horas trabajadas(Total hours worked)
+-   Tamaño de la empresa (Company size)
 
 # Datos
+
+
+## Lectura de los datos
+
+El proceso para leer los datos consiste en hacer un web scrapping a la informacion que se encuentra en esta pagina web: https://ignaciomsarmiento.github.io/GEIH2018 sample/. Los datos estan particionado en 10 paginas diferentes por lo cual se tenia que hacer un proceso iterativo.  En primer lugar se guarda en la variable url_base la direccion web de la que se debe extraer la infomracion. Hay un ligero cambio respecto a la url general y este es que las tablas se encuentran un poco mas anidades por lo que se debe completar la url. 
+
+Como la base de datos completa se encuentra separada en 10 partes el proceso se debe repetir el mismo numero de veces. Primero se crea una lista vacia llamada tables_list, en esta lista se guarda la inofmracion extraida de la pagina en  cada iteracion.  Dentro del bucle for se va modificando la ruta de extraccion para que haga un recorrido por todas las direcciones donde se encuentran los datos, esto es relativamente sencillo debido a que lo unico que cambioa es el numero de la pagina por esto el iterador es un entero.
+
+Cuando se haga el proceso iterativo en las 10 paginas estas quedan anidadas en la lista vacia tables_list, para darle un formato manejable en el proceso de machine learning se concatenan en una sola sabana de datos con formato tibble. Como la cantidad de datos es considerable este proceso dura aproximadamente 8 minutos.
+
+```{r}
+url_base<-my_url <- "https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_"
+
+tables_list <- list()
+for (i in 1:10){
+ bucle_url<-paste0(url_base, i, ".html")
+ my_html=read_html(bucle_url)
+ table<-my_html %>% html_table()
+ tables_list[[i]] <- table}
+
+data<-dplyr::bind_rows(tables_list)
+t2<-Sys.time()
+Tiempo_ejecucion<-t2-t1
+Tiempo_ejecucion
+```
+## Preprocesamiento de datos
+
+El preprocesamiento de los datos se realiza de forma simultanea con el analisis descriptivo . Esto se da porque generalmente cuando se analiza la distribucion de cada variable de forma invidual es que se logra identificar registros vacios o atipicos que merecen un tratamiento aparte. Sin embargo, aplicamos unas reglas de validacion iniciar para garantizar que los modelos de regresion tengan resultados satisfactorios. 
+
+Primero se cambiaron los nombres de las variables que se van usar para que su identificacoin fuera mas sencilla, tambien se les dio el formato adecuado de tal forma que se respetara la naturaleza cualitativa o cuantitativa de las mismas. Los filtros mas importantes de la base de datos fueron para la poblacion en edad de trabajar, como sugerencia del ejercicio solo hay registros para personas mayores de edad. Tambien se filtran las personas que estan activas en el mercado de trabajo ya que est
 
 ```{r}
 # Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
 
+
+## Falta filtrar solo por personas 
 data <- data %>%
     rename(
       Edad= age,
@@ -133,25 +174,22 @@ data <-data %>%
   filter(p6240==1)
 
 ```
+## Analisis exploratorio de datos indiviudal
+
+## Analisis exploratorio bivariado
+
 
 ## AEDE individual
 
-En este apartado observamos como se comportan las variables incluidas en el modelo , con el objetivo de analizar su distribucion e iniciar con el proceso de limpieza
+En este apartado observamos como se comportan las variables incluidas en
+el modelo , con el objetivo de analizar su distribucion e iniciar con el
+proceso de limpieza
 
 ```{r}
 data_h <- data %>%
   select(Edad,cuentaPropia,Estrato,formal,informal,Ingreso,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
 ```
 
-* Nota importante willian: Hay que discutir muy bien como vamos a trabajar con los factores de expansion.
-
-
-
-
-
-```{r}
-str(data_h)
-```
 
 ```{r}
 character_cols <- data_h %>%
@@ -182,8 +220,6 @@ numeric_plots <- map2(numeric_cols, names(numeric_cols), ~ ggplot(data_h, aes(x 
 numeric_grid <- grid.arrange(grobs = numeric_plots, ncol = 2)
 ```
 
-
-
 # Analisis de regresion
 
 EL proposito es estimar el siguiente modelo:
@@ -192,19 +228,10 @@ $$log(w) = \beta_{1} + \beta_{2}Edad + \beta_{3}Edad^2$$
 
 # Modelo de genero
 
-
 $$log(w) = \beta_{1} + \beta_{2}Mujer$$
 
 # 5 Prediccion
 
-
-
-
-
-
-El dia de hoy estime 
-
-
+El dia de hoy estime
 
 # Bibliografía
-
