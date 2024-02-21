@@ -16,8 +16,13 @@ library(gridExtra)
 t1<-Sys.time()
 library(rvest)
 library(tidyverse)
+library(zoo)
 ```
 
+```{r}
+if (!requireNamespace("zoo", quietly = TRUE)) {
+  install.packages("zoo")}
+```
 
 
 La estrategia propuesta para conservar la representatividad de la
@@ -173,64 +178,115 @@ data <- data %>%
 data <-data %>%
   filter(p6240==1)
 
+
+
+### Tratamiento de nas
+
+data$Salario <- na.aggregate(data$Salario, FUN = median)
 ```
+
+
+
 ## Analisis exploratorio de datos indiviudal
 
 Para que la manipulacion de los datos sea mas sencilla se toma del dataframe original solo las columnas que se establecieron en la introduccion y se guardan en el dataframe datah.
 
 ```{r}
 data_h <- data %>%
-  select(Edad,cuentaPropia,Estrato,formal,informal,Ingreso,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
+  select(Edad,cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
 ```
-Luego para visualizar la distribucion invidual de las variables con mas precision se dividen en dos grupos tomando como referencia su naturaleza, es decir si son cualitativas o cuantitativas.
+
+Luego para visualizar la distribucion invidual de las variables con mas precision se dividen en dos grupos tomando como referencia su naturaleza, es decir si son cualitativas o cuantitativas. En primer lugar se trabaja muestra una grafica con la escala normal del salario y en base logartimica, de esta forma se observa una distribución mas uniforme de la variable y la interpretación de los determinantes de naturaleza cuantitativa se hara desde elasticidades.
 
 ```{r}
-data_h$Estrato <- factor(data_h$Estrato, levels = c("1", "2", "3", "4", "5"))
+data_h$log_salario <- log(data_h$Salario)
+par(mfrow=c(1,2))  
+hist(data_h$Salario, main="Distribución del salario", xlab="Salario", ylab="Frecuencia")
+hist(data_h$log_salario, main="Histograma de logaritmo del Salario", xlab="Log(Salario)", ylab="Frecuencia")
+```
 
-character_cols <- data_h %>%
-  select(where(is.character))
 
+```{r}
+summary_salario <- summary(data_h$Salario)
+summary_salario
+```
+Para el año 2018 el salario minimo en Colombia era de $ 781.242, por lo que la mayoria de personas que hicieron parte de este estudio y que  trabajan ganan al menos un salario minimo. Historicamente segun el DANE , la tasa de informalidad en en Bogota ha estado ubicada alrededor de un 40 %. Comparando esta cifra con las personas que reposrtan el salario asumiendo su representatividad se puede ver que en terminos nominales el salario del sector formal esta muy cerca de la retribucion en el mercado informal. Sin embargo, para este analisis se debe tener en cuenta que el salario minimo solo es una parte de los costos laborales y que a pesar de que esten cercanos los salario con los beneficios de un salario integral como es la afiliación a EPS,pension y cesantias la brecha puede ser mayor. 
 
-calculate_percentage <- function(column) {
-  prop.table(table(column)) * 100
+Para identificar el comportamiento de las variables que sirven para explicar el comportamiento del salario, se dividen en 2 categorias segun su naturaleza de medición en Cualitativas y cuantitativas.  Los resultados mas interesantes se ven en la variable del Estrato, en este caso se observa como la mayoria de personas encuestadas se ubican en los estratos 2 y 3 con una representacion de 42.9% y 37.2% respectivamente. La clasificacion de las personas a traves de los estratos tiene el proposito de identificar la capacidad adquistiva. Por tanto en esta encuesta predominan personas con ingresos  medio-bajos siguiendo las definiciones del estrato socioeconomico. Las diferencias de representacion por sexo no son significativas y siguen la regla general de las cifras poblacionales en Colombia.
+
+Las cifras de las condiciones de las personas en el mercado laboral son consistentes, sobre todo en la condición de formalidad. Para el año 2018 el 63,3 % reporta que se encuentra trabajando en el sector formal. La formalidad en este estudio se define como la persona que esta afiliada a la seguridad social. Desde la teoria se espera que las personas en el sector formal perciban salarios mayores a las personas en condiciones de informalidad.
+
+```{r}
+qualitative_factor_vars <- data_h %>%
+  select(where(function(x) is.factor(x) || is.character(x))) 
+plot_proportion <- function(column, col_name) {
+  proportion <- prop.table(table(column)) * 100
+  barplot(proportion, main = col_name, ylab = "Proporción (%)", col = "skyblue", ylim = c(0, 100))
+  text(x = 1:length(proportion), y = proportion, 
+       label = paste0(round(proportion, 1), "%"), pos = 3, cex = 0.8, col = "black")
 }
-
-
-percentage_distributions <- map(character_cols, calculate_percentage)
-
-# Crear los gráficos
-character_plots <- map2(percentage_distributions, names(percentage_distributions), ~ ggplot(mapping = aes(x = reorder(names(.x), .x), y = .x)) +
-                           geom_bar(stat = "identity", fill = "#0073C2FF") +
-                           labs(x = "", y = "Percentage", title = paste("Distribution of", .y)) +  
-                           theme_minimal() +
-                           theme(plot.title = element_text(color = "black", hjust = 0),
-                                 axis.text.x = element_text(angle = 45, hjust = 1)))
-
-# Organizar los gráficos en una cuadrícula
-character_grid <- grid.arrange(grobs = character_plots, ncol = 2)
-
-
+num_vars <- ncol(qualitative_factor_vars)
+num_rows <- ceiling(sqrt(num_vars))
+num_cols <- ceiling(num_vars / num_rows)
+par(mfrow = c(num_rows, num_cols), mar = c(5, 5, 2, 2))  
+walk2(qualitative_factor_vars, names(qualitative_factor_vars), plot_proportion)
 ```
 
-
 ```{r}
-numeric_cols <- data_h %>%
+quantitative_vars <- data_h %>%
   select(where(is.numeric))
 
-numeric_plots <- map2(numeric_cols, names(numeric_cols), ~ ggplot(data_h, aes(x = .x)) +
-                         geom_histogram(fill = "skyblue", color = "black", bins = 10) +
-                         ggtitle(paste("Distribucion of", .y)) +  # Set the title to the column name
-                         theme_minimal() +
-                         theme(plot.title = element_text(color = "black", hjust = 0)))
+plot_histogram <- function(column, col_name) {
+  hist(column, main = col_name, xlab = col_name, ylab = "Frecuencia", col = "skyblue")
+}
 
+num_vars <- ncol(quantitative_vars)
+num_rows <- ceiling(sqrt(num_vars))
+num_cols <- ceiling(num_vars / num_rows)
 
-numeric_grid <- grid.arrange(grobs = numeric_plots, ncol = 2)
+par(mfrow = c(num_rows, num_cols), mar = c(5, 5, 2, 2))  
+
+walk2(quantitative_vars, names(quantitative_vars), plot_histogram)
 ```
 
 
 
 
 ## Analisis exploratorio bivariado
+
+```{r}
+options(repr.plot.width = 20, repr.plot.height = 10)
+qualitative_vars <- data_h %>% select(where(is.factor) | where(is.character))
+num_cols <- 4
+num_rows <- ceiling(ncol(qualitative_vars) / num_cols)
+par(mfrow = c(num_rows, num_cols))
+for (col in colnames(qualitative_vars)) {
+  suppressWarnings(boxplot(log_salario ~ data_h[[col]], data = data_h, main = col, xlab = col, ylab = "log_salario"))
+}
+
+
+```
+
+
+```{r}
+options(repr.plot.width = 20, repr.plot.height = 10)
+
+# Seleccionar variables cuantitativas
+numeric_vars <- data_h %>% select(where(is.numeric))
+
+# Establecer el número de columnas para la disposición de la grilla
+num_cols <- 4
+num_rows <- ceiling(ncol(numeric_vars) / num_cols)
+
+# Establecer el tamaño de la gráfica
+par(mfrow = c(num_rows, num_cols))
+
+# Crear scatter plots para variables cuantitativas
+for (col in colnames(numeric_vars)) {
+  suppressWarnings(plot(data_h[[col]], data_h$log_salario, main = col, xlab = col, ylab = "log_salario"))
+}
+```
+
 
 
 ## AEDE individual
