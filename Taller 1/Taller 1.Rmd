@@ -141,7 +141,7 @@ Tiempo_ejecucion
 
 El preprocesamiento de los datos se realiza de forma simultanea con el analisis descriptivo . Esto se da porque generalmente cuando se analiza la distribucion de cada variable de forma invidual es que se logra identificar registros vacios o atipicos que merecen un tratamiento aparte. Sin embargo, aplicamos unas reglas de validacion iniciar para garantizar que los modelos de regresion tengan resultados satisfactorios. 
 
-Primero se cambiaron los nombres de las variables que se van usar para que su identificacoin fuera mas sencilla, tambien se les dio el formato adecuado de tal forma que se respetara la naturaleza cualitativa o cuantitativa de las mismas. Los filtros mas importantes de la base de datos fueron para la poblacion en edad de trabajar, como sugerencia del ejercicio solo hay registros para personas mayores de edad. Tambien se filtran las personas que estan activas en el mercado de trabajo ya que est
+Primero se cambiaron los nombres de las variables que se van usar para que su identificacoin fuera mas sencilla, tambien se les dio el formato adecuado de tal forma que se respetara la naturaleza cualitativa o cuantitativa de las mismas. Los filtros mas importantes de la base de datos fueron para la poblacion en edad de trabajar, como sugerencia del ejercicio solo hay registros para personas mayores de edad. Tambien se filtran las personas que estan activas en el mercado de trabajo ya que son estas las unicas que perciben un salario.
 
 ```{r}
 # Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
@@ -176,35 +176,42 @@ data <-data %>%
 ```
 ## Analisis exploratorio de datos indiviudal
 
-## Analisis exploratorio bivariado
-
-
-## AEDE individual
-
-En este apartado observamos como se comportan las variables incluidas en
-el modelo , con el objetivo de analizar su distribucion e iniciar con el
-proceso de limpieza
+Para que la manipulacion de los datos sea mas sencilla se toma del dataframe original solo las columnas que se establecieron en la introduccion y se guardan en el dataframe datah.
 
 ```{r}
 data_h <- data %>%
   select(Edad,cuentaPropia,Estrato,formal,informal,Ingreso,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
 ```
-
+Luego para visualizar la distribucion invidual de las variables con mas precision se dividen en dos grupos tomando como referencia su naturaleza, es decir si son cualitativas o cuantitativas.
 
 ```{r}
+data_h$Estrato <- factor(data_h$Estrato, levels = c("1", "2", "3", "4", "5"))
+
 character_cols <- data_h %>%
   select(where(is.character))
 
 
-character_plots <- map2(character_cols, names(character_cols), ~ ggplot(data_h, aes(x = .x)) +
-                         geom_bar() +
-                         ggtitle(paste("Distribucion", .y)) +  
-                         theme_minimal() +
-                         theme(plot.title = element_text(color = "black", hjust = 0)))
+calculate_percentage <- function(column) {
+  prop.table(table(column)) * 100
+}
 
 
+percentage_distributions <- map(character_cols, calculate_percentage)
+
+# Crear los gráficos
+character_plots <- map2(percentage_distributions, names(percentage_distributions), ~ ggplot(mapping = aes(x = reorder(names(.x), .x), y = .x)) +
+                           geom_bar(stat = "identity", fill = "#0073C2FF") +
+                           labs(x = "", y = "Percentage", title = paste("Distribution of", .y)) +  
+                           theme_minimal() +
+                           theme(plot.title = element_text(color = "black", hjust = 0),
+                                 axis.text.x = element_text(angle = 45, hjust = 1)))
+
+# Organizar los gráficos en una cuadrícula
 character_grid <- grid.arrange(grobs = character_plots, ncol = 2)
+
+
 ```
+
 
 ```{r}
 numeric_cols <- data_h %>%
@@ -219,6 +226,25 @@ numeric_plots <- map2(numeric_cols, names(numeric_cols), ~ ggplot(data_h, aes(x 
 
 numeric_grid <- grid.arrange(grobs = numeric_plots, ncol = 2)
 ```
+
+
+
+
+## Analisis exploratorio bivariado
+
+
+## AEDE individual
+
+En este apartado observamos como se comportan las variables incluidas en
+el modelo , con el objetivo de analizar su distribucion e iniciar con el
+proceso de limpieza
+
+
+
+
+
+
+
 
 # Analisis de regresion
 
