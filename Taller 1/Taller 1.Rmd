@@ -12,6 +12,7 @@ library(rvest)
 library(tidyverse)
 library(gridExtra)
 library(ggthemes)
+library(boot)
 ```
 
 # Introduccion 
@@ -97,7 +98,7 @@ data_ponderada <- data_ponderada %>%
       Ingreso=ingtot,
       Educacion=p6210,
       Experiencia= p6426,
-      Salario=p6500,
+      Salario=y_total_m,
       Sexo=sex,
       Horas_trabajadas=totalHoursWorked
   )  %>%
@@ -123,33 +124,50 @@ En este apartado observamos como se comportan las variables incluidas en el mode
 
 ```{r}
 data_h <- data_ponderada %>%
-  select(Edad,cuentaPropia,Estrato,formal,informal,Ingreso,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
+  select(directorio,Edad,cuentaPropia,Estrato,formal,informal,Ingreso,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
 ```
 
+Revisamos cuantos valores faltantes hay en la variable salario luego de esta depuración
+```{r}
+summary(data_h$Salario)
+```
+Evidenciamos una cantidad considerable de NA por tanto realizamos la imputación de esta con el promedio del directorio de cada hogar.
+```{r}
+data_h = data_h %>% 
+     group_by(directorio) %>% 
+     mutate(mean_salario = mean(Salario, na.rm=T))
 
+data_h = data_h %>%
+     mutate(Salario2 = ifelse(test = is.na(Salario)==T,
+                               yes = mean_salario,
+                               no = Salario))
+table(is.na(data_h$Salario2))
+```
 Se identifica que hay personas que reportaron ingresos iguales a cero a pesar de ser trabajadores y haber reportado horas laboradas, razón por la cual se excluyen estos registros de la muestra. 
 
 ```{r}
-data_h1 <-data_h %>%
-filter(Ingreso>0)
+data_h <-data_h %>%
+filter(Salario2>0)
+
+table(is.na(data_h$Salario2))
 ```
 
 Se construyen las variables para la estimación del modelo
 ```{r}
-data_h1<-data_h1 %>% mutate(log_salario=log(Ingreso),
-Edad2=Edad^2)
+data_h<-data_h %>% mutate(log_salario=log(Salario2),
+                            Edad2=Edad^2
+                            )
+
+summary(data_h)
 ```
 
-```{r}
-str(data_h1)
-```
 
 ```{r}
-character_cols <- data_h1 %>%
+character_cols <- data_h %>%
   select(where(is.character))
 
 
-character_plots <- map2(character_cols, names(character_cols), ~ ggplot(data_h1, aes(x = .x)) +
+character_plots <- map2(character_cols, names(character_cols), ~ ggplot(data_h, aes(x = .x)) +
                          geom_bar() +
                          ggtitle(paste("Distribucion", .y)) +  
                          theme_minimal() +
@@ -160,10 +178,10 @@ character_grid <- grid.arrange(grobs = character_plots, ncol = 2)
 ```
 
 ```{r}
-numeric_cols <- data_h1 %>%
+numeric_cols <- data_h %>%
   select(where(is.numeric))
 
-numeric_plots <- map2(numeric_cols, names(numeric_cols), ~ ggplot(data_h1, aes(x = .x)) +
+numeric_plots <- map2(numeric_cols, names(numeric_cols), ~ ggplot(data_h, aes(x = .x)) +
                          geom_histogram(fill = "skyblue", color = "black", bins = 10) +
                          ggtitle(paste("Distribucion of", .y)) +  # Set the title to the column name
                          theme_minimal() +
@@ -181,16 +199,74 @@ EL proposito es estimar el siguiente modelo:
 $$log(w) = \beta_{1} + \beta_{2}Edad + \beta_{3}Edad^2$$
 ```{r}
 modelo1<-lm(log_salario ~  Edad + Edad2,
-data=data_h1)
+data=data_h)
 stargazer::stargazer(modelo1,type = "text")
 ```
-
+Los coeficientes de la regresión son significativos hasta a un nivel de confianza del 95%. A partir de ellos podemos rescatar la siguiente ecuación de salarios en función de la edad
+$$log(w) = 12.786 + 0.64 Edad - 0.001 Edad^2 + u$$
+Se evidencia que el ajuste del modelo dentro de la muestra no es muy grande ya que el R2 es de 0.032. Esta medida también la podemos complementar con el cálculo el error cuadrático medio MSE.
 
 ```{r}
-data_h1<- data_h1 %>% mutate(log_ingreso_gorro=fitted(modelo1))
-data_aux<-data_h1 %>% select(log_salario,log_ingreso_gorro,Edad)
+MSE<-sum((data_h$log_salario-data_h$log_salario_gorro)^2)/length(data_h$log_salario)
+MSE
+```
+Aumentando la complejidad del modelo es probable que tanto el R2 aumente como el MSE se reduzca, sin embargo, con esto estaremos aumentando la varianza de los estimadores, lo que permite disminuir el sesgo.
 
-data_aux<-data_aux %>%  pivot_longer(cols = log_salario:log_ingreso_gorro,
+A partir de los coeficientes obtenidos es posible calcular la edad pico en el crecimiento de los ingresos de las personas. 
+
+$$\frac {\partial log(w)}{\partial Edad} =0 $$
+
+$$\frac {\partial log(w)}{\partial Edad} = \beta 1-(2) \beta2Edad=0$$
+
+$$Edad^*=\frac {\beta1}{-(2)\beta 2}$$
+
+Calculamos la edad pico, al tiempo que construimos la función que nos permitirá mediante el bootstrap estimar la varianza de los estimadores para la generación del intérvalo de confianza. 
+
+```{r}
+
+bfuncion<-function(data,index){
+  
+modelo<-lm(log_salario ~  Edad + Edad2, data=data_h,subset = index)
+
+coeficientes<-modelo$coefficients
+
+b1<-coeficientes[2]
+b2<-coeficientes[3]
+
+edad_pico<-b1/(-2*b2)
+return(edad_pico) #returns the second coefficient of the linear regression
+}
+
+edad_pico<-bfuncion(data_h,1:nrow(data_h))
+modelo1$coefficients[2]/(-2*modelo1$coefficients[3])
+edad_pico
+```
+Para poder realizar esta inferencia calculamos la Varianza utilizando bootstap. 
+```{r}
+set.seed(123)
+repeticiones<-1000
+boot(data_h,bfuncion,R=repeticiones)
+```
+Con esto podemos establecer el intervalo de confianza para la edad pico 
+$Edad^* \pm t_{\alpha/2} * 0.3462259 $
+
+Es decir que para un nivel de confianza del 95% 
+```{r}
+n=nrow(x = data_h)
+t=abs(qt(p = (1-0.95)/2,df =n-1 ))
+limite_inferior=edad_pico-(t*0.3462259)
+limite_superior=edad_pico+(t*0.3462259)
+limites<-c(limite_inferior,limite_superior)
+limites
+```
+Observamos de manera gráfica el ajuste del modelo a los datos. 
+```{r}
+fit<-predict.lm(modelo1,newdata = data_h)
+data_h$log_salario_gorro<-fit
+ 
+data_aux<-data_h %>% select(log_salario,log_salario_gorro,Edad)
+
+data_aux<-data_aux %>%  pivot_longer(cols = log_salario:log_salario_gorro,
 names_to = "Predict",
 values_to = "Valor")
 
@@ -198,12 +274,11 @@ ggplot(data_aux,aes(x=Edad,color=Predict)) +
 geom_point(aes(y=Valor)) +
 labs(title = "Ajuste del modelo a los datos de la muestra",
 x="Edad",
-y="Log Ingreso"
+y="Log salario"
 ) +
 theme_stata() +
 scale_fill_stata()
 ```
-
 # Modelo de genero
 
 
