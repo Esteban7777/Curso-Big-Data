@@ -17,6 +17,8 @@ t1<-Sys.time()
 library(rvest)
 library(tidyverse)
 library(zoo)
+library(kableExtra)
+library(corrplot)
 ```
 
 ```{r}
@@ -160,7 +162,7 @@ data <- data %>%
       Ingreso=ingtot,
       Educacion=p6210,
       Experiencia= p6426,
-      Salario=p6500,
+      Salario=y_total_m,
       Sexo=sex,
       Horas_trabajadas=totalHoursWorked
   )  %>%
@@ -210,11 +212,12 @@ hist(data_h$log_salario, main="Histograma de logaritmo del Salario", xlab="Log(S
 summary_salario <- summary(data_h$Salario)
 summary_salario
 ```
-Para el año 2018 el salario minimo en Colombia era de $ 781.242, por lo que la mayoria de personas que hicieron parte de este estudio y que  trabajan ganan al menos un salario minimo. Historicamente segun el DANE , la tasa de informalidad en en Bogota ha estado ubicada alrededor de un 40 %. Comparando esta cifra con las personas que reposrtan el salario asumiendo su representatividad se puede ver que en terminos nominales el salario del sector formal esta muy cerca de la retribucion en el mercado informal. Sin embargo, para este analisis se debe tener en cuenta que el salario minimo solo es una parte de los costos laborales y que a pesar de que esten cercanos los salario con los beneficios de un salario integral como es la afiliación a EPS,pension y cesantias la brecha puede ser mayor. 
+Para el año 2018 el salario minimo en Colombia era de $ 781.242, por lo que la mayoria de personas que hicieron parte de este estudio y que  trabajan ganan al menos un salario minimo. La distribución de los ingresos de las personas muestra que el 25% de los encuestados ganan al menos 
+$ 869 453, un 11% mas alto de lo establecido para cumplir con las necesidades basicas según la legislación colombiana. Esta situacion se puede presentar por la forma en que se esta mididendo el salario, ya que en este ejercicio no solo se tiene en cuenta el monto recibido por su actividad labroa si no que se añade tambien por actividades independientes.  
 
-Para identificar el comportamiento de las variables que sirven para explicar el comportamiento del salario, se dividen en 2 categorias segun su naturaleza de medición en Cualitativas y cuantitativas.  Los resultados mas interesantes se ven en la variable del Estrato, en este caso se observa como la mayoria de personas encuestadas se ubican en los estratos 2 y 3 con una representacion de 42.9% y 37.2% respectivamente. La clasificacion de las personas a traves de los estratos tiene el proposito de identificar la capacidad adquistiva. Por tanto en esta encuesta predominan personas con ingresos  medio-bajos siguiendo las definiciones del estrato socioeconomico. Las diferencias de representacion por sexo no son significativas y siguen la regla general de las cifras poblacionales en Colombia.
+Para identificar el comportamiento de las variables que sirven para explicar el comportamiento del salario, se dividen en 2 categorias segun su naturaleza de medición en Cualitativas y cuantitativas.  Los resultados mas interesantes se ven en la variable del Estrato, en este caso se observa como la mayoria de personas encuestadas se ubican en los estratos 2 y 3 con una representacion de 41.7% y 36.2% respectivamente. La clasificacion de las personas a traves de los estratos tiene el proposito de identificar la capacidad adquistiva. Por tanto en esta encuesta predominan personas con ingresos  medio-bajos siguiendo las definiciones del estrato socioeconomico. Las diferencias de representacion por sexo no son significativas y siguen la regla general de las cifras poblacionales en Colombia.
 
-Las cifras de las condiciones de las personas en el mercado laboral son consistentes, sobre todo en la condición de formalidad. Para el año 2018 el 63,3 % reporta que se encuentra trabajando en el sector formal. La formalidad en este estudio se define como la persona que esta afiliada a la seguridad social. Desde la teoria se espera que las personas en el sector formal perciban salarios mayores a las personas en condiciones de informalidad.
+Las cifras de las condiciones de las personas en el mercado laboral son consistentes, sobre todo en la condición de formalidad. Para el año 2018 el 63,7 % reporta que se encuentra trabajando en el sector formal. La formalidad en este estudio se define como la persona que esta afiliada a la seguridad social. Desde la teoria se espera que las personas en el sector formal perciban salarios mayores a las personas en condiciones de informalidad.
 
 ```{r}
 qualitative_factor_vars <- data_h %>%
@@ -231,6 +234,18 @@ num_cols <- ceiling(num_vars / num_rows)
 par(mfrow = c(num_rows, num_cols), mar = c(5, 5, 2, 2))  
 walk2(qualitative_factor_vars, names(qualitative_factor_vars), plot_proportion)
 ```
+La distribución individual de las variables cuantitativas se muestran a continuación, el comportamiento de la edad es bastante uniforme y la mayor concentración se encuentra alrededor de los 37 años. Siguiendo la teoria del ciclo de vida , la mayoria de las personas encuestadas se encuentran en una edad adulta temprana, en el aspecto laboral esto significa ya se encuentran en el momento de estabilidad y donde mas productivo se es, y los salario deberian ser mas altos ya que se cuenta con mas experiencia. Este argumento se constrasta con los datos de experiencia en su trabajo que se miden a partir de los meses que llevan trabajando en la misma empresa. Los datos muestran que en promedio las personas llevan trabajando en el mismo lugar 5 años. Sin embargo, la diferencia con la mediana es muy alta ya que el valor medio de los meses trabajados es 2 años. Esta distorsion se puede explicar por la presencia de datos atipicos. Por el lado de las  horas trabajadas la semana pasada sus valores estan muy cercas a las exigidas por la lesgislación laboral colombiana.
+
+```{r}
+quantitative_vars <- data_h %>%
+  select(where(is.numeric)) %>%
+  select(-Salario,-log_salario)
+
+summary <- summary(quantitative_vars)
+markdown_table <- kable(summary, format = "markdown", digits = 2) %>%
+                    kable_styling()
+```
+
 
 ```{r}
 quantitative_vars <- data_h %>%
@@ -254,6 +269,12 @@ walk2(quantitative_vars, names(quantitative_vars), plot_histogram)
 
 ## Analisis exploratorio bivariado
 
+
+En este apartado se explorarn las diferecnias que pueden existir entre las categorias analizadas en la seccion anterior cuando se presentan a travez del logaritmo del salario. Las diferencias mas grandes se observa a traves de la variable Estrato socioeconomico y en el nivel de educacion cuando el encuestado cuenta con grado de educación superior. Las diferencias a traves del estrato se intuyen por la naturaleza de esta variable, ya que esta mide entre otras cosas la capacidad adquisitiva del hogar. Mientras que el tema del estudio se explica por la teoria del capital humano, donde sostiene que la formación de los individuos son inveriones que aumentan su productivdad e ingresos a lo largo del tiempo.
+
+Hay diferencias moderadas a traves de las variables como si el encuestado trabaja en por su cuenta o si esta desempeñando su trabajo en condicion de informalidad. Los datos muestran un ligero aumento del salario promedio si la persona trabaja como empleada, ademas los trabajadores que trabajan como empleados formales perciben unos ingresos ligeramente mayores que los trabajadores informales. Donde no se observan diferencias es en el caso del sexo, donde los salario son uniformes para los hombres y mujeres.
+
+
 ```{r}
 options(repr.plot.width = 20, repr.plot.height = 10)
 qualitative_vars <- data_h %>% select(where(is.factor) | where(is.character))
@@ -267,38 +288,22 @@ for (col in colnames(qualitative_vars)) {
 
 ```
 
-
+En relación a las variables de naturaleza cuantitativa , no hay patrones que ayuden a determinar cambios significativos en el ingreso laboral, incluso los niveles de correlación entre las variables no dan señal de que puedan aportar cuando se inicie con el proceso de modelación. 
 ```{r}
 options(repr.plot.width = 20, repr.plot.height = 10)
-
-# Seleccionar variables cuantitativas
 numeric_vars <- data_h %>% select(where(is.numeric))
-
-# Establecer el número de columnas para la disposición de la grilla
-num_cols <- 4
+numeric_vars <- numeric_vars %>% select(-Salario,-log_salario)
+num_cols <- 2
 num_rows <- ceiling(ncol(numeric_vars) / num_cols)
-
-# Establecer el tamaño de la gráfica
 par(mfrow = c(num_rows, num_cols))
-
-# Crear scatter plots para variables cuantitativas
 for (col in colnames(numeric_vars)) {
   suppressWarnings(plot(data_h[[col]], data_h$log_salario, main = col, xlab = col, ylab = "log_salario"))
 }
 ```
 
-
-
-## AEDE individual
-
-En este apartado observamos como se comportan las variables incluidas en
-el modelo , con el objetivo de analizar su distribucion e iniciar con el
-proceso de limpieza
-
-
-
-
-
+```{r}
+cor(numeric_vars)
+```
 
 
 
