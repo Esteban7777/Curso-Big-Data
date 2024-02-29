@@ -13,12 +13,11 @@ editor_options:
 
 ```{r echo=FALSE}
 library(gridExtra)
-t1<-Sys.time()
 library(rvest)
 library(tidyverse)
 library(zoo)
-library(kableExtra)
-library(corrplot)
+library(ggthemes)
+library(boot)
 ```
 
 ```{r}
@@ -26,39 +25,6 @@ if (!requireNamespace("zoo", quietly = TRUE)) {
   install.packages("zoo")}
 ```
 
-
-La estrategia propuesta para conservar la representatividad de la
-muestra que permite el factor de expansión consiste en transformar esta
-variable en un factor de ponderación de manera que conservemos su
-proporción con respecto al universo sin afectar el tamaño original de la
-muestra, de esta manera se ahorra recursos computacionales la ejecución
-de los algoritmos y el tratamiento de los datos.
-
-```{r}
-base_no_ponderada<-length(data$fex_c)
-universo_representado<-sum(data$fex_c)
-
-data<-  data %>%
-  mutate(data, peso=fex_c/universo_representado) %>% 
-  mutate(data,fponderacion=peso*base_no_ponderada)
-
-base_ponderada<-sum(data$fponderacion)
-unidades_muestrales_fex<-length(unique(data$fex_c))
-unidades_muestrales_fpon<-length(unique(data$fponderacion))
-
-tabla1<-t(tibble(base_no_ponderada,base_ponderada,unidades_muestrales_fex,unidades_muestrales_fpon,universo_representado))
-tabla1
-```
-
-Para trabajar con los datos ponderados se replica cada registro tantas
-unidades muestrales represente.
-
-```{r}
-data_ponderada<-uncount(data,weights = round(data$fponderacion))
-base_ponderada<-length(data_ponderada$directorio)
-base_ponderada
-base_no_ponderada
-```
 
 # Introduccion
 
@@ -130,6 +96,8 @@ Como la base de datos completa se encuentra separada en 10 partes el proceso se 
 Cuando se haga el proceso iterativo en las 10 paginas estas quedan anidadas en la lista vacia tables_list, para darle un formato manejable en el proceso de machine learning se concatenan en una sola sabana de datos con formato tibble. Como la cantidad de datos es considerable este proceso dura aproximadamente 8 minutos.
 
 ```{r}
+t1<-Sys.time()
+
 url_base<-my_url <- "https://ignaciomsarmiento.github.io/GEIH2018_sample/pages/geih_page_"
 
 tables_list <- list()
@@ -146,6 +114,39 @@ Tiempo_ejecucion
 ```
 ## Preprocesamiento de datos
 
+La estrategia propuesta para conservar la representatividad de la
+muestra que permite el factor de expansión consiste en transformar esta
+variable en un factor de ponderación de manera que conservemos su
+proporción con respecto al universo sin afectar el tamaño original de la
+muestra, de esta manera se ahorra recursos computacionales la ejecución
+de los algoritmos y el tratamiento de los datos.
+
+```{r}
+base_no_ponderada<-length(data$fex_c)
+universo_representado<-sum(data$fex_c)
+
+data<-  data %>%
+  mutate(data, peso=fex_c/universo_representado) %>% 
+  mutate(data,fponderacion=peso*base_no_ponderada)
+
+base_ponderada<-sum(data$fponderacion)
+unidades_muestrales_fex<-length(unique(data$fex_c))
+unidades_muestrales_fpon<-length(unique(data$fponderacion))
+
+tabla1<-t(tibble(base_no_ponderada,base_ponderada,unidades_muestrales_fex,unidades_muestrales_fpon,universo_representado))
+tabla1
+```
+
+Para trabajar con los datos ponderados se replica cada registro tantas
+unidades muestrales represente.
+
+```{r}
+data_ponderada<-uncount(data,weights = round(data$fponderacion))
+base_ponderada<-length(data_ponderada$directorio)
+base_ponderada
+base_no_ponderada
+```
+
 El preprocesamiento de los datos se realiza de forma simultanea con el analisis descriptivo . Esto se da porque generalmente cuando se analiza la distribucion de cada variable de forma invidual es que se logra identificar registros vacios o atipicos que merecen un tratamiento aparte. Sin embargo, aplicamos unas reglas de validacion iniciar para garantizar que los modelos de regresion tengan resultados satisfactorios. 
 
 Primero se cambiaron los nombres de las variables que se van usar para que su identificacoin fuera mas sencilla, tambien se les dio el formato adecuado de tal forma que se respetara la naturaleza cualitativa o cuantitativa de las mismas. Los filtros mas importantes de la base de datos fueron para la poblacion en edad de trabajar, como sugerencia del ejercicio solo hay registros para personas mayores de edad. Tambien se filtran las personas que estan activas en el mercado de trabajo ya que son estas las unicas que perciben un salario.
@@ -155,7 +156,7 @@ Primero se cambiaron los nombres de las variables que se van usar para que su id
 
 
 ## Falta filtrar solo por personas 
-data <- data %>%
+data_ponderada <- data_ponderada %>%
     rename(
       Edad= age,
       Estrato=estrato1,
@@ -173,37 +174,56 @@ data <- data %>%
 
 ### Filtro por población economica activa
 
-data <- data %>%
+data_ponderada <- data_ponderada %>%
   filter(Edad >18 & dsi !="1") 
 
 
-data <-data %>%
+data_ponderada <-data_ponderada %>%
   filter(p6240==1)
 
-
-
-### Tratamiento de nas
-
-data$Salario <- na.aggregate(data$Salario, FUN = median)
 ```
-
-
 
 ## Analisis exploratorio de datos indiviudal
 
 Para que la manipulacion de los datos sea mas sencilla se toma del dataframe original solo las columnas que se establecieron en la introduccion y se guardan en el dataframe datah.
 
 ```{r}
-data_h <- data %>%
-  select(Edad,cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)
+data_h <- data_ponderada %>%
+  select(Edad,cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas,directorio)
+```
+
+Revisamos cuantos valores faltantes hay en la variable salario luego de esta depuración
+```{r}
+summary(data_h$Salario)
+```
+Evidenciamos una cantidad considerable de NA por tanto realizamos la imputación de esta con el promedio del directorio de cada hogar.
+```{r}
+data_h = data_h %>% 
+     group_by(directorio) %>% 
+     mutate(mean_salario = mean(Salario, na.rm=T))
+
+data_h = data_h %>%
+     mutate(Salario2 = ifelse(test = is.na(Salario)==T,
+                               yes = mean_salario,
+                               no = Salario))
+table(is.na(data_h$Salario2))
+```
+Se identifica que hay personas que reportaron ingresos iguales a cero a pesar de ser trabajadores y haber reportado horas laboradas, razón por la cual se excluyen estos registros de la muestra. 
+
+```{r}
+data_h <-data_h %>%
+filter(Salario2>0)
+
+table(is.na(data_h$Salario2))
 ```
 
 Luego para visualizar la distribucion invidual de las variables con mas precision se dividen en dos grupos tomando como referencia su naturaleza, es decir si son cualitativas o cuantitativas. En primer lugar se trabaja muestra una grafica con la escala normal del salario y en base logartimica, de esta forma se observa una distribución mas uniforme de la variable y la interpretación de los determinantes de naturaleza cuantitativa se hara desde elasticidades.
-
 ```{r}
-data_h$log_salario <- log(data_h$Salario)
+data_h<-data_h %>% mutate(log_salario=log(Salario2),
+                            Edad2=Edad^2
+                            )
 par(mfrow=c(1,2))  
-hist(data_h$Salario, main="Distribución del salario", xlab="Salario", ylab="Frecuencia")
+hist(data_h$Salario2, main="Distribución del salario", xlab="Salario", ylab="Frecuencia")
 hist(data_h$log_salario, main="Histograma de logaritmo del Salario", xlab="Log(Salario)", ylab="Frecuencia")
 ```
 
@@ -212,12 +232,11 @@ hist(data_h$log_salario, main="Histograma de logaritmo del Salario", xlab="Log(S
 summary_salario <- summary(data_h$Salario)
 summary_salario
 ```
-Para el año 2018 el salario minimo en Colombia era de $ 781.242, por lo que la mayoria de personas que hicieron parte de este estudio y que  trabajan ganan al menos un salario minimo. La distribución de los ingresos de las personas muestra que el 25% de los encuestados ganan al menos 
-$ 869 453, un 11% mas alto de lo establecido para cumplir con las necesidades basicas según la legislación colombiana. Esta situacion se puede presentar por la forma en que se esta mididendo el salario, ya que en este ejercicio no solo se tiene en cuenta el monto recibido por su actividad labroa si no que se añade tambien por actividades independientes.  
+Para el año 2018 el salario minimo en Colombia era de $ 781.242, por lo que la mayoria de personas que hicieron parte de este estudio y que  trabajan ganan al menos un salario minimo. Historicamente segun el DANE , la tasa de informalidad en en Bogota ha estado ubicada alrededor de un 40 %. Comparando esta cifra con las personas que reposrtan el salario asumiendo su representatividad se puede ver que en terminos nominales el salario del sector formal esta muy cerca de la retribucion en el mercado informal. Sin embargo, para este analisis se debe tener en cuenta que el salario minimo solo es una parte de los costos laborales y que a pesar de que esten cercanos los salario con los beneficios de un salario integral como es la afiliación a EPS,pension y cesantias la brecha puede ser mayor. 
 
-Para identificar el comportamiento de las variables que sirven para explicar el comportamiento del salario, se dividen en 2 categorias segun su naturaleza de medición en Cualitativas y cuantitativas.  Los resultados mas interesantes se ven en la variable del Estrato, en este caso se observa como la mayoria de personas encuestadas se ubican en los estratos 2 y 3 con una representacion de 41.7% y 36.2% respectivamente. La clasificacion de las personas a traves de los estratos tiene el proposito de identificar la capacidad adquistiva. Por tanto en esta encuesta predominan personas con ingresos  medio-bajos siguiendo las definiciones del estrato socioeconomico. Las diferencias de representacion por sexo no son significativas y siguen la regla general de las cifras poblacionales en Colombia.
+Para identificar el comportamiento de las variables que sirven para explicar el comportamiento del salario, se dividen en 2 categorias segun su naturaleza de medición en Cualitativas y cuantitativas.  Los resultados mas interesantes se ven en la variable del Estrato, en este caso se observa como la mayoria de personas encuestadas se ubican en los estratos 2 y 3 con una representacion de 42.9% y 37.2% respectivamente. La clasificacion de las personas a traves de los estratos tiene el proposito de identificar la capacidad adquistiva. Por tanto en esta encuesta predominan personas con ingresos  medio-bajos siguiendo las definiciones del estrato socioeconomico. Las diferencias de representacion por sexo no son significativas y siguen la regla general de las cifras poblacionales en Colombia.
 
-Las cifras de las condiciones de las personas en el mercado laboral son consistentes, sobre todo en la condición de formalidad. Para el año 2018 el 63,7 % reporta que se encuentra trabajando en el sector formal. La formalidad en este estudio se define como la persona que esta afiliada a la seguridad social. Desde la teoria se espera que las personas en el sector formal perciban salarios mayores a las personas en condiciones de informalidad.
+Las cifras de las condiciones de las personas en el mercado laboral son consistentes, sobre todo en la condición de formalidad. Para el año 2018 el 63,3 % reporta que se encuentra trabajando en el sector formal. La formalidad en este estudio se define como la persona que esta afiliada a la seguridad social. Desde la teoria se espera que las personas en el sector formal perciban salarios mayores a las personas en condiciones de informalidad.
 
 ```{r}
 qualitative_factor_vars <- data_h %>%
@@ -234,18 +253,6 @@ num_cols <- ceiling(num_vars / num_rows)
 par(mfrow = c(num_rows, num_cols), mar = c(5, 5, 2, 2))  
 walk2(qualitative_factor_vars, names(qualitative_factor_vars), plot_proportion)
 ```
-La distribución individual de las variables cuantitativas se muestran a continuación, el comportamiento de la edad es bastante uniforme y la mayor concentración se encuentra alrededor de los 37 años. Siguiendo la teoria del ciclo de vida , la mayoria de las personas encuestadas se encuentran en una edad adulta temprana, en el aspecto laboral esto significa ya se encuentran en el momento de estabilidad y donde mas productivo se es, y los salario deberian ser mas altos ya que se cuenta con mas experiencia. Este argumento se constrasta con los datos de experiencia en su trabajo que se miden a partir de los meses que llevan trabajando en la misma empresa. Los datos muestran que en promedio las personas llevan trabajando en el mismo lugar 5 años. Sin embargo, la diferencia con la mediana es muy alta ya que el valor medio de los meses trabajados es 2 años. Esta distorsion se puede explicar por la presencia de datos atipicos. Por el lado de las  horas trabajadas la semana pasada sus valores estan muy cercas a las exigidas por la lesgislación laboral colombiana.
-
-```{r}
-quantitative_vars <- data_h %>%
-  select(where(is.numeric)) %>%
-  select(-Salario,-log_salario)
-
-summary <- summary(quantitative_vars)
-markdown_table <- kable(summary, format = "markdown", digits = 2) %>%
-                    kable_styling()
-```
-
 
 ```{r}
 quantitative_vars <- data_h %>%
@@ -265,15 +272,7 @@ walk2(quantitative_vars, names(quantitative_vars), plot_histogram)
 ```
 
 
-
-
 ## Analisis exploratorio bivariado
-
-
-En este apartado se explorarn las diferecnias que pueden existir entre las categorias analizadas en la seccion anterior cuando se presentan a travez del logaritmo del salario. Las diferencias mas grandes se observa a traves de la variable Estrato socioeconomico y en el nivel de educacion cuando el encuestado cuenta con grado de educación superior. Las diferencias a traves del estrato se intuyen por la naturaleza de esta variable, ya que esta mide entre otras cosas la capacidad adquisitiva del hogar. Mientras que el tema del estudio se explica por la teoria del capital humano, donde sostiene que la formación de los individuos son inveriones que aumentan su productivdad e ingresos a lo largo del tiempo.
-
-Hay diferencias moderadas a traves de las variables como si el encuestado trabaja en por su cuenta o si esta desempeñando su trabajo en condicion de informalidad. Los datos muestran un ligero aumento del salario promedio si la persona trabaja como empleada, ademas los trabajadores que trabajan como empleados formales perciben unos ingresos ligeramente mayores que los trabajadores informales. Donde no se observan diferencias es en el caso del sexo, donde los salario son uniformes para los hombres y mujeres.
-
 
 ```{r}
 options(repr.plot.width = 20, repr.plot.height = 10)
@@ -288,30 +287,124 @@ for (col in colnames(qualitative_vars)) {
 
 ```
 
-En relación a las variables de naturaleza cuantitativa , no hay patrones que ayuden a determinar cambios significativos en el ingreso laboral, incluso los niveles de correlación entre las variables no dan señal de que puedan aportar cuando se inicie con el proceso de modelación. 
+
 ```{r}
 options(repr.plot.width = 20, repr.plot.height = 10)
+
+# Seleccionar variables cuantitativas
 numeric_vars <- data_h %>% select(where(is.numeric))
-numeric_vars <- numeric_vars %>% select(-Salario,-log_salario)
-num_cols <- 2
+
+# Establecer el número de columnas para la disposición de la grilla
+num_cols <- 4
 num_rows <- ceiling(ncol(numeric_vars) / num_cols)
+
+# Establecer el tamaño de la gráfica
 par(mfrow = c(num_rows, num_cols))
+
+# Crear scatter plots para variables cuantitativas
 for (col in colnames(numeric_vars)) {
   suppressWarnings(plot(data_h[[col]], data_h$log_salario, main = col, xlab = col, ylab = "log_salario"))
 }
 ```
 
-```{r}
-cor(numeric_vars)
-```
-
-
 
 # Analisis de regresion
 
-EL proposito es estimar el siguiente modelo:
+EL propósito es estimar el siguiente modelo:
 
 $$log(w) = \beta_{1} + \beta_{2}Edad + \beta_{3}Edad^2$$
+
+```{r}
+modelo1<-lm(log_salario ~  Edad + Edad2,
+data=data_h)
+stargazer::stargazer(modelo1,type = "text")
+```
+
+Los coeficientes de la regresión son significativos hasta a un nivel de confianza del 95%. A partir de ellos podemos rescatar la siguiente ecuación de salarios en función de la edad
+
+$$log(w) = 12.786 + 0.64 Edad - 0.001 Edad^2 + u$$
+
+Se evidencia que el ajuste del modelo dentro de la muestra no es muy grande ya que el R2 es de 0.032. Esta medida también la podemos complementar con el cálculo el error cuadrático medio MSE.
+
+```{r}
+fit<-predict.lm(modelo1,newdata = data_h)
+data_h$log_salario_gorro<-fit
+MSE<-sum((data_h$log_salario-data_h$log_salario_gorro)^2)/length(data_h$log_salario)
+MSE
+```
+Aumentando la complejidad del modelo es probable que tanto el R2 aumente como el MSE se reduzca, sin embargo, con esto estaremos aumentando la varianza de los estimadores, lo que permite disminuir el sesgo.
+
+A partir de los coeficientes obtenidos es posible calcular la edad pico en el crecimiento de los ingresos de las personas. 
+
+$$\frac {\partial log(w)}{\partial Edad} =0 $$
+
+$$\frac {\partial log(w)}{\partial Edad} = \beta 1-(2) \beta2Edad=0$$
+
+$$Edad^*=\frac {\beta1}{-(2)\beta 2}$$
+
+Calculamos la edad pico, al tiempo que construimos la función que nos permitirá mediante el bootstrap estimar la varianza de los estimadores para la generación del intérvalo de confianza. 
+
+```{r}
+
+bfuncion<-function(data,index){
+  
+modelo<-lm(log_salario ~  Edad + Edad2, data=data_h,subset = index)
+
+coeficientes<-modelo$coefficients
+
+b1<-coeficientes[2]
+b2<-coeficientes[3]
+
+edad_pico<-b1/(-2*b2)
+return(edad_pico) #returns the second coefficient of the linear regression
+}
+
+edad_pico<-bfuncion(data_h,1:nrow(data_h))
+modelo1$coefficients[2]/(-2*modelo1$coefficients[3])
+edad_pico
+```
+
+Para poder realizar esta inferencia calculamos la Varianza utilizando bootstap. 
+
+```{r}
+set.seed(123)
+repeticiones<-1000
+boot(data_h,bfuncion,R=repeticiones)
+```
+
+Con esto podemos establecer el intervalo de confianza para la edad pico 
+
+$$Edad^* \pm t_{\alpha/2} * 0.3462259$$
+
+Es decir que para un nivel de confianza del 95% 
+```{r}
+n=nrow(x = data_h)
+t=abs(qt(p = (1-0.95)/2,df =n-1 ))
+limite_inferior=edad_pico-(t*0.3462259)
+limite_superior=edad_pico+(t*0.3462259)
+limites<-c(limite_inferior,limite_superior)
+limites
+```
+
+Observamos de manera gráfica el ajuste del modelo a los datos. 
+
+```{r}
+data_aux<-data_h %>% select(log_salario,log_salario_gorro,Edad)
+
+data_aux<-data_aux %>%  pivot_longer(cols = log_salario:log_salario_gorro,
+names_to = "Predict",
+values_to = "Valor")
+
+ggplot(data_aux,aes(x=Edad,color=Predict)) +
+geom_point(aes(y=Valor)) +
+labs(title = "Ajuste del modelo a los datos de la muestra",
+x="Edad",
+y="Log salario"
+) +
+theme_stata() +
+scale_fill_stata()
+```
+
 
 # Modelo de genero
 
