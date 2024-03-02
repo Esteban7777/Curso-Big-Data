@@ -22,6 +22,14 @@ library(caTools)
 library(broom)
 library(tibble)
 library(knitr)
+
+library(pacman)
+
+p_load(rio, 
+       tidyverse, 
+        caret, 
+        gridExtra, 
+       skimr)    
 ```
 
 ```{r}
@@ -217,7 +225,10 @@ data_ponderada <-data_ponderada %>%
 
 
 
-
+data_h$maxEducLevel <- na.aggregate(data_h$maxEducLevel, FUN = function(x) {
+  moda <- names(sort(table(x), decreasing = TRUE))[1]
+  return(moda)
+})
 ```
 
 ## Analisis exploratorio de datos indiviudal
@@ -632,11 +643,10 @@ control la diferencia es de 0.09 unidades logaritmo de salario.
 Las especificaciones que se van a trabajar para el proceso de prediccion
 se van a construir:
 
- 1. Tomando como referencia la ecuacion de Mincer:
+1.  Tomando como referencia la ecuacion de Mincer:
 
-$
-Ln(w) = \beta_{0} + \beta_{1}S + \beta_{2}Exp + \beta_{3}Exp^2 + \epsilon
-$
+\$ Ln(w) = \beta*{0} +* \beta{1}S + \beta*{2}Exp +* \beta{3}Exp\^2 +
+\epsilon \$
 
 2.  Tomando los elementos de la ecuacion de mince pero anadiendo las
     variables propuestas desde el punto de vista empirico
@@ -647,25 +657,62 @@ $Ln(w) = \beta_{0} + \beta_{1}Edad + \beta_{2}edad^2 + \beta_{3}Cuentapropia + +
 
 $$ ln(w)=\beta_{0} + \beta_{1}Edad + \beta_{2}edad^2 $$
 
-a) Particion de los datos
+Luego de estas estimaciones se estiman otros modelos derivados de los
+generales, aplicando alguna complejidad al modelo y poder estimar de
+mejor forma los determinantes del salario.
+
+a)  Particion de los datos
 
 ```{r}
 set.seed(10101)
 
 train_size <- floor(0.7 * nrow(data_h))
+
+
 train_indices <- sample(1:nrow(data_h), size = train_size, replace = FALSE)
+
+
 train <- data_h[train_indices, ]
+
+
 test <- data_h %>%
   filter(!row_number() %in% train_indices)
+
+
+niveles_oficio <- unique(c(train$oficio, test$oficio))
+
+
+train$oficio <- factor(train$oficio, levels = niveles_oficio)
+test$oficio <- factor(test$oficio, levels = niveles_oficio)
 ```
 
-b) Estimacion de los modelos
+b)  Estimacion de los modelos
 
 ```{r}
 mod1 = lm(log_salario~ maxEducLevel+Experiencia+Experiencia^2,data = train)
 mod2 = lm(log_salario~ Edad+Edad^2+cuentaPropia+Estrato+informal+Sexo+Experiencia+Experiencia^2+microEmpresa+Horas_trabajadas+oficio,data = train)
 mod3 = lm(log_salario~ Edad+Edad^2,data = train)
+mod4 = lm(log_salario~ Edad+Edad^2+Experiencia+Experiencia^2,data = train)
+mod5 =lm(log_salario~ Edad+Edad^2+Experiencia+Experiencia^2+Horas_trabajadas,data = train)
+mod6 =lm(log_salario~ Edad+Experiencia+Horas_trabajadas,data = train)
+mod7 =lm(log_salario~ Edad+Edad^2+Experiencia+Horas_trabajadas,data = train)
+mod8 =lm(log_salario~ Edad+Edad^2+Experiencia+Experiencia^2+Horas_trabajadas++cuentaPropia,data = train)
+mod9 =lm(log_salario~ Edad+Edad^2+Experiencia+Experiencia^2+Horas_trabajadas+informal,data = train)
+mod10 =lm(log_salario~ Edad+Edad^2+Experiencia+Experiencia^2+Horas_trabajadas+Sexo,data = train)
 
+mod11 =lm(log_salario~ Edad*maxEducLevel+Edad^2+Experiencia+Experiencia^2+Horas_trabajadas+Sexo,data = train)
+
+mod12 =lm(log_salario~ Edad+Edad^2+Experiencia*maxEducLevel+Experiencia^2+Horas_trabajadas+Sexo,data = train)
+
+mod13 =lm(log_salario~ Edad*maxEducLevel+Edad^2+Experiencia+Experiencia^2+Horas_trabajadas+Sexo+oficio,data = train)
+
+mod14 =lm(log_salario~ Edad+Edad^2+Experiencia*maxEducLevel+Experiencia^2+Horas_trabajadas+Sexo,data = train)
+
+mod15 =lm(log_salario~ Edad+Edad^2+Experiencia*maxEducLevel+oficio+Horas_trabajadas+Sexo,data = train)
+
+mod16 = lm(log_salario~ oficio,data = train)
+mod17 = lm(log_salario~ oficio+Edad+Edad^2,data = train)
+mod18 = lm(log_salario~ oficio+Edad+Edad^2+Sexo,data = train)
 ```
 
 ```{r}
@@ -677,10 +724,10 @@ calculate_metrics <- function(model, test_data) {
   return(c(metrics$r.squared, rmse, error_train))
 }
 
-models <- list(mod1, mod2, mod3)
+models <- list(mod1, mod2, mod3,mod4,mod5,mod6,mod7,mod8,mod9,mod10,mod11,mod12,mod13,mod14,mod15,mod16,mod17,mod18)
 
 
-model_names <- c("Modelo 1", "Modelo 2", "Modelo 3")
+model_names <- c("Modelo 1", "Modelo 2", "Modelo 3","Modelo 4","Modelo 5","Modelo 6","Modelo 7","Modelo 8","Modelo 9","Modelo 10","Modelo 11","Modelo 12","Modelo 13","Modelo 14","Modelo 15","Modelo 16","Modelo 17","Modelo 18")
 
 
 metrics_list <- vector("list", length(models))
@@ -698,8 +745,83 @@ metrics_table <- tibble(
   Error_Train = sapply(metrics_list, "[[", 3)
 )
 
-# Muestra la tabla
-print(metrics_table)
+```
+
+```{r}
+metrics_table %>% arrange(Error_Train)
+```
+
+c) Discusion de los resultados
+
+El modelo con menor error en prediccion es el modelo mas general, el que
+se construyo a partir de las referencias teoricas y empiricas en los
+anteriores capitulos. La razon principal es porque tiene en cuenta todas
+estas variables y tambien porque captura muy bien todos los fenomenos
+analizados que pueden tener a la hora de explicar los salarios.
+
+```{r}
+plot(residuals(mod2))
+```
+
+```{r}
+train$res = residuals(mod2)
+
+observaciones_alejadas <- train %>% 
+  arrange(desc(abs(res))) %>%
+  slice_head(n = 10)
+
+observaciones_alejadas
+```
+
+```{r}
+predicciones_train <- predict(mod2, newdata = train)
+errores_train <- train$log_salario - predicciones_train
+umbral_train <- 1.5 * IQR(errores_train)  
+valores_atipicos_train <- which(abs(errores_train) > umbral_train)
+
+print(train[valores_atipicos_train[1:5], ])
+```
+
+Con este metodo identificamos las personas en los que el modelo se
+equivocp mas, para esto el modelo sobreestimo el salario , es decir que
+hizo la prediccion por encima de los esperado.
+
+Cuando se analizan los 5 mas significativos se puede ver claramente que
+son personas que reportan que trabajan en condiciones precarias, el
+salario es muy bajo, son mujeres , trabajan en el secotr informal y su
+nivel de estudios es bajo.
+
+Como al final el modelo de regresion, es un modelo sobre la media
+influyen mucho todos los demas, por lo que la sobreestimacion del
+salario que se da en este caso es normal. Es necesairo estimar con otro
+tipos de modelos mas flexibles que logren interpretar mucho mejor estos
+casos.
+
+```{r}
+ctrl <- trainControl(
+  method = "LOOCV")
+
+es3 <- log_salario~ Edad+Edad^2+cuentaPropia+Estrato+informal+Sexo+Experiencia+Experiencia^2+microEmpresa+Horas_trabajadas+oficio
+
+odelo1c <- train(es3,
+                  data = data_h,
+                  method = 'lm', 
+                  trControl= ctrl)
+```
+
+```{r}
+ctrl <- trainControl(
+  method = "LOOCV")
+
+es13 <- log_salario~ Edad*maxEducLevel+Edad^2+Experiencia+Experiencia^2+Horas_trabajadas+Sexo+oficio
+
+odelo2c <- train(es13,
+                  data = data_h,
+                  method = 'lm', 
+                  trControl= ctrl)
+```
+
+```{odelo1c}
 ```
 
 # Bibliografía
