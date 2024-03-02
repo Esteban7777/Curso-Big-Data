@@ -18,13 +18,16 @@ library(tidyverse)
 library(zoo)
 library(ggthemes)
 library(boot)
+library(caTools)
+library(broom)
+library(tibble)
+library(knitr)
 ```
 
 ```{r}
 if (!requireNamespace("zoo", quietly = TRUE)) {
   install.packages("zoo")}
 ```
-
 
 # Introduccion
 
@@ -86,14 +89,31 @@ variables:
 
 # Datos
 
-
 ## Lectura de los datos
 
-El proceso para leer los datos consiste en hacer un web scrapping a la informacion que se encuentra en esta pagina web: https://ignaciomsarmiento.github.io/GEIH2018 sample/. Los datos estan particionado en 10 paginas diferentes por lo cual se tenia que hacer un proceso iterativo.  En primer lugar se guarda en la variable url_base la direccion web de la que se debe extraer la infomracion. Hay un ligero cambio respecto a la url general y este es que las tablas se encuentran un poco mas anidades por lo que se debe completar la url. 
+El proceso para leer los datos consiste en hacer un web scrapping a la
+informacion que se encuentra en esta pagina web:
+<https://ignaciomsarmiento.github.io/GEIH2018> sample/. Los datos estan
+particionado en 10 paginas diferentes por lo cual se tenia que hacer un
+proceso iterativo. En primer lugar se guarda en la variable url_base la
+direccion web de la que se debe extraer la infomracion. Hay un ligero
+cambio respecto a la url general y este es que las tablas se encuentran
+un poco mas anidades por lo que se debe completar la url.
 
-Como la base de datos completa se encuentra separada en 10 partes el proceso se debe repetir el mismo numero de veces. Primero se crea una lista vacia llamada tables_list, en esta lista se guarda la inofmracion extraida de la pagina en  cada iteracion.  Dentro del bucle for se va modificando la ruta de extraccion para que haga un recorrido por todas las direcciones donde se encuentran los datos, esto es relativamente sencillo debido a que lo unico que cambioa es el numero de la pagina por esto el iterador es un entero.
+Como la base de datos completa se encuentra separada en 10 partes el
+proceso se debe repetir el mismo numero de veces. Primero se crea una
+lista vacia llamada tables_list, en esta lista se guarda la inofmracion
+extraida de la pagina en cada iteracion. Dentro del bucle for se va
+modificando la ruta de extraccion para que haga un recorrido por todas
+las direcciones donde se encuentran los datos, esto es relativamente
+sencillo debido a que lo unico que cambioa es el numero de la pagina por
+esto el iterador es un entero.
 
-Cuando se haga el proceso iterativo en las 10 paginas estas quedan anidadas en la lista vacia tables_list, para darle un formato manejable en el proceso de machine learning se concatenan en una sola sabana de datos con formato tibble. Como la cantidad de datos es considerable este proceso dura aproximadamente 8 minutos.
+Cuando se haga el proceso iterativo en las 10 paginas estas quedan
+anidadas en la lista vacia tables_list, para darle un formato manejable
+en el proceso de machine learning se concatenan en una sola sabana de
+datos con formato tibble. Como la cantidad de datos es considerable este
+proceso dura aproximadamente 8 minutos.
 
 ```{r}
 t1<-Sys.time()
@@ -112,6 +132,7 @@ t2<-Sys.time()
 Tiempo_ejecucion<-t2-t1
 Tiempo_ejecucion
 ```
+
 ## Preprocesamiento de datos
 
 La estrategia propuesta para conservar la representatividad de la
@@ -147,9 +168,22 @@ base_ponderada
 base_no_ponderada
 ```
 
-El preprocesamiento de los datos se realiza de forma simultanea con el analisis descriptivo . Esto se da porque generalmente cuando se analiza la distribucion de cada variable de forma invidual es que se logra identificar registros vacios o atipicos que merecen un tratamiento aparte. Sin embargo, aplicamos unas reglas de validacion iniciar para garantizar que los modelos de regresion tengan resultados satisfactorios. 
+El preprocesamiento de los datos se realiza de forma simultanea con el
+analisis descriptivo . Esto se da porque generalmente cuando se analiza
+la distribucion de cada variable de forma invidual es que se logra
+identificar registros vacios o atipicos que merecen un tratamiento
+aparte. Sin embargo, aplicamos unas reglas de validacion iniciar para
+garantizar que los modelos de regresion tengan resultados
+satisfactorios.
 
-Primero se cambiaron los nombres de las variables que se van usar para que su identificacoin fuera mas sencilla, tambien se les dio el formato adecuado de tal forma que se respetara la naturaleza cualitativa o cuantitativa de las mismas. Los filtros mas importantes de la base de datos fueron para la poblacion en edad de trabajar, como sugerencia del ejercicio solo hay registros para personas mayores de edad. Tambien se filtran las personas que estan activas en el mercado de trabajo ya que son estas las unicas que perciben un salario.
+Primero se cambiaron los nombres de las variables que se van usar para
+que su identificacoin fuera mas sencilla, tambien se les dio el formato
+adecuado de tal forma que se respetara la naturaleza cualitativa o
+cuantitativa de las mismas. Los filtros mas importantes de la base de
+datos fueron para la poblacion en edad de trabajar, como sugerencia del
+ejercicio solo hay registros para personas mayores de edad. Tambien se
+filtran las personas que estan activas en el mercado de trabajo ya que
+son estas las unicas que perciben un salario.
 
 ```{r}
 # Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
@@ -166,12 +200,12 @@ data_ponderada <- data_ponderada %>%
       Salario=y_total_m,
       Sexo=sex,
       Horas_trabajadas=totalHoursWorked
-  )  %>%
-  
-    mutate(
-      across(c(cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Sexo),as.character) 
-  )
+  )  
 
+data_ponderada <- data_ponderada %>%
+    mutate(
+      across(c(cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Sexo,microEmpresa),as.character) 
+  )
 ### Filtro por población economica activa
 
 data_ponderada <- data_ponderada %>%
@@ -181,22 +215,35 @@ data_ponderada <- data_ponderada %>%
 data_ponderada <-data_ponderada %>%
   filter(p6240==1)
 
+
+
+
 ```
 
 ## Analisis exploratorio de datos indiviudal
 
-Para que la manipulacion de los datos sea mas sencilla se toma del dataframe original solo las columnas que se establecieron en la introduccion y se guardan en el dataframe datah.
+Para que la manipulacion de los datos sea mas sencilla se toma del
+dataframe original solo las columnas que se establecieron en la
+introduccion y se guardan en el dataframe datah.
 
 ```{r}
 data_h <- data_ponderada %>%
-  select(Edad,cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas,directorio)
+  select(Edad,cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas,directorio,microEmpresa)
+
+data_h <- data_h %>%
+  mutate(Sexo = ifelse(Sexo == 1, 0, ifelse(Sexo == 0, 1, Sexo)))
 ```
 
-Revisamos cuantos valores faltantes hay en la variable salario luego de esta depuración
+Revisamos cuantos valores faltantes hay en la variable salario luego de
+esta depuración
+
 ```{r}
 summary(data_h$Salario)
 ```
-Evidenciamos una cantidad considerable de NA por tanto realizamos la imputación de esta con el promedio del directorio de cada hogar.
+
+Evidenciamos una cantidad considerable de NA por tanto realizamos la
+imputación de esta con el promedio del directorio de cada hogar.
+
 ```{r}
 data_h = data_h %>% 
      group_by(directorio) %>% 
@@ -208,7 +255,10 @@ data_h = data_h %>%
                                no = Salario))
 table(is.na(data_h$Salario2))
 ```
-Se identifica que hay personas que reportaron ingresos iguales a cero a pesar de ser trabajadores y haber reportado horas laboradas, razón por la cual se excluyen estos registros de la muestra. 
+
+Se identifica que hay personas que reportaron ingresos iguales a cero a
+pesar de ser trabajadores y haber reportado horas laboradas, razón por
+la cual se excluyen estos registros de la muestra.
 
 ```{r}
 data_h <-data_h %>%
@@ -217,7 +267,14 @@ filter(Salario2>0)
 table(is.na(data_h$Salario2))
 ```
 
-Luego para visualizar la distribucion invidual de las variables con mas precision se dividen en dos grupos tomando como referencia su naturaleza, es decir si son cualitativas o cuantitativas. En primer lugar se trabaja muestra una grafica con la escala normal del salario y en base logartimica, de esta forma se observa una distribución mas uniforme de la variable y la interpretación de los determinantes de naturaleza cuantitativa se hara desde elasticidades.
+Luego para visualizar la distribucion invidual de las variables con mas
+precision se dividen en dos grupos tomando como referencia su
+naturaleza, es decir si son cualitativas o cuantitativas. En primer
+lugar se trabaja muestra una grafica con la escala normal del salario y
+en base logartimica, de esta forma se observa una distribución mas
+uniforme de la variable y la interpretación de los determinantes de
+naturaleza cuantitativa se hara desde elasticidades.
+
 ```{r}
 data_h<-data_h %>% mutate(log_salario=log(Salario2),
                             Edad2=Edad^2
@@ -227,16 +284,44 @@ hist(data_h$Salario2, main="Distribución del salario", xlab="Salario", ylab="Fr
 hist(data_h$log_salario, main="Histograma de logaritmo del Salario", xlab="Log(Salario)", ylab="Frecuencia")
 ```
 
-
 ```{r}
 summary_salario <- summary(data_h$Salario)
 summary_salario
 ```
-Para el año 2018 el salario minimo en Colombia era de $ 781.242, por lo que la mayoria de personas que hicieron parte de este estudio y que  trabajan ganan al menos un salario minimo. Historicamente segun el DANE , la tasa de informalidad en en Bogota ha estado ubicada alrededor de un 40 %. Comparando esta cifra con las personas que reposrtan el salario asumiendo su representatividad se puede ver que en terminos nominales el salario del sector formal esta muy cerca de la retribucion en el mercado informal. Sin embargo, para este analisis se debe tener en cuenta que el salario minimo solo es una parte de los costos laborales y que a pesar de que esten cercanos los salario con los beneficios de un salario integral como es la afiliación a EPS,pension y cesantias la brecha puede ser mayor. 
 
-Para identificar el comportamiento de las variables que sirven para explicar el comportamiento del salario, se dividen en 2 categorias segun su naturaleza de medición en Cualitativas y cuantitativas.  Los resultados mas interesantes se ven en la variable del Estrato, en este caso se observa como la mayoria de personas encuestadas se ubican en los estratos 2 y 3 con una representacion de 42.9% y 37.2% respectivamente. La clasificacion de las personas a traves de los estratos tiene el proposito de identificar la capacidad adquistiva. Por tanto en esta encuesta predominan personas con ingresos  medio-bajos siguiendo las definiciones del estrato socioeconomico. Las diferencias de representacion por sexo no son significativas y siguen la regla general de las cifras poblacionales en Colombia.
+Para el año 2018 el salario minimo en Colombia era de \$ 781.242, por lo
+que la mayoria de personas que hicieron parte de este estudio y que
+trabajan ganan al menos un salario minimo. Historicamente segun el DANE
+, la tasa de informalidad en en Bogota ha estado ubicada alrededor de un
+40 %. Comparando esta cifra con las personas que reposrtan el salario
+asumiendo su representatividad se puede ver que en terminos nominales el
+salario del sector formal esta muy cerca de la retribucion en el mercado
+informal. Sin embargo, para este analisis se debe tener en cuenta que el
+salario minimo solo es una parte de los costos laborales y que a pesar
+de que esten cercanos los salario con los beneficios de un salario
+integral como es la afiliación a EPS,pension y cesantias la brecha puede
+ser mayor.
 
-Las cifras de las condiciones de las personas en el mercado laboral son consistentes, sobre todo en la condición de formalidad. Para el año 2018 el 63,3 % reporta que se encuentra trabajando en el sector formal. La formalidad en este estudio se define como la persona que esta afiliada a la seguridad social. Desde la teoria se espera que las personas en el sector formal perciban salarios mayores a las personas en condiciones de informalidad.
+Para identificar el comportamiento de las variables que sirven para
+explicar el comportamiento del salario, se dividen en 2 categorias segun
+su naturaleza de medición en Cualitativas y cuantitativas. Los
+resultados mas interesantes se ven en la variable del Estrato, en este
+caso se observa como la mayoria de personas encuestadas se ubican en los
+estratos 2 y 3 con una representacion de 42.9% y 37.2% respectivamente.
+La clasificacion de las personas a traves de los estratos tiene el
+proposito de identificar la capacidad adquistiva. Por tanto en esta
+encuesta predominan personas con ingresos medio-bajos siguiendo las
+definiciones del estrato socioeconomico. Las diferencias de
+representacion por sexo no son significativas y siguen la regla general
+de las cifras poblacionales en Colombia.
+
+Las cifras de las condiciones de las personas en el mercado laboral son
+consistentes, sobre todo en la condición de formalidad. Para el año 2018
+el 63,3 % reporta que se encuentra trabajando en el sector formal. La
+formalidad en este estudio se define como la persona que esta afiliada a
+la seguridad social. Desde la teoria se espera que las personas en el
+sector formal perciban salarios mayores a las personas en condiciones de
+informalidad.
 
 ```{r}
 qualitative_factor_vars <- data_h %>%
@@ -253,6 +338,23 @@ num_cols <- ceiling(num_vars / num_rows)
 par(mfrow = c(num_rows, num_cols), mar = c(5, 5, 2, 2))  
 walk2(qualitative_factor_vars, names(qualitative_factor_vars), plot_proportion)
 ```
+
+La distribución individual de las variables cuantitativas se muestran a
+continuación, el comportamiento de la edad es bastante uniforme y la
+mayor concentración se encuentra alrededor de los 37 años. Siguiendo la
+teoria del ciclo de vida , la mayoria de las personas encuestadas se
+encuentran en una edad adulta temprana, en el aspecto laboral esto
+significa ya se encuentran en el momento de estabilidad y donde mas
+productivo se es, y los salario deberian ser mas altos ya que se cuenta
+con mas experiencia. Este argumento se constrasta con los datos de
+experiencia en su trabajo que se miden a partir de los meses que llevan
+trabajando en la misma empresa. Los datos muestran que en promedio las
+personas llevan trabajando en el mismo lugar 5 años. Sin embargo, la
+diferencia con la mediana es muy alta ya que el valor medio de los meses
+trabajados es 2 años. Esta distorsion se puede explicar por la presencia
+de datos atipicos. Por el lado de las horas trabajadas la semana pasada
+sus valores estan muy cercas a las exigidas por la lesgislación laboral
+colombiana.
 
 ```{r}
 quantitative_vars <- data_h %>%
@@ -271,8 +373,28 @@ par(mfrow = c(num_rows, num_cols), mar = c(5, 5, 2, 2))
 walk2(quantitative_vars, names(quantitative_vars), plot_histogram)
 ```
 
-
 ## Analisis exploratorio bivariado
+
+En este apartado se explorarn las diferecnias que pueden existir entre
+las categorias analizadas en la seccion anterior cuando se presentan a
+travez del logaritmo del salario. Las diferencias mas grandes se observa
+a traves de la variable Estrato socioeconomico y en el nivel de
+educacion cuando el encuestado cuenta con grado de educación superior.
+Las diferencias a traves del estrato se intuyen por la naturaleza de
+esta variable, ya que esta mide entre otras cosas la capacidad
+adquisitiva del hogar. Mientras que el tema del estudio se explica por
+la teoria del capital humano, donde sostiene que la formación de los
+individuos son inveriones que aumentan su productivdad e ingresos a lo
+largo del tiempo.
+
+Hay diferencias moderadas a traves de las variables como si el
+encuestado trabaja en por su cuenta o si esta desempeñando su trabajo en
+condicion de informalidad. Los datos muestran un ligero aumento del
+salario promedio si la persona trabaja como empleada, ademas los
+trabajadores que trabajan como empleados formales perciben unos ingresos
+ligeramente mayores que los trabajadores informales. Donde no se
+observan diferencias es en el caso del sexo, donde los salario son
+uniformes para los hombres y mujeres.
 
 ```{r}
 options(repr.plot.width = 20, repr.plot.height = 10)
@@ -287,6 +409,10 @@ for (col in colnames(qualitative_vars)) {
 
 ```
 
+En relación a las variables de naturaleza cuantitativa , no hay patrones
+que ayuden a determinar cambios significativos en el ingreso laboral,
+incluso los niveles de correlación entre las variables no dan señal de
+que puedan aportar cuando se inicie con el proceso de modelación.
 
 ```{r}
 options(repr.plot.width = 20, repr.plot.height = 10)
@@ -307,7 +433,6 @@ for (col in colnames(numeric_vars)) {
 }
 ```
 
-
 # Analisis de regresion
 
 EL propósito es estimar el siguiente modelo:
@@ -320,11 +445,15 @@ data=data_h)
 stargazer::stargazer(modelo1,type = "text")
 ```
 
-Los coeficientes de la regresión son significativos hasta a un nivel de confianza del 95%. A partir de ellos podemos rescatar la siguiente ecuación de salarios en función de la edad
+Los coeficientes de la regresión son significativos hasta a un nivel de
+confianza del 95%. A partir de ellos podemos rescatar la siguiente
+ecuación de salarios en función de la edad
 
 $$log(w) = 12.786 + 0.64 Edad - 0.001 Edad^2 + u$$
 
-Se evidencia que el ajuste del modelo dentro de la muestra no es muy grande ya que el R2 es de 0.032. Esta medida también la podemos complementar con el cálculo el error cuadrático medio MSE.
+Se evidencia que el ajuste del modelo dentro de la muestra no es muy
+grande ya que el R2 es de 0.032. Esta medida también la podemos
+complementar con el cálculo el error cuadrático medio MSE.
 
 ```{r}
 fit<-predict.lm(modelo1,newdata = data_h)
@@ -332,9 +461,13 @@ data_h$log_salario_gorro<-fit
 MSE<-sum((data_h$log_salario-data_h$log_salario_gorro)^2)/length(data_h$log_salario)
 MSE
 ```
-Aumentando la complejidad del modelo es probable que tanto el R2 aumente como el MSE se reduzca, sin embargo, con esto estaremos aumentando la varianza de los estimadores, lo que permite disminuir el sesgo.
 
-A partir de los coeficientes obtenidos es posible calcular la edad pico en el crecimiento de los ingresos de las personas. 
+Aumentando la complejidad del modelo es probable que tanto el R2 aumente
+como el MSE se reduzca, sin embargo, con esto estaremos aumentando la
+varianza de los estimadores, lo que permite disminuir el sesgo.
+
+A partir de los coeficientes obtenidos es posible calcular la edad pico
+en el crecimiento de los ingresos de las personas.
 
 $$\frac {\partial log(w)}{\partial Edad} =0 $$
 
@@ -342,7 +475,9 @@ $$\frac {\partial log(w)}{\partial Edad} = \beta 1-(2) \beta2Edad=0$$
 
 $$Edad^*=\frac {\beta1}{-(2)\beta 2}$$
 
-Calculamos la edad pico, al tiempo que construimos la función que nos permitirá mediante el bootstrap estimar la varianza de los estimadores para la generación del intérvalo de confianza. 
+Calculamos la edad pico, al tiempo que construimos la función que nos
+permitirá mediante el bootstrap estimar la varianza de los estimadores
+para la generación del intérvalo de confianza.
 
 ```{r}
 
@@ -364,7 +499,8 @@ modelo1$coefficients[2]/(-2*modelo1$coefficients[3])
 edad_pico
 ```
 
-Para poder realizar esta inferencia calculamos la Varianza utilizando bootstap. 
+Para poder realizar esta inferencia calculamos la Varianza utilizando
+bootstap.
 
 ```{r}
 set.seed(123)
@@ -372,11 +508,12 @@ repeticiones<-1000
 boot(data_h,bfuncion,R=repeticiones)
 ```
 
-Con esto podemos establecer el intervalo de confianza para la edad pico 
+Con esto podemos establecer el intervalo de confianza para la edad pico
 
 $$Edad^* \pm t_{\alpha/2} * 0.3462259$$
 
-Es decir que para un nivel de confianza del 95% 
+Es decir que para un nivel de confianza del 95%
+
 ```{r}
 n=nrow(x = data_h)
 t=abs(qt(p = (1-0.95)/2,df =n-1 ))
@@ -386,7 +523,7 @@ limites<-c(limite_inferior,limite_superior)
 limites
 ```
 
-Observamos de manera gráfica el ajuste del modelo a los datos. 
+Observamos de manera gráfica el ajuste del modelo a los datos.
 
 ```{r}
 data_aux<-data_h %>% select(log_salario,log_salario_gorro,Edad)
@@ -405,13 +542,164 @@ theme_stata() +
 scale_fill_stata()
 ```
 
-
 # Modelo de genero
 
-$$log(w) = \beta_{1} + \beta_{2}Mujer$$
+$$log(w) = \beta_{1} + \beta_{2}Mujer$$ a) Estimacion del modelo general
+
+```{r}
+modelS<-lm(log_salario ~Sexo,data=data_h)
+stargazer::stargazer(modelS,type = "text")
+```
+
+En el modelo general, cuando se estima el logaritmo natural del salario
+contra el sexo de la persona se observa que las mujeres en promedio
+ganan menos que los hombres. La relacion es estadisticamente
+significativa y el parametro -0.068 indica que por ser mujer se espera
+que el logaritmo natural del salario disminuya 0.068 unidades en
+promedio. Esta realcion es estadisticamente significativa y valida la
+hipotesis muy trabajada en el mercado laboral que muestra que hay
+diferencias significativas en las ganancias entre hombres y mujeres.
+
+b)  Aplicacion teormea FWL
+
+Para la aplicacion del teorema de FWL se siguen dos pasos. En primer
+lugar, se estima un modelo donde la variable de interes en este caso el
+genero de la persona encuestada se deja como variable independiente
+frente a las variables de control y se toman los residuales.
+
+Luego se estima el segundo modelo donde la variable independiente es el
+logaritmo del salario frente a las variables de control y se toman los
+resiudales. Por ultimo, se estima la regresion de los dos resiudales.
+
+Se espera que el parametro estimado en el primer modelo sea igual a la
+estimacion del modelo en los residuales.
+
+Para esto se incluyen las siguientes variables de control:
+
+-   Edad
+
+-   Oficio
+
+-   Si trabaja en microempresa
+
+-   Educacion
+
+-   formal
+
+El objtevio de esta estimacion no es encontrar los determinantes del
+salario como se hizo en la primera parte, si no entender las
+diferneecias en salario que se pueden presentar a traves del sexo de la
+personas. Por esto se incluyeron estas variables que pueden controlar
+mejor el sesgo de solo incluir el sexo.
+
+Paso 1: Estimar la ecuacion del genero de la personas contra las
+variables de control y tomar los residuales
+
+```{r}
+resid1 <- lm(Sexo ~Estrato+oficio+Edad+Edad2+informal+maxEducLevel+microEmpresa,data = data_h)$residuals
+```
+
+Pas0 2: se estima el salario solo frente a las variables de control y se
+toma los resiudales
+
+```{r}
+resid2 = lm(log_salario ~Estrato+oficio+Edad+Edad2+informal+maxEducLevel+microEmpresa,data = data_h)$residuals
+```
+
+```{r}
+general<-lm(log_salario ~Estrato+oficio+Edad+Edad2+informal+maxEducLevel+microEmpresa+Sexo,data = data_h)
+mod_resid=lm(resid2~resid1)
+```
+
+```{r}
+stargazer::stargazer(general,mod_resid,modelS,type = "text",digits= 3)
+```
+
+Luego de aplicar el teorema de FWL se obseva como los coeficientes
+estimados son iguales, por lo que se valido utilizar las variables de
+control que se han venido trabajando.
+
+A traves de las tres especificaciones se ha comprobado que existen
+diferencias en el salario entre hombres y mujres. Desde la estimacion se
+observa que que las mujeres en promedio ganan menos que los hombres en
+condiciones de empleo iguales. El primer modelo general cuando no se
+incluyen variables de control se nota como en promedio las mujeres ganan
+0.06 unidades menos que los hombres y cuando se incluyen variables de
+control la diferencia es de 0.09 unidades logaritmo de salario.
 
 # 5 Prediccion
 
-El dia de hoy estime
+Las especificaciones que se van a trabajar para el proceso de prediccion
+se van a construir:
+
+ 1. Tomando como referencia la ecuacion de Mincer:
+
+$
+Ln(w) = \beta_{0} + \beta_{1}S + \beta_{2}Exp + \beta_{3}Exp^2 + \epsilon
+$
+
+2.  Tomando los elementos de la ecuacion de mince pero anadiendo las
+    variables propuestas desde el punto de vista empirico
+
+$Ln(w) = \beta_{0} + \beta_{1}Edad + \beta_{2}edad^2 + \beta_{3}Cuentapropia + +\beta_{4}Estrato+ \beta_{5}informal+ \beta_{6}Educacion + \beta_{7}sexo+ \beta_{8}Microempresa+ \beta_{9}Horas_trabajadas + \beta_{10}oficio +\epsilon$
+
+3.  Modelo del punto 3 donde solo se tenia en cuenta la edad
+
+$$ ln(w)=\beta_{0} + \beta_{1}Edad + \beta_{2}edad^2 $$
+
+a) Particion de los datos
+
+```{r}
+set.seed(10101)
+
+train_size <- floor(0.7 * nrow(data_h))
+train_indices <- sample(1:nrow(data_h), size = train_size, replace = FALSE)
+train <- data_h[train_indices, ]
+test <- data_h %>%
+  filter(!row_number() %in% train_indices)
+```
+
+b) Estimacion de los modelos
+
+```{r}
+mod1 = lm(log_salario~ maxEducLevel+Experiencia+Experiencia^2,data = train)
+mod2 = lm(log_salario~ Edad+Edad^2+cuentaPropia+Estrato+informal+Sexo+Experiencia+Experiencia^2+microEmpresa+Horas_trabajadas+oficio,data = train)
+mod3 = lm(log_salario~ Edad+Edad^2,data = train)
+
+```
+
+```{r}
+calculate_metrics <- function(model, test_data) {
+  metrics <- glance(model)
+  predictions <- predict(model, newdata = test_data)
+  rmse <- sqrt(mean((predictions - test_data$log_salario)^2))
+  error_train <- sqrt(mean(residuals(model)^2))
+  return(c(metrics$r.squared, rmse, error_train))
+}
+
+models <- list(mod1, mod2, mod3)
+
+
+model_names <- c("Modelo 1", "Modelo 2", "Modelo 3")
+
+
+metrics_list <- vector("list", length(models))
+
+
+for (i in seq_along(models)) {
+  metrics_list[[i]] <- calculate_metrics(models[[i]], test)
+}
+
+
+metrics_table <- tibble(
+  Modelo = model_names,
+  R2 = sapply(metrics_list, "[[", 1),
+  Error_Test = sapply(metrics_list, "[[", 2),
+  Error_Train = sapply(metrics_list, "[[", 3)
+)
+
+# Muestra la tabla
+print(metrics_table)
+```
 
 # Bibliografía
