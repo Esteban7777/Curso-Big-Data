@@ -827,3 +827,6 @@ odelo2c <- train(es13,
 ```
 
 # Bibliografía
+
+Mincer, J (1974), Schooling, experience and earnings, national bureau of
+economic research, New York.
