@@ -1,14 +1,13 @@
 ---
 title: "Taller 1"
 output:
-  pdf_document: default
+  word_document: default
   html_document:
     citation_package: natbib
-  word_document: default
 date: "2024-02-07"
 bibliography: bibliografia.bib
-editor_options:
-  markdown:
+editor_options: 
+  markdown: 
     wrap: 72
 ---
 
@@ -80,21 +79,20 @@ para encontrar los determinantes del salario.
 Con base en lo anterior, podemos iniciar el análisis de las siguientes
 variables:
 
--   Edad (Age)
--   Cuenta propia (Self-employed)
--   Estrato (Socioeconomic stratum)
--   Formal (Formal employment)
--   Horas trabajadas la semana pasada (Actualhours worked previous week)
--   Horas trabajadas habitualmente (Usual weeklyhours worked)
--   Informal (Informal employment)
--   Ingreso total (Totalincome)
--   Educación (Max. Education level attained)
--   Oficio (Occupation)
--   Experiencia (Experience)
--   Salario (Salary)
--   Sexo (Sex)
--   Horas trabajadas(Total hours worked)
--   Tamaño de la empresa (Company size)
+-   Edad (Age): Esta variable es un predictor común de los ingresos, ya que generalmente refleja la experiencia laboral acumulada y el potencial de ganancias. La edad también puede tener una relación no lineal con el salario, representada típicamente por la inclusión de un término cuadrático para capturar efectos de decrecimiento o incremento en las tasas de salario con respecto a la edad, según Yanming Cheny y Xinlong Li (2023).
+-   Cuenta propia (Self-employed): La literatura económica sugiere que los trabajadores por cuenta propia pueden tener perfiles de ingresos distintos en comparación con los asalariados, debido a diferencias en la asunción de riesgos y oportunidades de mercado, según Yanming Cheny y Xinlong Li (2023).
+-   Estrato (Socioeconomic stratum): El estrato socioeconómico puede estar asociado con diferencias en el acceso a oportunidades educativas y laborales, lo que a su vez afecta los ingresos. Además, podría reflejar diferencias en el capital social y en redes profesionales que pueden influir en los salarios, según Yanming Cheny y Xinlong Li (2023).
+-   Formal (Formal employment):  El empleo formal suele ofrecer mayores beneficios y seguridad laboral que el informal, lo que puede reflejarse en los niveles de ingresos, según Yanming Cheny y Xinlong Li (2023).
+-   Horas trabajadas la semana pasada (Actualhours worked previous week) y Horas trabajadas habitualmente (Usual weeklyhours worked): stas variables permiten capturar la relación entre el tiempo de trabajo y los ingresos, donde se espera que mayores horas trabajadas se relacionen con mayores ingresos hasta cierto límite.
+-   Informal (Informal employment):  El empleo informal a menudo se asocia con salarios más bajos y menores beneficios laborales, lo que puede influir significativamente en el nivel de ingresos, según Yanming Cheny y Xinlong Li (2023).
+-   Ingreso total (Totalincome): Representa la suma de todas las fuentes de ingreso y proporciona una perspectiva integral del bienestar económico de un individuo.
+-   Educación (Max. Education level attained):  La teoría del capital humano y la ecuación de Mincer resaltan la educación como un factor crítico en la determinación de los salarios, donde se espera que mayores niveles de educación estén asociados con mayores ingresos, según Yanming Cheny y Xinlong Li (2023).
+-   Oficio (Occupation): Diferentes ocupaciones tienen diferentes estructuras de remuneración, lo que justifica su inclusión en el modelo, según Yanming Cheny y Xinlong Li (2023).
+-   Experiencia (Experience):  Similar a la edad, la experiencia laboral acumulada se relaciona con el salario. La experiencia puede reflejar tanto la acumulación de habilidades como la antigüedad en el mercado laboral.
+-   Salario (Salary): Esta es la variable dependiente de interés, cuya determinación es el objetivo central del estudio.
+-   Sexo (Sex): Diversos estudios han mostrado que existe una brecha salarial de género, la cual es importante de estudiar y comprender para garantizar la equidad en el mercado laboral, según Yanming Cheny y Xinlong Li (2023).
+-   Horas trabajadas(Total hours worked): es fundamental para la predicción de salarios ya que refleja la cantidad de trabajo realizado y es un componente directo del ingreso, especialmente en empleos con pago por hora o con compensación por horas extras. La relación entre horas trabajadas y compensación es un concepto bien establecido en la teoría del capital humano y es esencial para entender la productividad y la compensación laboral
+-   Tamaño de la empresa (Company size): El tamaño de la empresa puede influir en los salarios debido a factores como la capacidad de la empresa para pagar, la estructura organizativa y las economías de escala.
 
 # 2. Datos
 
@@ -108,14 +106,16 @@ un proceso iterativo. En primer lugar, se guarda en la variable
 **`url_base`** la dirección web de la que se debe extraer la
 información. Hay un ligero cambio respecto a la URL general y este es
 que las tablas se encuentran un poco más anidadas, por lo que se debe
-completar la URL. Como la base de datos completa se encuentra separada
-en 10 partes, el proceso se debe repetir el mismo número de veces.
-Primero se crea una lista vacía llamada **`tables_list`**, en esta lista
-se guarda la información extraída de la página en cada iteración. Dentro
-del bucle **`for`**, se va modificando la ruta de extracción para que
-haga un recorrido por todas las direcciones donde se encuentran los
-datos. Esto es relativamente sencillo debido a que lo único que cambia
-es el número de la página; por esto, el iterador es un entero.
+completar la URL.
+
+Como la base de datos completa se encuentra separada en 10 partes, el
+proceso se debe repetir el mismo número de veces. Primero se crea una
+lista vacía llamada **`tables_list`**, en esta lista se guarda la
+información extraída de la página en cada iteración. Dentro del bucle
+**`for`**, se va modificando la ruta de extracción para que haga un
+recorrido por todas las direcciones donde se encuentran los datos. Esto
+es relativamente sencillo debido a que lo único que cambia es el número
+de la página; por esto, el iterador es un entero.
 
 Cuando se hace el proceso iterativo en las 10 páginas, estas quedan
 anidadas en la lista vacía **`tables_list`**. Para darle un formato
@@ -181,15 +181,16 @@ análisis descriptivo. Esto se debe a que, generalmente, al analizar la
 distribución de cada variable de forma individual, se logra identificar
 registros vacíos o atípicos que merecen un tratamiento aparte. Sin
 embargo, aplicamos unas reglas de validación iniciales para garantizar
-que los modelos de regresión tengan resultados satisfactorios. Primero,
-se cambiaron los nombres de las variables que se van a usar para que su
-identificación sea más sencilla. También se les dio el formato adecuado
-de tal forma que se respetara la naturaleza cualitativa o cuantitativa
-de las mismas. Los filtros más importantes de la base de datos fueron
-para la población en edad de trabajar. Como sugerencia del ejercicio,
-solo hay registros para personas mayores de edad. También se filtran las
-personas que están activas en el mercado laboral, ya que son estas las
-únicas que perciben un salario.
+que los modelos de regresión tengan resultados satisfactorios.
+
+Primero, se cambiaron los nombres de las variables que se van a usar
+para que su identificación sea más sencilla. También se les dio el
+formato adecuado de tal forma que se respetara la naturaleza cualitativa
+o cuantitativa de las mismas. Los filtros más importantes de la base de
+datos fueron para la población en edad de trabajar. Como sugerencia del
+ejercicio, solo hay registros para personas mayores de edad. También se
+filtran las personas que están activas en el mercado laboral, ya que son
+estas las únicas que perciben un salario.
 
 ```{r}
 # Limpieza de mayores de edad: Este chunk lo usamos solo como limpieza de datos 
@@ -221,6 +222,12 @@ data_ponderada <- data_ponderada %>%
 data_ponderada <-data_ponderada %>%
   filter(p6240==1)
 
+
+
+data_h$maxEducLevel <- na.aggregate(data_h$maxEducLevel, FUN = function(x) {
+  moda <- names(sort(table(x), decreasing = TRUE))[1]
+  return(moda)
+})
 ```
 
 ## Análisis exploratorio de datos individual
@@ -235,12 +242,6 @@ data_h <- data_ponderada %>%
 
 data_h <- data_h %>%
   mutate(Sexo = ifelse(Sexo == 1, 0, ifelse(Sexo == 0, 1, Sexo)))
-
-
-data_h$maxEducLevel <- na.aggregate(data_h$maxEducLevel, FUN = function(x) {
-  moda <- names(sort(table(x), decreasing = TRUE))[1]
-  return(moda)
-})
 ```
 
 Después de depurar los datos, revisamos cuántos valores faltantes hay en
@@ -308,19 +309,20 @@ mercado informal. Sin embargo, para este análisis se debe tener en
 cuenta que el salario mínimo solo es una parte de los costos laborales y
 que, a pesar de que estén cercanos los salarios con los beneficios de un
 salario integral, como la afiliación a EPS, pensión y cesantías, la
-brecha puede ser mayor. Para identificar el comportamiento de las
-variables que sirven para explicar el comportamiento del salario, se
-dividen en 2 categorías según su naturaleza de medición en cualitativas
-y cuantitativas. Los resultados más interesantes se ven en la variable
-del Estrato; en este caso, se observa cómo la mayoría de personas
-encuestadas se ubican en los estratos 2 y 3, con una representación del
-42.9% y 37.2% respectivamente. La clasificación de las personas a través
-de los estratos tiene el propósito de identificar la capacidad
-adquisitiva. Por tanto, en esta encuesta predominan personas con
-ingresos medio-bajos siguiendo las definiciones del estrato
-socioeconómico. Las diferencias de representación por sexo no son
-significativas y siguen la regla general de las cifras poblacionales en
-Colombia.
+brecha puede ser mayor.
+
+Para identificar el comportamiento de las variables que sirven para
+explicar el comportamiento del salario, se dividen en 2 categorías según
+su naturaleza de medición en cualitativas y cuantitativas. Los
+resultados más interesantes se ven en la variable del Estrato; en este
+caso, se observa cómo la mayoría de personas encuestadas se ubican en
+los estratos 2 y 3, con una representación del 42.9% y 37.2%
+respectivamente. La clasificación de las personas a través de los
+estratos tiene el propósito de identificar la capacidad adquisitiva. Por
+tanto, en esta encuesta predominan personas con ingresos medio-bajos
+siguiendo las definiciones del estrato socioeconómico. Las diferencias
+de representación por sexo no son significativas y siguen la regla
+general de las cifras poblacionales en Colombia.
 
 Las cifras de las condiciones de las personas en el mercado laboral son
 consistentes, sobre todo en la condición de formalidad. Para el año
@@ -417,6 +419,8 @@ par(mfrow = c(num_rows, num_cols))
 for (col in colnames(qualitative_vars)) {
   suppressWarnings(boxplot(log_salario ~ data_h[[col]], data = data_h, main = col, xlab = col, ylab = "log_salario"))
 }
+
+
 ```
 
 En relación a las variables de naturaleza cuantitativa, no se observan
@@ -624,6 +628,7 @@ mod_resid=lm(resid2~resid1)
 stargazer::stargazer(general,mod_resid,modelS,type = "text",digits= 3)
 ```
 
+\
 Luego de aplicar el teorema de FWL se observa cómo los coeficientes
 estimados son iguales, por lo que se valida utilizar las variables de
 control que se han venido trabajando.
@@ -637,18 +642,114 @@ ganan 0.06 unidades menos que los hombres, y cuando se incluyen
 variables de control la diferencia es de 0.09 unidades en el logaritmo
 del salario.
 
+```{r}
+#b) II
+
+# Define the number of bootstrap replications
+set.seed(123)  # Para reproducibilidad
+n_bootstraps <- 1000
+bootstrap_coefficients <- matrix(NA, nrow = n_bootstraps, ncol = 1)
+
+# Realiza el bootstrap
+for(i in 1:n_bootstraps) {
+  # Crea una muestra con reemplazo
+  bootstrap_sample <- data_h[sample(nrow(data_h), replace = TRUE), ]
+  
+  # Estima el modelo sobre la muestra bootstrap
+  bootstrap_model <- lm(log_salario ~ Sexo + Estrato+oficio+Edad+Edad2+informal+maxEducLevel+microEmpresa, data = bootstrap_sample)
+  
+  # Guarda el coeficiente de interés
+  bootstrap_coefficients[i, 1] <- coef(bootstrap_model)["Sexo"]
+}
+
+# Calcula el error estándar del bootstrap
+bootstrap_se <- sd(bootstrap_coefficients)
+
+# Agrega el error estándar del bootstrap a la salida del modelo original
+original_model <- lm(log_salario ~ Sexo + Estrato+oficio+Edad+Edad2+informal+maxEducLevel+microEmpresa, data = data_h)
+summary(original_model)  # Para comparar
+
+# Agregar una línea en la salida del stargazer para el error estándar del bootstrap
+stargazer::stargazer(original_model, type = "text", se = list(NULL, bootstrap_se))
+
+```
+# Análisis Bootstrap
+La investigación del "equal pay for equal work" se inscribe en un esfuerzo más amplio para comprender y corregir las disparidades salariales en el mercado laboral. A pesar de los avances significativos en la participación laboral de las mujeres y de las políticas orientadas a la igualdad de género, la brecha salarial por razones de género persiste en muchos sectores y regiones. Este estudio utiliza un enfoque econométrico, específicamente un modelo de regresión lineal múltiple, para evaluar si, después de controlar por características de los trabajadores y sus empleos, existe una diferencia sistemática en los salarios de hombres y mujeres.
+
+El análisis se lleva a cabo mediante la técnica de bootstrap para realizar inferencia estadística robusta. El bootstrap es un método de re-muestreo que permite estimar la distribución de un estimador estadístico mediante la re-muestreo repetido con reemplazo de la muestra original. Esto nos proporciona una medida de la variabilidad del estimador (en este caso, los coeficientes del modelo) sin hacer suposiciones sobre la forma de la distribución de la población subyacente.
+
+El modelo de regresión log_salario se utiliza para estimar la relación entre el logaritmo de los salarios y un conjunto de variables explicativas que incluyen género (Sexo), estrato socioeconómico (Estrato), categoría de empleo (oficio), edad (Edad y Edad^2), informalidad laboral (informal), nivel máximo de educación (maxEducLevel) y si el trabajador es parte de una microempresa (microEmpresa).
+
+El coeficiente para la variable `Sexo1` es 0.090 y es estadísticamente significativo al 1%, lo que indica que, manteniendo constantes todas las demás variables, existe una diferencia promedio de aproximadamente 9% en el logaritmo de los salarios a favor de los hombres. Este resultado sugiere una brecha salarial de género en la muestra analizada.
+Las variables `Estrato` reflejan el efecto del estrato socioeconómico sobre el logaritmo de los salarios. Los coeficientes positivos y significativos para `Estrato3` a `Estrato6` sugieren que los salarios tienden a ser más altos para individuos en estratos socioeconómicos más altos, en comparación con el estrato base.
+
+Las variables `oficio1` y `oficio2` tienen coeficientes negativos y significativos, lo que implica que los trabajadores en estas categorías de empleo tienden a ganar menos que la categoría de referencia.
+La variable `Edad` tiene un coeficiente positivo, indicando que los salarios aumentan con la edad, mientras que `Edad2` tiene un coeficiente negativo, lo que sugiere que el efecto de la edad en los salarios disminuye a una tasa creciente, en línea con la teoría de los ingresos a lo largo de la vida.
+
+La informalidad (`informal1`) tiene un impacto negativo en el salario, mientras que niveles más altos de educación (`maxEducLevel3` a `maxEducLevel7`) están asociados con salarios más altos.
+
+El análisis se completa con un modelo bootstrap para obtener una medida más precisa del error estándar de los coeficientes, especialmente para el coeficiente de `Sexo`, que es crucial para nuestra pregunta de investigación sobre la brecha de género en los salarios.
+Adicionalmente, Se realizo un bootstrap con 1000 repeticiones para estimar la distribución del coeficiente de la variable `Sexo`. Este procedimiento refuerza la validez de las inferencias estadísticas sobre la brecha salarial de género al proporcionar una estimación del error estándar que no depende de supuestos normales.
+
+Al comparar los errores estándar bootstrap con los errores estándar del modelo original, se pueden obtener conclusiones más robustas sobre la significancia estadística de la brecha salarial de género.
+
+# Perfil de edad-salario previsto
+
+Nos hemos enfocado en visualizar y entender la relación entre la edad y los salarios según el género, con el objetivo de identificar la presencia de una brecha salarial de género a lo largo de la vida laboral y estimar las "edades pico" en los salarios para hombres y mujeres.
+
+Para lograr esto, hemos estimado un modelo de regresión que incluye tanto términos lineales como cuadráticos de la edad y la interacción de estos términos con el género. Esto permite modelar no solo cómo los salarios cambian con la edad, sino también cómo la tasa de cambio del salario respecto a la edad difiere entre hombres y mujeres. Los términos cuadráticos son esenciales para capturar la posibilidad de que los salarios aumenten hasta cierto punto con la edad (debido a la acumulación de experiencia, por ejemplo) y luego comiencen a disminuir (quizás debido a la transición hacia la jubilación o a la menor adaptabilidad a nuevas tecnologías).
+
+
+```{r}
+
+# Librería necesaria
+library(ggplot2)
+
+# 'Sexo' es un factor en el conjunto de datos original
+data_h$Sexo <- as.factor(data_h$Sexo)
+
+# Ajustar el modelo
+model <- lm(log_salario ~ poly(Edad, 2) * Sexo, data = data_h)
+
+# 'Sexo' sea un factor en los datos de predicción
+predict_data <- expand.grid(Edad = ages, Sexo = factor(c(0, 1)))
+
+# Realizar las predicciones con el modelo ajustado
+predict_data$predicted_log_salario <- predict(model, newdata = predict_data)
+
+# Crea el gráfico
+ggplot(predict_data, aes(x = Edad, y = predicted_log_salario, color = Sexo)) +
+  geom_line() +
+  labs(color = 'Sexo', x = 'Edad', y = 'Log Salario Predicho') +
+  scale_color_manual(values = c('blue', 'pink'), labels = c('Hombre', 'Mujer')) +
+  theme_minimal()
+
+# Muestra el gráfico
+print(ggplot)
+
+```
+El gráfico resultante muestra las trayectorias predichas de los logaritmos de salarios en función de la edad para ambos géneros. La curva azul representa a los hombres y la curva roja a las mujeres. Observamos lo siguiente:
+
+*Edades Pico: Ambas curvas alcanzan un máximo, que corresponde a la "edad pico" en los salarios. Para los hombres, este pico parece ocurrir más tarde en la vida en comparación con las mujeres, lo que sugiere que los hombres pueden experimentar un crecimiento salarial hasta una edad más avanzada.
+
+*Disparidad Salarial: Existe una brecha visible entre las dos curvas, con la curva de los hombres generalmente por encima de la de las mujeres en casi todas las edades. Esto indica que, en promedio, los salarios de los hombres son más altos que los de las mujeres, lo que refleja la presencia de una brecha salarial de género.
+
+*Declive Salarial: Después de las edades pico, los salarios tienden a disminuir con la edad para ambos géneros, pero el descenso parece ser más pronunciado para los hombres. Esto podría reflejar una mayor penalización en los salarios para los hombres de mayor edad o una salida más temprana del mercado laboral para las mujeres.
+
+El gráfico proporciona evidencia visual de una disparidad salarial entre géneros que varía con la edad, alcanzando su punto máximo en diferentes momentos de la vida laboral para hombres y mujeres. 
+
 # 5 Predicción
 
 Las especificaciones que se van a trabajar para el proceso de predicción
 se van a construir tomando como referencia la ecuación de Mincer.
 
-$$Ln(w) = \beta_{0} +* \beta_{1}S + \beta_{2}Exp +* \beta_{3}Exp^2 +
-\epsilon$$
+\$Ln(w) = \beta*{0} +* \beta{1}S + \beta*{2}Exp +* \beta{3}Exp\^2 +
+\epsilon\$
 
 2.  Tomando los elementos de la ecuacion de mince pero anadiendo las
     variables propuestas desde el punto de vista empirico
 
-$$Ln(w) = \beta_{0} + \beta_{1}Edad + \beta_{2}edad^2 + \beta_{3}Cuentapropia + +\beta_{4}Estrato+ \beta_{5}informal+ \beta_{6}Educacion + \beta_{7}sexo+ \beta_{8}Microempresa+ \beta_{9}Horas_trabajadas + \beta_{10}oficio +\epsilon$$
+$Ln(w) = \beta_{0} + \beta_{1}Edad + \beta_{2}edad^2 + \beta_{3}Cuentapropia + +\beta_{4}Estrato+ \beta_{5}informal+ \beta_{6}Educacion + \beta_{7}sexo+ \beta_{8}Microempresa+ \beta_{9}Horas_trabajadas + \beta_{10}oficio +\epsilon$
 
 3.  Modelo del punto 3 donde solo se tenia en cuenta la edad
 
@@ -748,7 +849,7 @@ metrics_table <- tibble(
 metrics_table %>% arrange(Error_Train)
 ```
 
-c)  Discusion de los resultados
+c) Discusion de los resultados
 
 El modelo con menor error en prediccion es el modelo mas general, el que
 se construyo a partir de las referencias teoricas y empiricas en los
@@ -828,5 +929,14 @@ odelo2c <- train(es13,
 
 # Bibliografía
 
-Mincer, J (1974), Schooling, experience and earnings, national bureau of
-economic research, New York.
+[1] Yanming Cheny & Xinlong Li (2023). "Salary Prediction Using Machine Learning." International Journal of Innovative Research in Technology (IJIRT), Volume 8, Issue 1, ISSN: 2349-6002.
+
+[2] Ray, S. (2019). "A Quick Review of Machine Learning Algorithms." International Conference on Machine Learning Big Data Cloud and Parallel Computing (Com-IT-Con), India, 14th -16th Feb 2019.
+
+[3] Dutta, S., Halder, A., & Dasgupta, K. (2018). "Design of a novel Prediction Engine for predicting suitable salary for a job." Fourth International Conference on Research in Computational Intelligence and Communication Networks (ICRCICN).
+
+[4] Khongchai, P., & Songmuang, P. (2016). "Improving Students’ Motivation to Study using Salary Prediction System." 13th International Joint Conference on Computer Science and Software Engineering (JCSSE).
+
+[5] Viroonluecha, P., & Kaewkiriya, T. (2018). "Salary Predictor System for Thailand Labour Workforce using Deep Learning." The 18th International Symposium on Communications and Information Technologies (ISCIT 2018).
+
+[6] Wu, M., & Shu, S. (2021). "Top Management Salary Stock Ratio and Firm Performance: A Comparative Study of State-owned and Private Listed Companies in China." International Journal of Advance Scientific Research and Engineering Trends.
