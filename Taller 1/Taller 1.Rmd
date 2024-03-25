@@ -94,6 +94,7 @@ variables:
 -   Horas trabajadas(Total hours worked): es fundamental para la predicción de salarios ya que refleja la cantidad de trabajo realizado y es un componente directo del ingreso, especialmente en empleos con pago por hora o con compensación por horas extras. La relación entre horas trabajadas y compensación es un concepto bien establecido en la teoría del capital humano y es esencial para entender la productividad y la compensación laboral
 -   Tamaño de la empresa (Company size): El tamaño de la empresa puede influir en los salarios debido a factores como la capacidad de la empresa para pagar, la estructura organizativa y las economías de escala.
 
+
 # 2. Datos
 
 ## Lectura de los datos
@@ -120,7 +121,7 @@ de la página; por esto, el iterador es un entero.
 Cuando se hace el proceso iterativo en las 10 páginas, estas quedan
 anidadas en la lista vacía **`tables_list`**. Para darle un formato
 manejable en el proceso de machine learning, se concatenan en una sola
-sabana de datos con formato **`tibble`**. Como la cantidad de datos es
+sab   ana de datos con formato **`tibble`**. Como la cantidad de datos es
 considerable, este proceso dura aproximadamente 8 minutos.
 
 ```{r}
@@ -693,6 +694,7 @@ Adicionalmente, Se realizo un bootstrap con 1000 repeticiones para estimar la di
 
 Al comparar los errores estándar bootstrap con los errores estándar del modelo original, se pueden obtener conclusiones más robustas sobre la significancia estadística de la brecha salarial de género.
 
+
 # Perfil de edad-salario previsto
 
 Nos hemos enfocado en visualizar y entender la relación entre la edad y los salarios según el género, con el objetivo de identificar la presencia de una brecha salarial de género a lo largo de la vida laboral y estimar las "edades pico" en los salarios para hombres y mujeres.
@@ -928,6 +930,7 @@ odelo2c <- train(es13,
 ```
 
 # Bibliografía
+
 
 [1] Yanming Cheny & Xinlong Li (2023). "Salary Prediction Using Machine Learning." International Journal of Innovative Research in Technology (IJIRT), Volume 8, Issue 1, ISSN: 2349-6002.
 
