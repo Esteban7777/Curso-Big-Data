@@ -1,6 +1,7 @@
 # Problem Set 2
 
 En esta carpeta se encuentra el desarrollo del problem set 2. El sitio está organizado en tres carpetas diferentes:
+
 0. Insumos: Contine los insumos para el desarrollo del trabajo:
    - El PDF con las indicaciones para la realización del taller. 
    - El PDF con el diccionario de variables de la data utilizadas
