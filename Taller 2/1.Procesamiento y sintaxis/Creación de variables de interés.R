@@ -102,7 +102,7 @@ crear_posicion_jefe<-function(df){
 train_personas<-crear_posicion_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"posicion_jefe")
 
-#Creamos la variable en Train
+#Creamos la variable en Test
 test_personas<-crear_posicion_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"posicion_jefe")
 
