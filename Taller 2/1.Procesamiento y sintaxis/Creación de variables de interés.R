@@ -10,8 +10,13 @@ source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Ta
 
 #Creación de variables de interés####
 
+#Nos interesa las caracteristicas del jefe de hogar####
+#Creamos jefe para Train
+train_personas$jefe<-ifelse(test = train_personas$P6050==1,1,0)
+#Creamos jefe para Test
+test_personas$jefe<-ifelse(test = test_personas$P6050==1,1,0)
 
-#Los hogares que tienen una mujere como jefe de hogar podrían ser probablemente más pobres####
+#Los hogares que tienen una mujer como jefe de hogar podrían ser probablemente más pobres####
 train_personas$jefe<-ifelse(test = train_personas$P6050==1,1,0)
 
 crear_sexo_jefe<-function(df){
@@ -21,9 +26,84 @@ crear_sexo_jefe<-function(df){
   return(df)
 }
 
+#Creamos la variable en Train
 train_personas<-crear_sexo_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"sexo_jefe")
 
+#Creamos la variable en Test
+test_personas<-crear_sexo_jefe(test_personas)
+test_hogares<-traer_variable(test_hogares,test_personas,"sexo_jefe")
+
+#Los hogares cuyo jefe pertenece al regimen subsidiado podrían ser probablemente más pobres####
+
+crear_regimen_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(regimen_jefe=aux$P6100,id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+
+#Creamos la variable en Train
+train_personas<-crear_regimen_jefe(train_personas)
+train_hogares<-traer_variable(train_hogares,train_personas,"regimen_jefe")
+
+#Creamos la variable en Test
+test_personas<-crear_regimen_jefe(test_personas)
+test_hogares<-traer_variable(test_hogares,test_personas,"regimen_jefe")
+
+#Los hogares con jefes con menor nivel de escolaridad podrían ser probablemente más pobres####
+
+crear_educacion_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(educacion_jefe=aux$P6210,id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+
+#Creamos la variable en Train
+train_personas<-crear_educacion_jefe(train_personas)
+#Ya que 9 es el código de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
+train_personas$educacion_jefe<-ifelse(train_personas$educacion_jefe==9,0,train_personas$educacion_jefe)
+train_hogares<-traer_variable(train_hogares,train_personas,"educacion_jefe")
+
+#Creamos la variable en Test
+test_personas<-crear_educacion_jefe(test_personas)
+#Ya que 9 es el código de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
+test_personas$educacion_jefe<-ifelse(test_personas$educacion_jefe==9,0,test_personas$educacion_jefe)
+test_hogares<-traer_variable(test_hogares,test_personas,"educacion_jefe")
+
+#Los hogares cuyo jefe de hogar no está empleado probablemente sean más pobres #####
+
+crear_ocupacion_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(ocupacion_jefe=aux$P6240,id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+
+#Creamos la variable en Train
+train_personas<-crear_ocupacion_jefe(train_personas)
+train_hogares<-traer_variable(train_hogares,train_personas,"ocupacion_jefe")
+
+#Creamos la variable en Test
+test_personas<-crear_ocupacion_jefe(test_personas)
+test_hogares<-traer_variable(test_hogares,test_personas,"ocupacion_jefe")
+
+#Posición laboral del jefe de hogar####
+
+crear_posicion_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(posicion_jefe=aux$P6430,id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+
+#Creamos la variable en Train
+train_personas<-crear_posicion_jefe(train_personas)
+train_hogares<-traer_variable(train_hogares,train_personas,"posicion_jefe")
+
+#Creamos la variable en Train
+test_personas<-crear_posicion_jefe(test_personas)
+test_hogares<-traer_variable(test_hogares,test_personas,"posicion_jefe")
 
 
-train_hogares<-traer_variable(train_hogares,train_personas,"reg_subsidiado")
