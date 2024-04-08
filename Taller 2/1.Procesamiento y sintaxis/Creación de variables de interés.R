@@ -98,10 +98,10 @@ test_hogares$desempleo_jefe<-ifelse(test_hogares$ocupacion_jefe==1,0,1)
 
 crear_otras_variables_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(Pet=aux$Pet,
-                   Oc=aux$Oc,
-                   Des=aux$Des,
-                   Ina=aux$Ina,
+  aux2<-data.frame(Pet_jefe=aux$Pet,
+                   Oc_jefe=aux$Oc,
+                   Des_jefe=aux$Des,
+                   Ina_jefe=aux$Ina,
                    id=aux$id)
   df<-left_join(df,aux2,by="id")
   return(df)
@@ -109,16 +109,29 @@ crear_otras_variables_jefe<-function(df){
 
 #En Train
 train_personas<-crear_otras_variables_jefe(train_personas)
-train_personas$Pet<-as.factor(train_personas$Pet)
-train_personas$Oc<-as.factor(train_personas$Oc)
-train_personas$Des<-as.factor(train_personas$Des)
-train_personas$Ina<-as.factor(train_personas$Ina)
+
+traer_variable(train_hogares,train_personas,"Pet_jefe")
+traer_variable(train_hogares,train_personas,"Oc_jefe")
+traer_variable(train_hogares,train_personas,"Des_jefe")
+traer_variable(train_hogares,train_personas,"Ina_jefe")
+
+train_hogares$Pet_jefe<-as.factor(train_hogares$Pet_jefe)
+train_hogares$Oc_jefe<-as.factor(train_hogares$Oc_jefe)
+train_hogares$Des_jefe<-as.factor(train_hogares$Des_jefe)
+train_hogares$Ina_jefe<-as.factor(train_hogares$Ina_jefe)
+
 #En Test
 test_personas<-crear_otras_variables_jefe(test_personas)
-test_personas$Pet<-as.factor(test_personas$Pet)
-test_personas$Oc<-as.factor(test_personas$Oc)
-test_personas$Des<-as.factor(test_personas$Des)
-test_personas$Ina<-as.factor(test_personas$Ina)
+
+traer_variable(test_hogares,test_personas,"Pet_jefe")
+traer_variable(test_hogares,test_personas,"Oc_jefe")
+traer_variable(test_hogares,test_personas,"Des_jefe")
+traer_variable(test_hogares,test_personas,"Ina_jefe")
+
+test_hogares$Pet_jefe<-as.factor(test_hogares$Pet_jefe)
+test_hogares$Oc_jefe<-as.factor(test_hogares$Oc_jefe)
+test_hogares$Des_jefe<-as.factor(test_hogares$Des_jefe)
+test_hogares$Ina_jefe<-as.factor(test_hogares$Ina_jefe)
 
 
 #Posición laboral del jefe de hogar####
