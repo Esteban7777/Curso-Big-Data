@@ -176,3 +176,66 @@ sub3<-test_hogares %>% select(id,m5_predict)
 sub3<-sub3 %>% rename(pobre=m5_predict)
 write_csv(x = sub3,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission3.csv",)
 
+
+dependientes_modelo5<-c("Clase","Des_jefe" #Completa 
+                                            )
+table(train_hogares$Pobre,train_hogares$Des_jefe)
+
+m6<-glm(as.formula(
+  paste("Pobre~",
+        paste(dependientes_modelo5, collapse = " * "))),data = train_hogares)
+
+summary(m6)
+
+train_hogares$m6_prob_predict<-predict(m6,newdata = train_hogares)
+train_hogares$m6_predict<-ifelse(train_hogares$m6_prob_predict>=0.5,1,0)
+
+matrix_predicciones6<-table(train_hogares$m6_predict,train_hogares$Pobre)
+confusionMatrix(matrix_predicciones6)
+
+#Fuera de muestra
+test_hogares$m6_prob_predict<-predict(object = m6,newdata = test_hogares)
+test_hogares$m6_predict<-ifelse(test_hogares$m6_prob_predict>0.5,1,0)
+
+table(is.na(test_hogares$m6_predict))
+
+sub4<-test_hogares %>% select(id,m6_predict)
+sub4<-sub4 %>% rename(pobre=m6_predict)
+write_csv(x = sub4,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission4.csv",)
+
+table(sub1$pobre)
+table(sub2$pobre)
+table(sub4$pobre)
+
+#NOTA TOCA ENCONTRAR MAS De 3.000 POBRES SINO NO SUBIR
+
+dependientes_modelo7<-c("educacion_jefe",
+                        "sexo_jefe"#Completa 
+)
+
+
+table(test_hogares$sexo_jefe)
+table(test_hogares$regimen_jefe)
+
+m7<-glm(as.formula(
+  paste("Pobre~",
+        paste(dependientes_modelo7, collapse = " * "))),data = train_hogares)
+
+summary(m7)
+
+train_hogares$m7_prob_predict<-predict(m7,newdata = train_hogares)
+train_hogares$m7_predict<-ifelse(train_hogares$m7_prob_predict>=0.5,1,0)
+
+matrix_predicciones7<-table(train_hogares$m7_predict),train_hogares$Pobre)
+confusionMatrix(matrix_predicciones7)
+
+#Fuera de muestra
+test_hogares$m7_prob_predict<-predict(object = m7,newdata = test_hogares)
+test_hogares$m7_predict<-ifelse(test_hogares$m7_prob_predict>0.5,1,0)
+
+table(is.na(test_hogares$m7_predict))
+
+sub4<-test_hogares %>% select(id,m6_predict)
+sub4<-sub4 %>% rename(pobre=m6_predict)
+write_csv(x = sub4,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission4.csv",)
+table(sub1$pobre)
