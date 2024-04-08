@@ -105,21 +105,21 @@ crear_Pet_jefe<-function(df){
 }
 crear_Oc_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(Oc_jefe=aux$Pet,
+  aux2<-data.frame(Oc_jefe=aux$Oc,
                    id=aux$id)
   df<-left_join(df,aux2,by="id")
   return(df)
 }
 crear_Des_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(Des_jefe=aux$Pet,
+  aux2<-data.frame(Des_jefe=aux$Des,
                    id=aux$id)
   df<-left_join(df,aux2,by="id")
   return(df)
 }
 crear_Ina_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(Ina_jefe=aux$Pet,
+  aux2<-data.frame(Ina_jefe=aux$Ina,
                    id=aux$id)
   df<-left_join(df,aux2,by="id")
   return(df)
