@@ -19,5 +19,5 @@ test_personas<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big
 variables_hogares<-names(test_hogares)
 variables_personas<-names(test_personas)
 
-train_hogares<-train_hogares %>% select(variables_hogares,Ingtotug,Ingtotugarr)
+train_hogares<-train_hogares %>% select(Pobre,variables_hogares,Ingtotug,Ingtotugarr)
 train_personas<-train_personas %>% select(variables_personas,Ingtotob,Ingtotes,Ingtot)

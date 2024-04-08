@@ -94,6 +94,33 @@ test_personas<-crear_ocupacion_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"ocupacion_jefe")
 test_hogares$desempleo_jefe<-ifelse(test_hogares$ocupacion_jefe==1,0,1)
 
+#Tambien traemos las variables "Pet"  "Oc"  "Des"  "Ina" de los jefes de hogar
+
+crear_otras_variables_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(Pet=aux$Pet,
+                   Oc=aux$Oc,
+                   Des=aux$Des,
+                   Ina=aux$Ina,
+                   id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+
+#En Train
+train_personas<-crear_otras_variables_jefe(train_personas)
+train_personas$Pet<-as.factor(train_personas$Pet)
+train_personas$Oc<-as.factor(train_personas$Oc)
+train_personas$Des<-as.factor(train_personas$Des)
+train_personas$Ina<-as.factor(train_personas$Ina)
+#En Test
+test_personas<-crear_otras_variables_jefe(test_personas)
+test_personas$Pet<-as.factor(test_personas$Pet)
+test_personas$Oc<-as.factor(test_personas$Oc)
+test_personas$Des<-as.factor(test_personas$Des)
+test_personas$Ina<-as.factor(test_personas$Ina)
+
+
 #Posición laboral del jefe de hogar####
 
 crear_posicion_jefe<-function(df){
