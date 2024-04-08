@@ -96,19 +96,40 @@ test_hogares$desempleo_jefe<-ifelse(test_hogares$ocupacion_jefe==1,0,1)
 
 #Tambien traemos las variables "Pet"  "Oc"  "Des"  "Ina" de los jefes de hogar
 
-crear_otras_variables_jefe<-function(df){
+crear_Pet_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
   aux2<-data.frame(Pet_jefe=aux$Pet,
-                   Oc_jefe=aux$Oc,
-                   Des_jefe=aux$Des,
-                   Ina_jefe=aux$Ina,
+                   id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+crear_Oc_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(Oc_jefe=aux$Pet,
+                   id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+crear_Des_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(Des_jefe=aux$Pet,
+                   id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+crear_Ina_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(Ina_jefe=aux$Pet,
                    id=aux$id)
   df<-left_join(df,aux2,by="id")
   return(df)
 }
 
 #En Train
-train_personas<-crear_otras_variables_jefe(train_personas)
+train_personas<-crear_Pet_jefe(train_personas)
+train_personas<-crear_Oc_jefe(train_personas)
+train_personas<-crear_Des_jefe(train_personas)
+train_personas<-crear_Ina_jefe(train_personas)
 
 traer_variable(train_hogares,train_personas,"Pet_jefe")
 traer_variable(train_hogares,train_personas,"Oc_jefe")
@@ -121,7 +142,10 @@ train_hogares$Des_jefe<-as.factor(train_hogares$Des_jefe)
 train_hogares$Ina_jefe<-as.factor(train_hogares$Ina_jefe)
 
 #En Test
-test_personas<-crear_otras_variables_jefe(test_personas)
+test_personas<-crear_Pet_jefe(test_personas)
+test_personas<-crear_Oc_jefe(test_personas)
+test_personas<-crear_Des_jefe(test_personas)
+test_personas<-crear_Ina_jefe(test_personas)
 
 traer_variable(test_hogares,test_personas,"Pet_jefe")
 traer_variable(test_hogares,test_personas,"Oc_jefe")
@@ -132,7 +156,6 @@ test_hogares$Pet_jefe<-as.factor(test_hogares$Pet_jefe)
 test_hogares$Oc_jefe<-as.factor(test_hogares$Oc_jefe)
 test_hogares$Des_jefe<-as.factor(test_hogares$Des_jefe)
 test_hogares$Ina_jefe<-as.factor(test_hogares$Ina_jefe)
-
 
 #Posición laboral del jefe de hogar####
 
