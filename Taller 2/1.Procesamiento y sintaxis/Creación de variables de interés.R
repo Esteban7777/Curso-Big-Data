@@ -136,10 +136,11 @@ train_hogares<-traer_variable(train_hogares,train_personas,"Oc_jefe")
 train_hogares<-traer_variable(train_hogares,train_personas,"Des_jefe")
 train_hogares<-traer_variable(train_hogares,train_personas,"Ina_jefe")
 
-train_hogares$Pet_jefe<-as.factor(train_hogares$Pet_jefe)
-train_hogares$Oc_jefe<-as.factor(train_hogares$Oc_jefe)
-train_hogares$Des_jefe<-as.factor(train_hogares$Des_jefe)
-train_hogares$Ina_jefe<-as.factor(train_hogares$Ina_jefe)
+train_hogares$Pet_jefe[is.na(train_hogares$Pet_jefe)] <- 0
+train_hogares$Oc_jefe[is.na(train_hogares$Oc_jefe)] <- 0
+train_hogares$Des_jefe[is.na(train_hogares$Des_jefe)] <- 0
+train_hogares$Ina_jefe[is.na(train_hogares$Ina_jefe)] <- 0
+
 
 #En Test
 test_personas<-crear_Pet_jefe(test_personas)
@@ -152,10 +153,10 @@ test_hogares<-traer_variable(test_hogares,test_personas,"Oc_jefe")
 test_hogares<-traer_variable(test_hogares,test_personas,"Des_jefe")
 test_hogares<-traer_variable(test_hogares,test_personas,"Ina_jefe")
 
-test_hogares$Pet_jefe<-as.factor(test_hogares$Pet_jefe)
-test_hogares$Oc_jefe<-as.factor(test_hogares$Oc_jefe)
-test_hogares$Des_jefe<-as.factor(test_hogares$Des_jefe)
-test_hogares$Ina_jefe<-as.factor(test_hogares$Ina_jefe)
+test_hogares$Pet_jefe[is.na(test_hogares$Pet_jefe)] <- 0
+test_hogares$Oc_jefe[is.na(test_hogares$Oc_jefe)] <- 0
+test_hogares$Des_jefe[is.na(test_hogares$Des_jefe)] <- 0
+test_hogares$Ina_jefe[is.na(test_hogares$Ina_jefe)] <- 0
 
 #Posición laboral del jefe de hogar####
 
