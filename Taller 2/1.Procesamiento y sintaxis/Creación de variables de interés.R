@@ -177,3 +177,9 @@ test_personas<-crear_posicion_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"posicion_jefe")
 test_hogares$posicion_jefe<-as.factor(test_hogares$posicion_jefe)
 
+#Creamos personas por habitación
+
+#En train
+train_hogares$Personas_habitacion<-train_hogares$Nper/train_hogares$P5010
+#En test
+test_hogares$Personas_habitacion<-test_hogares$Nper/test_hogares$P5010

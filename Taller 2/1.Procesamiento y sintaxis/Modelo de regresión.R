@@ -210,7 +210,8 @@ table(sub4$pobre)
 #NOTA TOCA ENCONTRAR MAS De 3.000 POBRES SINO NO SUBIR
 
 dependientes_modelo7<-c("educacion_jefe",
-                        "sexo_jefe"#Completa 
+                        "sexo_jefe",
+                        "Personas_habitacion"#Completa 
 )
 
 
@@ -226,7 +227,7 @@ summary(m7)
 train_hogares$m7_prob_predict<-predict(m7,newdata = train_hogares)
 train_hogares$m7_predict<-ifelse(train_hogares$m7_prob_predict>=0.5,1,0)
 
-matrix_predicciones7<-table(train_hogares$m7_predict),train_hogares$Pobre)
+matrix_predicciones7<-table(train_hogares$m7_predict,train_hogares$Pobre)
 confusionMatrix(matrix_predicciones7)
 
 #Fuera de muestra
@@ -234,8 +235,8 @@ test_hogares$m7_prob_predict<-predict(object = m7,newdata = test_hogares)
 test_hogares$m7_predict<-ifelse(test_hogares$m7_prob_predict>0.5,1,0)
 
 table(is.na(test_hogares$m7_predict))
-
-sub4<-test_hogares %>% select(id,m6_predict)
-sub4<-sub4 %>% rename(pobre=m6_predict)
-write_csv(x = sub4,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission4.csv",)
+  
+sub5<-test_hogares %>% select(id,m7_predict)
+sub5<-sub5 %>% rename(pobre=m7_predict)
+write_csv(x = sub5,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission5.csv",)
 table(sub1$pobre)
