@@ -46,11 +46,14 @@ crear_regimen_jefe<-function(df){
 #Creamos la variable en Train
 train_personas<-crear_regimen_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"regimen_jefe")
-train_hogares$regimen_jefe<-as.factor(train_hogares$regimen_jefe)
+train_hogares$regimen_subsidiado_jefe<-ifelse(train_hogares$regimen_jefe==3,1,0)
+
 #Creamos la variable en Test
 test_personas<-crear_regimen_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"regimen_jefe")
 test_hogares$regimen_jefe<-as.factor(test_hogares$regimen_jefe)
+test_hogares$regimen_subsidiado_jefe<-ifelse(test_hogares$regimen_jefe==3,1,0)
+
 #Los hogares con jefes con menor nivel de escolaridad podrían ser probablemente más pobres####
 
 crear_educacion_jefe<-function(df){
@@ -65,14 +68,12 @@ train_personas<-crear_educacion_jefe(train_personas)
 #Ya que 9 es el código de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
 train_personas$educacion_jefe<-ifelse(train_personas$educacion_jefe==9,0,train_personas$educacion_jefe)
 train_hogares<-traer_variable(train_hogares,train_personas,"educacion_jefe")
-train_hogares$educacion_jefe<-as.factor(train_hogares$educacion_jefe)
 
 #Creamos la variable en Test
 test_personas<-crear_educacion_jefe(test_personas)
 #Ya que 9 es el código de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
 test_personas$educacion_jefe<-ifelse(test_personas$educacion_jefe==9,0,test_personas$educacion_jefe)
 test_hogares<-traer_variable(test_hogares,test_personas,"educacion_jefe")
-test_hogares$educacion_jefe<-as.factor(test_hogares$educacion_jefe)
 
 #Los hogares cuyo jefe de hogar no está empleado probablemente sean más pobres #####
 
@@ -86,12 +87,12 @@ crear_ocupacion_jefe<-function(df){
 #Creamos la variable en Train
 train_personas<-crear_ocupacion_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"ocupacion_jefe")
-train_hogares$ocupacion_jefe<-as.factor(train_hogares$ocupacion_jefe)
+train_hogares$desempleo_jefe<-ifelse(train_hogares$ocupacion_jefe==1,0,1)
 
 #Creamos la variable en Test
 test_personas<-crear_ocupacion_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"ocupacion_jefe")
-test_hogares$ocupacion_jefe<-as.factor(test_hogares$ocupacion_jefe)
+test_hogares$desempleo_jefe<-ifelse(test_hogares$ocupacion_jefe==1,0,1)
 
 #Posición laboral del jefe de hogar####
 
