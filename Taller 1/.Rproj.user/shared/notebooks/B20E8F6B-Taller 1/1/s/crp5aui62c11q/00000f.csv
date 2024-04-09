@@ -1,0 +1,3 @@
+"0","data_h$log_salario <- log(data_h$Salario)"
+"0","par(mfrow=c(1,2))  "
+"0","hist(data_h$Salario, main=""Distribución del salario"", xlab=""Salario"", ylab=""Frecuencia"")"

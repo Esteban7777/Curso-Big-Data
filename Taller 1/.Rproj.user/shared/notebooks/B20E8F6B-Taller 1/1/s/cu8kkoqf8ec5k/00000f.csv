@@ -1,0 +1,2 @@
+"0","data_h <- data %>%"
+"0","  select(Edad,cuentaPropia,Estrato,formal,informal,maxEducLevel,oficio,Educacion,Experiencia,Salario,Sexo,Horas_trabajadas)"

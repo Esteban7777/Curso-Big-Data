@@ -1,0 +1,8 @@
+"0","options(repr.plot.width = 20, repr.plot.height = 10)"
+"0","qualitative_vars <- data_h %>% select(where(is.factor) | where(is.character))"
+"0","num_cols <- 4"
+"0","num_rows <- ceiling(ncol(qualitative_vars) / num_cols)"
+"0","par(mfrow = c(num_rows, num_cols))"
+"0","for (col in colnames(qualitative_vars)) {"
+"0","  suppressWarnings(boxplot(log_salario ~ data_h[[col]], data = data_h, main = col, xlab = col, ylab = ""log_salario""))"
+"0","}"
