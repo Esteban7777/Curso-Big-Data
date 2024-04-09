@@ -279,4 +279,5 @@ sub6<-test_hogares %>% select(id,m8_predict)
 sub6<-sub6 %>% rename(pobre=m8_predict)
 write_csv(x = sub6,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission6.csv",)
 
-
+##HAY QUE BALANCEAR EL DATAFRAME
+table(train_hogares$Pobre)
