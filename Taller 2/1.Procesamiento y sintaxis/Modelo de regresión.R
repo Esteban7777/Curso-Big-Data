@@ -240,3 +240,43 @@ sub5<-test_hogares %>% select(id,m7_predict)
 sub5<-sub5 %>% rename(pobre=m7_predict)
 write_csv(x = sub5,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission5.csv",)
 table(sub1$pobre)
+
+##
+dependientes_modelo8<-c( #Completa
+                        "educacion_jefe", #Completa 
+                        "sexo_jefe", #Completa
+                        "Clase", #Completa
+                        "P5090", #Completa
+                         #Completa 
+                        "Des_jefe", #Completa
+                        "Personas_habitacion"#Completa 
+)
+
+
+table(test_hogares$sexo_jefe)
+table(test_hogares)
+
+m8<-glm(as.formula(
+  paste("Pobre~",
+        paste(dependientes_modelo8, collapse = " * "))),data = train_hogares)
+
+summary(m8)
+
+train_hogares$m8_prob_predict<-predict(m8,newdata = train_hogares)
+train_hogares$m8_predict<-ifelse(train_hogares$m8_prob_predict>=0.5,1,0)
+
+matrix_predicciones8<-table(train_hogares$m8_predict,train_hogares$Pobre)
+confusionMatrix(matrix_predicciones8)
+
+#Fuera de muestra
+test_hogares$m8_prob_predict<-predict(object = m8,newdata = test_hogares)
+test_hogares$m8_predict<-ifelse(test_hogares$m8_prob_predict>0.5,1,0)
+
+table(is.na(test_hogares$m8_predict))
+table(test_hogares$m8_predict)
+
+sub6<-test_hogares %>% select(id,m8_predict)
+sub6<-sub6 %>% rename(pobre=m8_predict)
+write_csv(x = sub6,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission6.csv",)
+
+
