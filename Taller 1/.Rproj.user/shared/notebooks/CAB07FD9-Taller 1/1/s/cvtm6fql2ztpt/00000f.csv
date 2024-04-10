@@ -1,0 +1,5 @@
+"0","data_h<-data_h %>% mutate(log_salario=log(Salario2),"
+"0","                            Edad2=Edad^2"
+"0","                            )"
+"0","par(mfrow=c(1,2))  "
+"0","hist(data_h$Salario2, main=""Distribución del salario"", xlab=""Salario"", ylab=""Frecuencia"")"

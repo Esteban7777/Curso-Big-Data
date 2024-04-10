@@ -1,0 +1,27 @@
+{
+    "sources": [
+        {
+            "author": [
+                {
+                    "family": "Smith",
+                    "given": "John"
+                }
+            ],
+            "container-title": "Journal Name",
+            "id": "smith2010",
+            "issue": "2",
+            "issued": {
+                "date-parts": [
+                    [
+                        2010
+                    ]
+                ]
+            },
+            "page": "123-135",
+            "title": "Title of the paper",
+            "type": "article-journal",
+            "volume": "10"
+        }
+    ],
+    "project_biblios": []
+}
