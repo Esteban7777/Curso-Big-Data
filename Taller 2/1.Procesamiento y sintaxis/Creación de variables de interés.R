@@ -1,3 +1,4 @@
+set.seed(1234)
 #Librerias
 library(devtools)
 library(tidyverse)
@@ -88,7 +89,13 @@ crear_ocupacion_jefe<-function(df){
 train_personas<-crear_ocupacion_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"ocupacion_jefe")
 train_hogares$desempleo_jefe<-ifelse(train_hogares$ocupacion_jefe==1,0,1)
+table(is.na(train_hogares$desempleo_jefe))
+#Tiene un dato perdido. Lo imputamos con un valor aleatorio
 
+train_hogares$desempleo_jefe <- replace(train_hogares$desempleo_jefe,
+                                        is.na(train_hogares$desempleo_jefe),
+                                        sample(c(0,1),1))
+table(is.na(train_hogares$desempleo_jefe))
 #Creamos la variable en Test
 test_personas<-crear_ocupacion_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"ocupacion_jefe")
@@ -183,3 +190,4 @@ test_hogares$posicion_jefe<-as.factor(test_hogares$posicion_jefe)
 train_hogares$Personas_habitacion<-train_hogares$Nper/train_hogares$P5010
 #En test
 test_hogares$Personas_habitacion<-test_hogares$Nper/test_hogares$P5010
+
