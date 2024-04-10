@@ -58,7 +58,7 @@ predictores_modelo2<-c("desempleo_jefe", #Completa
                           )
 
 m2<-lm(as.formula(
-  paste("Ingtotug~",
+  paste("Ingtotugarr~",
         paste(predictores_modelo2, collapse = " + "))),
   data = train_hogares %>% filter(Dominio!="BOGOTA")) #como no hay datos de Dominio=Bogotá en Test, se entrena sin Bogota
 
@@ -99,7 +99,7 @@ predictores_modelo3<-c("desempleo_jefe", #Completa
 )
 
 m3<-lm(as.formula(
-  paste("Ingtotug~",
+  paste("Ingtotugarr~",
         paste(predictores_modelo3, collapse = " + "))),
   data = train_hogares) 
 
@@ -110,19 +110,131 @@ summary(m3)
 train_hogares$m3_ingreso<-predict(object = m3,
                                              newdata = train_hogares)
 
-train_hogares$m3_predict<-ifelse(train_hogares$m3_ingreso<train_hogares$Lp,
-                                            1,0)
+train_hogares$m3_predict<-ifelse(
+  train_hogares$m3_ingreso<train_hogares$Lp*train_hogares$Npersug,
+  1,0)
 
 matrix_predicciones3<-table(train_hogares$m3_predict,train_hogares$Pobre)
 confusionMatrix(matrix_predicciones3)
 
 #Fuera de muestra
 test_hogares$m3_ingreso<-predict(object = m3,newdata = test_hogares)
-test_hogares$m3_predict<-ifelse(test_hogares$m3_ingreso<test_hogares$Lp,1,0)
+test_hogares$m3_predict<-ifelse(
+  test_hogares$m3_ingreso<test_hogares$Lp*test_hogares$Npersug,1,0)
 
-table(is.na(test_hogares$m3_ingreso))
+table(is.na(test_hogares$m3_predict))
 
+#La predicción tiene un NA que se asigna aleatoriamente.
+test_hogares$m3_predict <- replace(test_hogares$m3_predict,
+                                        is.na(test_hogares$m3_predict),
+                                        sample(c(0,1),1))
+
+table(is.na(test_hogares$m3_predict))
+table(test_hogares$m3_predict)
 sub2<-test_hogares %>% select(id,m3_predict)
 sub2<-sub2 %>% rename(pobre=m3_predict)
 write_csv(x = sub2,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission2.csv",)
+table(sub2$pobre)
 
+#####
+
+#Retirando los predictores que no son significativos.
+predictores_modelo7<-c("desempleo_jefe", #Completa
+                       "educacion_jefe", #Completa 
+                       "sexo_jefe", #Completa
+                       "Clase", #Completa
+                       "P5090", #Completa
+                       "Ina_jefe", #Completa 
+                       "Des_jefe", #Completa
+                       "Oc_jefe", #Completa
+                       "Personas_habitacion"#Completa
+                       )
+
+m7<-lm(as.formula(
+  paste("Ingtotugarr~",
+        paste(predictores_modelo7, collapse = " + "))),
+  data = train_hogares) 
+
+#Parámetros del modelo
+summary(m7)
+
+#Ajuste dentro de muestra
+train_hogares$m7_ingreso<-predict(object = m7,
+                                  newdata = train_hogares)
+
+train_hogares$m7_predict<-ifelse(
+  train_hogares$m7_ingreso<train_hogares$Lp*train_hogares$Npersug,
+  1,0)
+
+matrix_predicciones7<-table(train_hogares$m7_predict,train_hogares$Pobre)
+confusionMatrix(matrix_predicciones7)
+
+#Fuera de muestra
+test_hogares$m7_ingreso<-predict(object = m7,newdata = test_hogares)
+test_hogares$m7_predict<-ifelse(
+  test_hogares$m7_ingreso<test_hogares$Lp*test_hogares$Npersug,1,0)
+
+table(is.na(test_hogares$m7_predict))
+
+#La predicción tiene un NA que se asigna aleatoriamente.
+test_hogares$m7_predict <- replace(test_hogares$m7_predict,
+                                   is.na(test_hogares$m7_predict),
+                                   sample(c(0,1),1))
+
+table(is.na(test_hogares$m7_predict))
+table(test_hogares$m7_predict)
+sub7<-test_hogares %>% select(id,m7_predict)
+sub7<-sub7 %>% rename(pobre=m7_predict)
+write_csv(x = sub7,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission7.csv",)
+table(sub7$pobre)
+
+
+#####
+
+#Se realiza un ejercicio de seleccionar de forma parsimoniosa las variables que mayor cantidad de pobres predicen
+
+
+predictores_modelo7<-c("educacion_jefe",
+                       "P5090",
+                       "Personas_habitacion",
+                       "Des_jefe",
+                       "sexo_jefe",
+                       "Clase")
+
+m7<-lm(as.formula(
+  paste("Ingtotugarr~",
+        paste(predictores_modelo7, collapse = " + "))),
+  data = train_hogares) 
+
+#Parámetros del modelo
+summary(m7)
+
+#Ajuste dentro de muestra
+train_hogares$m7_ingreso<-predict(object = m7,
+                                  newdata = train_hogares)
+
+train_hogares$m7_predict<-ifelse(
+  train_hogares$m7_ingreso<train_hogares$Lp*train_hogares$Npersug,
+  1,0)
+
+matrix_predicciones7<-table(train_hogares$m7_predict,train_hogares$Pobre)
+confusionMatrix(matrix_predicciones7)
+
+#Fuera de muestra
+test_hogares$m7_ingreso<-predict(object = m7,newdata = test_hogares)
+test_hogares$m7_predict<-ifelse(
+  test_hogares$m7_ingreso<test_hogares$Lp*test_hogares$Npersug,1,0)
+
+table(is.na(test_hogares$m7_predict))
+
+#La predicción tiene un NA que se asigna aleatoriamente.
+test_hogares$m7_predict <- replace(test_hogares$m7_predict,
+                                   is.na(test_hogares$m7_predict),
+                                   sample(c(0,1),1))
+
+table(is.na(test_hogares$m7_predict))
+table(test_hogares$m7_predict)
+sub8<-test_hogares %>% select(id,m7_predict)
+sub8<-sub8 %>% rename(pobre=m7_predict)
+write_csv(x = sub8,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission8.csv",)
+table(sub8$pobre)
