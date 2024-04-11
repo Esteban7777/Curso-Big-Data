@@ -30,6 +30,7 @@ source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Ta
 
 
 
+
 # Introduccion
 
 La pobreza es uno de los temas centrales de investigación en la economía del bienestar y en las agendas políticas de todos los gobiernos, especialmente de los países en vías de desarrollo. Sin embargo, no hay un consenso en su definición y en su forma de ser medida. A pesar de esto, se puede entender que ser pobre es no disponer de los recursos para obtener los medios mínimos de subsistencia, una definición general. El Banco Mundial define la pobreza como incapacidades para llevar una vida plena, desagregándolo en buena alimentación, calidad de la vivienda, buena salud, buena educación y tener un trabajo digno. También tenemos la definición de uno de los economistas que más influencia tiene en el estudio de la pobreza, Amartya Sen. Con la teoría de las capacidades, este autor dice que la pobreza no es simplemente la falta de ingreso, sino la falta de capacidades básicas y la libertad para obtenerlo, definición muy parecida a la propuesta del Banco Mundial. En resumen, los avances del estudio teórico de la pobreza han reposado en que es un fenómeno multidimensional y no solamente carencia de ingresos.
@@ -274,7 +275,10 @@ El analisis exploratorio se datos se divide en dos partes: Analisis univariado y
 
 ### Analisis univariado
 
-
+```{r}
+train_hogares<- train_hogares[!is.na(train_hogares$regimen_subsidiado_jefe), ]
+train_hogares<- train_hogares[!is.na(train_hogares$posicion_jefe), ]
+```
 
 ```{r}
 summary(train_hogares$Ingtotugarr)
@@ -397,9 +401,7 @@ train_hogares %>%
 El estado de empleo es fundamental para determinar si el hogar esta en condicion de pobreza. Esto se explica porque si el jefe de hogar esta desempleado significa que el hogar no esta percibiendo ingresos por la persona encargada del cuidado de la familia lo cual aumenta la probabilidad de ser pobre. En este caso se observa que aproximadamente el 37% de los jefes de hogar no estan empleados, cifra considerable y que puede explicar la situacion del hogar.
 
 
-```{r}
-table(train_hogares$posicion_jefe)
-```
+
 ```{r}
 train_hogares %>%
   mutate(
@@ -446,23 +448,34 @@ train_hogares %>%
 ```
 El numero de personas por habitacion tambien se considera importante para la prediccion de la pobreza, ya que se espera que entre mas personas por habitacion se tenga se tendra un hacinamieto lo cual aumenta el riezgo de ser pobre. En este caso la mayoria de los datos se concnetran en 2 personas por habitacion que es una situacion normal.
 
-```{r}
-boxplots <- lapply(cualitativas, function(var) {
-  train_hogares %>%
-    ggplot(aes(x = factor({{ var }}), y = Ingtotug, fill = factor({{ var }}))) +
-    geom_boxplot() +
-    labs(title = paste("Boxplot de", var, "vs. Ingreso Total"),
-         x = var,
-         y = "Ingreso Total") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-})
 
-# Mostrar los boxplots individualmente
-for (i in seq_along(boxplots)) {
-  print(boxplots[[i]])
+```{r}
+train_hogares$Personas_habitacion_r <- round(train_hogares$Personas_habitacion)
+train_hogares$Personas_habitacion_r <- as.factor(train_hogares$Personas_habitacion_r)
+cualitativas <- c("sexo_jefe", "regimen_subsidiado_jefe", "educacion_jefe", "desempleo_jefe", "posicion_jefe","Personas_habitacion_r")
+
+# Convertir las variables cualitativas en factores
+train_hogares[cualitativas] <- lapply(train_hogares[cualitativas], factor)
+
+plots_list <- list()
+
+# Iterar sobre las variables cualitativas y crear un boxplot para cada una
+for (variable in cualitativas) {
+  plot <- ggplot(train_hogares, aes_string(x = variable, y = "log(Ingtotugarr)", fill = variable)) +
+    geom_boxplot(show.legend = FALSE) +
+    labs(x = variable, y = "log(Ingtotugarr)") +
+    theme_minimal()
+  
+  plots_list[[variable]] <- plot
 }
+
+# Combinar los gráficos en una grilla de 3 filas y 2 columnas
+grid.arrange(grobs = plots_list, ncol = 2)
 ```
+
+En la grafica anterior se observan las variables elegidas frente al logaritmo del nivel de ingresos, esto con el proposito de normalizar y ver mejor las diferencias entre las variables de interes. En general se observa que las personas que pertenencen al regimen subisdiado sus ingresos son ligeramente menores que cuando es cotizante por ejemplo y tambien es claro como las personas desempleadas tambien presentan menores ingresos en el hogar. En el sexo del jefe de hogar las diferencias no son tan significativas. Mientras que a traves del nivel educativo del hogar y la posicion que desempena como empleado si se observan diferencias importantes en el nivel de ingresos agregados.
+
+Tambien se observa como a medida que sube el numero de perosnas por habitacion la media del ingreso del hogar disminuye, tal como se menciona en la revision de literatrura
 
 
 
