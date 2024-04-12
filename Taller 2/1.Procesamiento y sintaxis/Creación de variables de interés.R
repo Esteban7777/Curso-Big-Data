@@ -191,3 +191,51 @@ train_hogares$Personas_habitacion<-train_hogares$Nper/train_hogares$P5010
 #En test
 test_hogares$Personas_habitacion<-test_hogares$Nper/test_hogares$P5010
 
+
+### Tipo de vivienda
+
+train_hogares <- train_hogares %>% mutate(tipo_casa=ifelse(P5090==1,1,0))
+
+train_hogares$tipo_casa <- factor(train_hogares$tipo_casa, levels = c("1", "0"))
+
+### Edad del jefe de hogar
+
+crear_edad_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(edad_jefe=aux$P6040,id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+
+#Creamos la variable en Train
+train_personas<-crear_edad_jefe(train_personas)
+train_hogares<-traer_variable(train_hogares,train_personas,"edad_jefe")
+table(is.na(train_hogares$edad_jefe))
+
+#Creamos la variable en Test
+test_personas<-crear_edad_jefe(test_personas)
+test_hogares<-traer_variable(test_hogares,test_personas,"edad_jefe")
+
+### Subsidio
+
+P6585s3
+
+crear_subsidio_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(subsidio_jefe=aux$P6585s3,id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+
+#Creamos la variable en Train
+train_personas<-crear_subsidio_jefe(train_personas)
+train_hogares<-traer_variable(train_hogares,train_personas,"subsidio_jefe")
+table(is.na(train_hogares$subsidio_jefe))
+
+#Creamos la variable en Test
+test_personas<-crear_subsidio_jefe(test_personas)
+test_hogares<-traer_variable(test_hogares,test_personas,"subsidio_jefe")
+
+
+
+

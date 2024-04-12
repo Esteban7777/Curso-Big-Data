@@ -276,8 +276,8 @@ El analisis exploratorio se datos se divide en dos partes: Analisis univariado y
 ### Analisis univariado
 
 ```{r}
-train_hogares<- train_hogares[!is.na(train_hogares$regimen_subsidiado_jefe), ]
-train_hogares<- train_hogares[!is.na(train_hogares$posicion_jefe), ]
+ #train_hogares<- train_hogares[!is.na(train_hogares$regimen_subsidiado_jefe), ]
+# train_hogares<- train_hogares[!is.na(train_hogares$posicion_jefe), ]
 ```
 
 ```{r}
@@ -478,7 +478,62 @@ En la grafica anterior se observan las variables elegidas frente al logaritmo de
 Tambien se observa como a medida que sube el numero de perosnas por habitacion la media del ingreso del hogar disminuye, tal como se menciona en la revision de literatrura
 
 
+```{r}
+train_hogares %>%
+  count(tipo_casa) %>%
+  mutate(prop = n / sum(n))
+```
+
+```{r}
+train_hogares %>%
+  ggplot(aes(x=tipo_casa,y=log(Ingtotugarr))) +
+  geom_boxplot()
+```
+
+
+
+```{r}
+train_hogares %>%
+  ggplot(aes(x=edad_jefe)) +
+  geom_bar()
+```
+```{r}
+train_hogares<-train_hogares %>%
+  mutate(edad_jefe_joven = ifelse(edad_jefe<=28,1,0))
+```
+
+
+```{r}
+train_hogares %>%
+  count(edad_jefe_joven)
+```
+```{r}
+train_hogares$edad_jefe_joven <- factor(train_hogares$edad_jefe_joven, levels = c("1", "0"))
+```
+
+
+
+
+```{r}
+train_hogares %>%
+  ggplot(aes(x=edad_jefe_joven,y=log(Ingtotugarr))) +
+  geom_boxplot()
+```
+
+
+```{r}
+table(train_hogares$subsidio_jefe)
+```
+
+
+
+
 
 # Estimacion de los modelos
+
+
+
+
+
 
 # Conclusiones
