@@ -3,6 +3,8 @@ set.seed(1234)
 #Cargamos la data con las variables construidas para el modelo
 library(devtools)
 library(caret)
+library(pacman)
+library(glmnet)
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/Creaci%C3%B3n%20de%20variables%20de%20inter%C3%A9s.R")
 
 predictores_modelo3<-c("desempleo_jefe", #Completa
@@ -14,6 +16,7 @@ predictores_modelo3<-c("desempleo_jefe", #Completa
                         "Des_jefe", #Completa
                         "Oc_jefe" #Completa
 )
+
 
 m4<-glm(as.formula(
   paste("Pobre~",
@@ -129,7 +132,8 @@ write_csv(x = sub5,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/
 table(sub1$pobre)
 
 ##
-predictores_modelo8<-c( #Completa
+predictores_modelo8<-c(
+  "regimen_subsidiado_jefe",#Completa
   "educacion_jefe", #Completa 
   "sexo_jefe", #Completa
   "Clase", #Completa
@@ -166,5 +170,62 @@ sub6<-test_hogares %>% select(id,m8_predict)
 sub6<-sub6 %>% rename(pobre=m8_predict)
 write_csv(x = sub6,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission6.csv",)
 
-##HAY QUE BALANCEAR EL DATAFRAME
-table(train_hogares$Pobre)
+#Ajustes al modelo 
+
+train_hogares$pobre_texto<-ifelse(train_hogares$Pobre==1,"Pobre","No_Pobre")
+train_hogares$pobre_texto<-as.factor(train_hogares$pobre_texto)
+str(train_hogares$pobre_texto)
+table(train_hogares$pobre_texto,train_hogares$Pobre)
+
+predictores_modelo9<-c(#"regimen_subsidiado_jefe",
+                       "educacion_jefe", #Completa 
+                       "sexo_jefe", #Completa
+                       "Clase", #Completa
+                       "P5090", #Completa
+                       "Personas_habitacion",
+                       "Des_jefe"#Completa
+                       )
+
+#Train control
+train_control<-trainControl(
+  method = "cv",
+  number = 5,
+  classProbs = TRUE,
+  summaryFunction = defaultSummary,
+  savePredictions = TRUE
+  )
+
+modelo9<-train(
+  formula(paste0("pobre_texto ~",paste0(predictores_modelo, collapse = " + "))),
+  method='glm',
+  data=train_hogares,
+  family="binomial",
+  trControl=train_control
+)
+
+lambda <- 10^seq(-1, -4, length = 100)
+grid <- expand.grid("alpha" = 1, lambda = lambda)
+
+glm_model_lasso <- train(
+  formula(paste0("pobre_texto~",paste0(predictores_modelo9, collapse = " + "))),
+  method = "glmnet",
+  data = train_hogares,
+  family = "binomial",
+  trControl = train_control,
+  tuneGrid = grid,
+  preProcess = c("center", "scale")
+)
+
+glm_model_lasso
+
+head(modelo9$pred)
+
+matrix_confusion<-table(glm_model_lasso$pred$pred,glm_model_lasso$pred$obs)
+confusionMatrix(matrix_confusion,
+                positive="Pobre", mode = "prec_recall")
+
+confusionMatrix(data = glm_model_lasso$pred$pred,
+                reference = glm_model_lasso$pred$obs,
+                positive="Pobre", mode = "prec_recall")
+
+
