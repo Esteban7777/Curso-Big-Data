@@ -7,9 +7,6 @@ output:
   html_document: default
 ---
 
-
-
-
 ```{r}
 set.seed(1234)
 library("rvest")
@@ -26,11 +23,6 @@ source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Ta
 #Cargamos la función para los marge
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/funMergePersonasHogares.R")
 ```
-
-
-
-
-
 # Introduccion
 
 La pobreza es uno de los temas centrales de investigación en la economía del bienestar y en las agendas políticas de todos los gobiernos, especialmente de los países en vías de desarrollo. Sin embargo, no hay un consenso en su definición y en su forma de ser medida. A pesar de esto, se puede entender que ser pobre es no disponer de los recursos para obtener los medios mínimos de subsistencia, una definición general. El Banco Mundial define la pobreza como incapacidades para llevar una vida plena, desagregándolo en buena alimentación, calidad de la vivienda, buena salud, buena educación y tener un trabajo digno. También tenemos la definición de uno de los economistas que más influencia tiene en el estudio de la pobreza, Amartya Sen. Con la teoría de las capacidades, este autor dice que la pobreza no es simplemente la falta de ingreso, sino la falta de capacidades básicas y la libertad para obtenerlo, definición muy parecida a la propuesta del Banco Mundial. En resumen, los avances del estudio teórico de la pobreza han reposado en que es un fenómeno multidimensional y no solamente carencia de ingresos.
@@ -55,9 +47,10 @@ La seleccion de las variables se hacen tomando como referencia los estudios anal
 * p6210: Educacion
 * p6240: Empleado
 * p6430: Posicion laboral del jefe de hogar
-* Perosnas por habitacion
-
-
+* Personas por habitacion
+* Tipo de vivienda: propia o no
+* Edad del jefe de hogar
+* Zona: Rural o Urbana
 
 ## Limpieza de los datos
 
@@ -69,6 +62,8 @@ test_personas$jefe<-ifelse(test = test_personas$P6050==1,1,0)
 ```
 
 Tambien pueden existir diferencias cuando el jefe de hogar es hombre o mujer, se espera que si es mujer la probabilidad de ser pobre sea mayor, con la funcion crear_sexo_jefe se recibe el dataframe completo  y luego se agrega en la base original como un factor
+
+Para traer la variable desde la base de datos de personas para los hogares se creo la siguiente funcion. Esta funcion filtra la base de datos de personas solo para los jefes de hogares y luego la trae por medio del id a la base de datos a nivel de hogares. Este proceso se hace tanto para el subconjunto train y test.
 
 ```{r}
 train_personas$jefe<-ifelse(test = train_personas$P6050==1,1,0)
@@ -99,7 +94,6 @@ crear_regimen_jefe<-function(df){
   df<-left_join(df,aux2,by="id")
   return(df)
 }
-
 #Creamos la variable en Train
 train_personas<-crear_regimen_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"regimen_jefe")
@@ -266,8 +260,6 @@ test_hogares$Personas_habitacion<-test_hogares$Nper/test_hogares$P5010
 Cambio en los formatos para
 
 
-
-
 ## Analisis exploratorio de los datos
 
 El analisis exploratorio se datos se divide en dos partes: Analisis univariado y analisis multivariado de datos. En el analisis univariado el proposito es analizar como se distribuyen de forma individual las variables que vamos a utilizar en el proceso de modelacion. Luego con el analisis multivariado nuestro objetivo es ver como se relacionan las variable independientes con el ingreso de los hogares.
@@ -276,8 +268,8 @@ El analisis exploratorio se datos se divide en dos partes: Analisis univariado y
 ### Analisis univariado
 
 ```{r}
- #train_hogares<- train_hogares[!is.na(train_hogares$regimen_subsidiado_jefe), ]
-# train_hogares<- train_hogares[!is.na(train_hogares$posicion_jefe), ]
+#train_hogares<- train_hogares[!is.na(train_hogares$regimen_subsidiado_jefe), ]
+#train_hogares<- train_hogares[!is.na(train_hogares$posicion_jefe), ]
 ```
 
 ```{r}
@@ -337,10 +329,7 @@ grid.arrange(grafico_sexo, grafico_regimen, ncol = 2)
 Los jefes de hogar que pertenecen al regimen subsidiado representan un 42 %. Esta variable es importante de analizar porque este mecanismo del que disponen los colombianos para acceder al servicio cuando no tienen capacidad de pago, sirve como una variable proxy de la condicion de pobreza de un hogar.
 
 
-```{r}
-table(train_hogares$educacion_jefe)
-```
-
+`
 
 
 ```{r}
@@ -450,16 +439,85 @@ El numero de personas por habitacion tambien se considera importante para la pre
 
 
 ```{r}
-train_hogares$Personas_habitacion_r <- round(train_hogares$Personas_habitacion)
-train_hogares$Personas_habitacion_r <- as.factor(train_hogares$Personas_habitacion_r)
-cualitativas <- c("sexo_jefe", "regimen_subsidiado_jefe", "educacion_jefe", "desempleo_jefe", "posicion_jefe","Personas_habitacion_r")
+train_hogares %>%
+  mutate(tipo_casa = ifelse(tipo_casa == 1, "Casa Propia", "No Casa Propia")) %>%
+  count(tipo_casa) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot(aes(x = tipo_casa, y = prop, fill = tipo_casa, label = scales::percent(prop))) +
+  geom_bar(stat = "identity") +
+  geom_text(position = position_stack(vjust = 1.05), size = 3) +
+  scale_fill_manual(values = c("Casa Propia" = "#1f78b4", "No Casa Propia" = "#33a02c")) +
+  labs(x = "Tipo de Casa", y = "Proporción", title = "Proporción de Hogares por Tipo de Casa") +
+  scale_x_discrete(labels = c("Casa Propia" = "Casa Propia", "No Casa Propia" = "No Casa Propia"))
 
-# Convertir las variables cualitativas en factores
+```
+Tener casa propia en principio puede ayudar a explicar la pobreza del hogar. Esto se explica debido a que tener casa propia permite tener disponible una mayor cantidad de ingresos que puedan ser utilizados para cubrir con otras necesidades. Se considera la casa propia como una inversion y seguro en momentos de dificultades economicas. Se supone que las personas que no tienen casa propia podrian ser mas vulnerables relativamente a ser pobres. Para esta muestra se observa que la mayoria de los jefes de hogar no cuentan con casa propia y deben pagar arriendo por su vivienda.
+
+
+```{r}
+train_hogares %>%
+  ggplot(aes(x = edad_jefe)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribución de la edad de los jefes de hogar",
+       x = "Edad jefes de hogar",
+       y = "Frecuencia") +
+  theme_minimal()
+```
+Es importante incluir la edad del jefe del hogar porque en Colombia porque se considera que la poblacion en edad joven es la mas vulnerable, generalmente porque tiene las mayores tasas de desempleo. POr tanto se cree que un jefe de hogar joven tiene mayor probabilidad de ser pobre relativamente. Para nuestra muestra de datos la distribucion de las edades es uniforme, sin embargo para obtener una interpretacion mas apropiada de este fenomeno se crea una variable dummy que clasifique a los jovenes a los jefes de hogar menores de 30 anos. En los datos esta poblacion es relativamente menor que los adultos
+
+
+```{r}
+train_hogares %>%
+  mutate(edad_jefe_joven = ifelse(edad_jefe_joven == 1, "Joven", "Adulto")) %>%
+  count(edad_jefe_joven) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot(aes(x = edad_jefe_joven, y = prop, fill = edad_jefe_joven, label = scales::percent(prop))) +
+  geom_bar(stat = "identity") +
+  geom_text(position = position_stack(vjust = 1.05), size = 3) +
+  scale_fill_manual(values = c("Joven" = "#1f78b4", "Adulto" = "#33a02c")) +
+  labs(x = "Joven", y = "Proporción", title = "Proporción de edad joven") +
+  scale_x_discrete(labels = c("Joven" = "Joven", "Adulto" = "Adulto"))
+```
+```{r}
+train_hogares %>%
+  mutate(zona_jefe = ifelse(zona_jefe == 1, "Urbana", "Rural")) %>%
+  count(zona_jefe) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot(aes(x = zona_jefe, y = prop, fill = zona_jefe, label = scales::percent(prop))) +
+  geom_bar(stat = "identity") +
+  geom_text(position = position_stack(vjust = 1.05), size = 3) +
+  scale_fill_manual(values = c("Urbana" = "#1f78b4", "Rural" = "#33a02c")) +
+  labs(x = "Joven", y = "Proporción", title = "Proporción de zona") +
+  scale_x_discrete(labels = c("Urbana" = "Urbana", "Rural" = "Rural"))
+```
+La ubicacion del hogar tambien es imporante porque aquellas viviendas mas alejadas del centro economico se considera que es mas vulnerable. Esto se explica por la teoria del centro perifera que fundamenta muy bien las disparidades del desarrollo entre aquellas regiones mas dispersas, el centro urbano se caracteriza por tener alto desarrollo economico e industrial mientras que las areas rurales tienen bajo desarrollo y las actividades economicas estan relacionadas con extraccion de recursos y agricultura que generalmete no estan bien pagadas. En la muestra hay poca representacion del area rural pero sirve como una aproximacion para detectar la probabilidad de ser pobre.
+
+
+```{r}
+train_hogares %>%
+  mutate(informalidad_jefe = ifelse(informalidad_jefe == 1, "Informal", "Formal")) %>%
+  count(informalidad_jefe) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot(aes(x = informalidad_jefe, y = prop, fill = informalidad_jefe, label = scales::percent(prop))) +
+  geom_bar(stat = "identity") +
+  geom_text(position = position_stack(vjust = 1.05), size = 3) +
+  scale_fill_manual(values = c("Formal" = "#1f78b4", "Informal" = "#33a02c")) +
+  labs(x = "Tipo de trabajo", y = "Proporción", title = "Proporción tipo de trabajo") +
+  scale_x_discrete(labels = c("Informal" = "Informal", "Formal" = "Formal"))
+```
+
+La disitincion entre el tipo de trabajo a traves de la informalidad laboral es importante para determinar las condiciones de pobreza de un hogar. El trabajo informal se caracteriza por tener bajos salarios y condiciones precarias de trabajo. En nuestros datos se observa que el 47 % de las personas trabajan en condicion de informalidad cifra que es consistente con los datos nacionales.
+
+```{r}
+
+cualitativas <- c("sexo_jefe", "regimen_subsidiado_jefe", "educacion_jefe", "desempleo_jefe", "posicion_jefe","Personas_habitacion_r","tipo_casa","edad_jefe_joven","zona_jefe","informalidad_jefe")
+
+
 train_hogares[cualitativas] <- lapply(train_hogares[cualitativas], factor)
 
 plots_list <- list()
 
-# Iterar sobre las variables cualitativas y crear un boxplot para cada una
+
 for (variable in cualitativas) {
   plot <- ggplot(train_hogares, aes_string(x = variable, y = "log(Ingtotugarr)", fill = variable)) +
     geom_boxplot(show.legend = FALSE) +
@@ -469,63 +527,15 @@ for (variable in cualitativas) {
   plots_list[[variable]] <- plot
 }
 
-# Combinar los gráficos en una grilla de 3 filas y 2 columnas
-grid.arrange(grobs = plots_list, ncol = 2)
+
+grid.arrange(grobs = plots_list, ncol =3)
 ```
 
 En la grafica anterior se observan las variables elegidas frente al logaritmo del nivel de ingresos, esto con el proposito de normalizar y ver mejor las diferencias entre las variables de interes. En general se observa que las personas que pertenencen al regimen subisdiado sus ingresos son ligeramente menores que cuando es cotizante por ejemplo y tambien es claro como las personas desempleadas tambien presentan menores ingresos en el hogar. En el sexo del jefe de hogar las diferencias no son tan significativas. Mientras que a traves del nivel educativo del hogar y la posicion que desempena como empleado si se observan diferencias importantes en el nivel de ingresos agregados.
 
-Tambien se observa como a medida que sube el numero de perosnas por habitacion la media del ingreso del hogar disminuye, tal como se menciona en la revision de literatrura
+Tambien se observa como a medida que sube el numero de perosnas por habitacion la media del ingreso del hogar disminuye, tal como se menciona en la revision de literatrura. Para las variables de tipo_casa y edad_jeje_joven los resultados son consistentes con lo esperado y es que los jefes de hogar con casa propia y que son adultos tiene mas capacidad en los ingresos por lo que la probabilidad de ser pobres es menor.
 
-
-```{r}
-train_hogares %>%
-  count(tipo_casa) %>%
-  mutate(prop = n / sum(n))
-```
-
-```{r}
-train_hogares %>%
-  ggplot(aes(x=tipo_casa,y=log(Ingtotugarr))) +
-  geom_boxplot()
-```
-
-
-
-```{r}
-train_hogares %>%
-  ggplot(aes(x=edad_jefe)) +
-  geom_bar()
-```
-```{r}
-train_hogares<-train_hogares %>%
-  mutate(edad_jefe_joven = ifelse(edad_jefe<=28,1,0))
-```
-
-
-```{r}
-train_hogares %>%
-  count(edad_jefe_joven)
-```
-```{r}
-train_hogares$edad_jefe_joven <- factor(train_hogares$edad_jefe_joven, levels = c("1", "0"))
-```
-
-
-
-
-```{r}
-train_hogares %>%
-  ggplot(aes(x=edad_jefe_joven,y=log(Ingtotugarr))) +
-  geom_boxplot()
-```
-
-
-```{r}
-table(train_hogares$subsidio_jefe)
-```
-
-
+El tema de la inforamlidad tambien muestra diferencias importantes en el ingreso de las personas. En general las personas que trabajan en condicion de informalidad tiene menos ingresos lo cual aumenta la probabilidad de ser pobres.
 
 
 

@@ -190,7 +190,8 @@ test_hogares$posicion_jefe<-as.factor(test_hogares$posicion_jefe)
 train_hogares$Personas_habitacion<-train_hogares$Nper/train_hogares$P5010
 #En test
 test_hogares$Personas_habitacion<-test_hogares$Nper/test_hogares$P5010
-
+train_hogares$Personas_habitacion_r <- round(train_hogares$Personas_habitacion)
+train_hogares$Personas_habitacion_r <- as.factor(train_hogares$Personas_habitacion_r)
 
 ### Tipo de vivienda
 
@@ -216,9 +217,13 @@ table(is.na(train_hogares$edad_jefe))
 test_personas<-crear_edad_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"edad_jefe")
 
+train_hogares<-train_hogares %>%
+  mutate(edad_jefe_joven = ifelse(edad_jefe<=30,1,0))
+
+train_hogares$edad_jefe_joven <- factor(train_hogares$edad_jefe_joven, levels = c("1", "0"))
 ### Subsidio
 
-P6585s3
+
 
 crear_subsidio_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
@@ -235,6 +240,76 @@ table(is.na(train_hogares$subsidio_jefe))
 #Creamos la variable en Test
 test_personas<-crear_subsidio_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"subsidio_jefe")
+
+
+
+###### clase_rural
+
+crear_zona_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(zona_jefe=aux$Clase,id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+
+#Creamos la variable en Train
+train_personas<-crear_zona_jefe(train_personas)
+train_hogares<-traer_variable(train_hogares,train_personas,"zona_jefe")
+train_hogares$Clase<-as.factor(train_hogares$Clase)
+
+#Creamos la variable en Test
+test_personas<-crear_zona_jefe(test_personas)
+test_hogares<-traer_variable(test_hogares,test_personas,"zona_jefe")
+test_hogares$posicion_jefe<-as.factor(test_hogares$Clase)
+train_hogares$zona_jefe <- factor(train_hogares$zona_jefe, levels = c("1", "2"))
+
+
+
+
+
+
+
+#### Horas trabajadas
+
+
+crear_informalidad_jefe<-function(df){
+  aux<-df %>% filter(jefe==1)
+  aux2<-data.frame(informalidad_jefe=aux$P6870,id=aux$id)
+  df<-left_join(df,aux2,by="id")
+  return(df)
+}
+
+#Creamos la variable en Train
+train_personas<-crear_informalidad_jefe(train_personas)
+train_hogares<-traer_variable(train_hogares,train_personas,"informalidad_jefe")
+
+
+#Creamos la variable en Test
+test_personas<-crear_informalidad_jefe(test_personas)
+test_hogares<-traer_variable(test_hogares,test_personas,"informalidad_jefe")
+
+
+
+
+train_hogares$informalidad_jefe <- factor(train_hogares$informalidad_jefe, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9"))
+train_hogares$informalidad_jefe <- ifelse(train_hogares$informalidad_jefe %in% c("1","2", "3", "4"), "1", "0")
+
+# Convertir a factor
+train_hogares$informalidad_jefe <- factor(train_hogares$informalidad_jefe, levels = c("0", "1"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
