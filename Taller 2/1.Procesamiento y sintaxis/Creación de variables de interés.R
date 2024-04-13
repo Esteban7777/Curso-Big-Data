@@ -35,6 +35,10 @@ train_hogares$sexo_jefe<-as.factor(train_hogares$sexo_jefe)
 test_personas<-crear_sexo_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"sexo_jefe")
 test_hogares$sexo_jefe<-as.factor(test_hogares$sexo_jefe)
+
+
+train_hogares$sexo_jefe<- ifelse(train_hogares$sexo_jefe=='1','1','0')
+train_hogares$sexo_jefe <- factor(train_hogares$sexo_jefe, levels = c("1", "0"))
 #Los hogares cuyo jefe pertenece al regimen subsidiado podrían ser probablemente más pobres####
 
 crear_regimen_jefe<-function(df){
@@ -43,6 +47,8 @@ crear_regimen_jefe<-function(df){
   df<-left_join(df,aux2,by="id")
   return(df)
 }
+
+
 
 #Creamos la variable en Train
 train_personas<-crear_regimen_jefe(train_personas)
@@ -301,8 +307,13 @@ train_hogares$informalidad_jefe <- factor(train_hogares$informalidad_jefe, level
 
 
 
+### Interacción jefe de hogar informalidad
 
-
+train_hogares$sexo_jefe_numeric <- as.numeric(train_hogares$sexo_jefe)
+train_hogares$informalidad_jefe_numeric <- as.numeric(train_hogares$informalidad_jefe)
+train_hogares$Sexo_informalidad <- train_hogares$sexo_jefe_numeric * train_hogares$informalidad_jefe_numeric
+train_hogares <- subset(train_hogares, select = -c(sexo_jefe_numeric, informalidad_jefe_numeric))
+train_hogares$Sexo_informalidad <- factor(train_hogares$Sexo_informalidad)
 
 
 

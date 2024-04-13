@@ -25,7 +25,7 @@ source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Ta
 ```
 # Introduccion
 
-La pobreza es uno de los temas centrales de investigación en la economía del bienestar y en las agendas políticas de todos los gobiernos, especialmente de los países en vías de desarrollo. Sin embargo, no hay un consenso en su definición y en su forma de ser medida. A pesar de esto, se puede entender que ser pobre es no disponer de los recursos para obtener los medios mínimos de subsistencia, una definición general. El Banco Mundial define la pobreza como incapacidades para llevar una vida plena, desagregándolo en buena alimentación, calidad de la vivienda, buena salud, buena educación y tener un trabajo digno. También tenemos la definición de uno de los economistas que más influencia tiene en el estudio de la pobreza, Amartya Sen. Con la teoría de las capacidades, este autor dice que la pobreza no es simplemente la falta de ingreso, sino la falta de capacidades básicas y la libertad para obtenerlo, definición muy parecida a la propuesta del Banco Mundial. En resumen, los avances del estudio teórico de la pobreza han reposado en que es un fenómeno multidimensional y no solamente carencia de ingresos.
+La pobreza es uno de los temas centrales de investigación en la economía del bienestar y en las agendas políticas de todos los gobiernos, especialmente en los países en vías de desarrollo. Sin embargo, no hay un consenso en su definición y en su forma de ser medida. A pesar de esto, se puede entender que ser pobre es no disponer de los recursos para obtener los medios mínimos de subsistencia, una definición general. El Banco Mundial define la pobreza como incapacidades para llevar una vida plena, desagregándolo en buena alimentación, calidad de la vivienda, buena salud, buena educación y tener un trabajo digno. También tenemos la definición de uno de los economistas que más influencia tiene en el estudio de la pobreza, Amartya Sen. Con la teoría de las capacidades, este autor dice que la pobreza no es simplemente la falta de ingreso, sino la falta de capacidades básicas y la libertad para obtenerlo, definición muy parecida a la propuesta del Banco Mundial. En resumen, los avances del estudio teórico de la pobreza han reposado en que es un fenómeno multidimensional y no solamente carencia de ingresos.
 
 De la misma forma que las definiciones, la forma de medir la pobreza es variada, donde se tiene en cuenta la multidimensionalidad de la pobreza que tanto se menciona en la etapa de definición. En primer lugar, se tiene el NBI (Necesidades Básicas Insatisfechas) que señala la insuficiencia que tiene un hogar en una de las siguientes necesidades básicas: Vivienda con Materiales adecuados, servicios públicos de acueducto y alcantarillado, nivel bajo de hacinamiento, bajo grado de dependencia. También se encuentra el método de la línea de pobreza, que calcula el costo de una canasta básica de bienes y servicios, luego calcula los ingresos del hogar y se compara con esta línea, si no alcanza este mínimo entonces se considera un hogar pobre. Por último, también se trabaja con el Índice de Condiciones de vida, que comprende variables que miden la calidad de la vivienda, el capital humano actual y potencial, el acceso a la calidad de los servicios y las condiciones del hogar. En este trabajo se va a trabajar con el indicador de línea de pobreza.
 
@@ -33,13 +33,15 @@ El objetivo de este artículo es encontrar los determinantes económicos y socia
 
 El estudio de los determinantes de la pobreza es importante porque muestra los temas en los que es necesario focalizar las políticas públicas. En Colombia se han realizado varios estudios que buscan encontrar los determinantes de la pobreza con datos de tipo transversal. Nunes & Ramírez (2002) utilizan un modelo de respuesta cualitativa para encontrar las características socioeconómicas de los hogares más pobres a través de la estimación de probabilidades. Estos autores encuentran que el nivel educativo, la cantidad de los miembros del hogar, la tasa de ocupación y la ubicación del hogar son variables que afectan la probabilidad de ser o no hogares pobres.
 
-En la misma dirección, Chaves (2010) encuentra con un modelo logit que la educación del jefe de hogar, la posesión de activos, el tamaño del hogar, el tipo de vivienda y el género del jefe de hogar son determinantes de que este se encuentre o no en situación de pobreza. De esta forma, la mayoría de los estudios de los determinantes de la pobreza tienen una forma similar de trabajar, se establecen las variables de control, se crea la variable de respuesta binaria a través de la línea de pobreza y se procede con la estimación de los parámetros con modelos probit o logit (Nunes & Ramírez, 2002), (Nunes, Ramírez, Cuesta, 2005), (Chaves, 2010), (Marrugo Et. al, 2015).
+En la misma dirección, Chaves (2010) encuentra con un modelo logit que la educación del jefe de hogar, la posesión de activos, el tamaño del hogar, el tipo de vivienda y el género del jefe de hogar son determinantes de que este se encuentre o no en situación de pobreza. De esta forma, la mayoría de los estudios de los determinantes de la pobreza tienen una forma similar de trabajar, se establecen las variables de control, se crea la variable de respuesta binaria a través de la línea de pobreza y se procede con la estimación de los parámetros con modelos probit o logit (Nunes & Ramírez, 2002), (Nunes, Ramírez, Cuesta, 2005), (Chaves, 2010), (Marrugo et al., 2015).
+
+Un factor común que utilizan todos los estudios es trabajar y estimar la pobreza de un hogar a través de las condiciones del jefe de hogar, esto debido a que es el responsable sobre todo económico de todos los integrantes. Por esta razón, es importante estudiar la posición del jefe de hogar en el mercado laboral, ya que muestra la capacidad de los ingresos y calidad de vida. Investigar sobre su posición en el mercado y si trabaja en condiciones de informalidad puede ser un determinante de la condición de pobreza. Esto debido a que trabajar en condiciones de informalidad, por sus características precarias y bajos salarios, puede explicar la pobreza en un hogar (Torres et al., 2022). También la edad del jefe de hogar puede servir como determinante de la pobreza porque, desde la teoría, se considera que hay edades donde es tiene más incidencia el desempleo como en la población joven y más adulta (Klose, 2012).
 
 # Datos
 
 ## Seleccion de los datos
 
-La seleccion de las variables se hacen tomando como referencia los estudios analizados para este proceso y todo se trabaja a nivel de hogar como lo recomienda Chaves(2010)
+La seleccion de las variables se hacen tomando como referencia los estudios analizados para este proceso y todo se trabaja a nivel de hogar como lo recomienda Chaves(2010), (Torres, et al,2022), (Klose,2012)
 
 * p6050: Si es jefe de hogar
 * p620: Sexo del jefe de hogar
@@ -51,6 +53,8 @@ La seleccion de las variables se hacen tomando como referencia los estudios anal
 * Tipo de vivienda: propia o no
 * Edad del jefe de hogar
 * Zona: Rural o Urbana
+* Tipo de trabajo
+
 
 ## Limpieza de los datos
 
@@ -272,9 +276,12 @@ El analisis exploratorio se datos se divide en dos partes: Analisis univariado y
 #train_hogares<- train_hogares[!is.na(train_hogares$posicion_jefe), ]
 ```
 
+
 ```{r}
-summary(train_hogares$Ingtotugarr)
+table(train_hogares$sexo_jefe_numeric)
 ```
+
+
 
 ```{r}
 options(repr.plot.width = 10, repr.plot.height = 5)
