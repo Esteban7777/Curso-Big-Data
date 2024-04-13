@@ -341,6 +341,21 @@ train_hogares$Sexo_informalidad <- factor(train_hogares$Sexo_informalidad)
 
 
 
+#Otras transformaciones de utilidad
+train_hogares$pobre_texto<-ifelse(train_hogares$Pobre==1,"Pobre","No_Pobre")
+train_hogares$pobre_texto<-as.factor(train_hogares$pobre_texto)
+
+train_hogares$jefe_menor<-ifelse(train_hogares$edad_jefe<18,"Menor","No_Menor")
+train_hogares$jefe_menor<-as.factor(train_hogares$jefe_menor)
+test_hogares$jefe_menor<-ifelse(test_hogares$edad_jefe<18,"Menor","No_Menor")
+test_hogares$jefe_menor<-as.factor(test_hogares$jefe_menor) 
+
+
+train_hogares$Personas_habitacion_round<-ifelse(train_hogares$Personas_habitacion<=2.5,1,0)
+train_hogares$Personas_habitacion_round<-as.factor(train_hogares$Personas_habitacion_round)
+
+test_hogares$Personas_habitacion_round<-ifelse(test_hogares$Personas_habitacion<=2.5,1,0)
+test_hogares$Personas_habitacion_round<-as.factor(test_hogares$Personas_habitacion_round)
 
 
 
