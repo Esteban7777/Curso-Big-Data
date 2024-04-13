@@ -9,26 +9,6 @@ library(rpart.plot)
 library(boot)
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/Creaci%C3%B3n%20de%20variables%20de%20inter%C3%A9s.R")
 
-train_hogares$pobre_texto<-ifelse(train_hogares$Pobre==1,"Pobre","No_Pobre")
-train_hogares$pobre_texto<-as.factor(train_hogares$pobre_texto)
-
-
-train_hogares$jefe_joven<-ifelse(train_hogares$edad_jefe<=28,"Joven","No_Joven")
-train_hogares$jefe_joven<-as.factor(train_hogares$jefe_joven)
-test_hogares$jefe_joven<-ifelse(test_hogares$edad_jefe<=28,"Joven","No_Joven")
-test_hogares$jefe_joven<-as.factor(test_hogares$jefe_joven) 
-
-train_hogares$jefe_menor<-ifelse(train_hogares$edad_jefe<18,"Menor","No_Menor")
-train_hogares$jefe_menor<-as.factor(train_hogares$jefe_menor)
-test_hogares$jefe_menor<-ifelse(test_hogares$edad_jefe<18,"Menor","No_Menor")
-test_hogares$jefe_menor<-as.factor(test_hogares$jefe_menor) 
-
-
-train_hogares$Personas_habitacion_round<-ifelse(train_hogares$Personas_habitacion<=2.5,1,0)
-train_hogares$Personas_habitacion_round<-as.factor(train_hogares$Personas_habitacion_round)
-
-test_hogares$Personas_habitacion_round<-ifelse(test_hogares$Personas_habitacion<=2.5,1,0)
-test_hogares$Personas_habitacion_round<-as.factor(test_hogares$Personas_habitacion_round)
 
 train_hogares$rural<-ifelse(train_hogares$Dominio=="RURAL",1,0)
 test_hogares$rural<-ifelse(test_hogares$Dominio=="RURAL",1,0)
