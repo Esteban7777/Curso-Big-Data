@@ -282,7 +282,9 @@ crear_zona_jefe<-function(df){
 #Creamos la variable en Train
 train_personas<-crear_zona_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"zona_jefe")
+
 train_hogares$Clase<-as.factor(train_hogares$Clase)
+test_hogares$Clase<-as.factor(test_hogares$Clase)
 
 #Creamos la variable en Test
 test_personas<-crear_zona_jefe(test_personas)

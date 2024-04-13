@@ -22,6 +22,7 @@ library(rpart.plot)
 library(glmnet)
 library(tidyverse)
 library(ranger)
+library(stargazer)
 ```
 
 #1. Modelos de clasificación En esta sección se muestran los resultados
@@ -59,76 +60,64 @@ predictores_logit<-c("informalidad_jefe","edad_jefe_joven","Ina_jefe","Des_jefe"
 ```
 
 
-```{r}
+```{r, warning=FALSE}
 logit<-glm(as.formula(
   paste("Pobre~",
         paste(predictores_logit, collapse = " + "))),data = train_hogares)
 
-summary(logit)
+stargazer(logit, type = "text")
 ```
 Se evalua el modelo dentro de muestra
 
 ```{r}
 train_hogares$prob_logit<-predict(logit,newdata = train_hogares)
 train_hogares$logit_predict<-ifelse(train_hogares$prob_logit>0.5,1,0)
-train_hogares$Pobre<-is.numeric(train_hogares$Pobre)
 
+matrix_logit<-table(train_hogares$logit_predict,
+                    train_hogares$Pobre)
 
-confusionMatrix(data = train_hogares$logit_predict,
-                reference = train_hogares$Pobre,
-                positive="1",
-                mode = "prec_recall")
+confusionMatrix(matrix_logit,
+                positive = "1",
+                mode="prec_recall")
 ```
 
-Se evalua fuera de muestra y se genera el submission para Kaggle
-
+Se realiza la predicción fuera de muestra y se genera el submission para Kaggle
 ```{r}
 test_hogares$prob_logit<-predict(object = logit,newdata = test_hogares)
 test_hogares$logit_predict<-ifelse(test_hogares$prob_logit>0.5,1,0)
 
 table(is.na(test_hogares$logit_predict))
 
+```
+```{r,eval=FALSE}
 sub3<-test_hogares %>% select(id,logit_predict)
 sub3<-sub3 %>% rename(pobre=logit_predict)
 write_csv(x = sub3,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission3.csv",)
+
 ```
 
-También se genera un modeo con las interacciones entre las variables.
+También se genera un modelo con las interacciones entre las variables.
 
-```{r}
+```{r,warning=FALSE}
+
+interacciones<-c("informalidad_jefe","edad_jefe_joven","sexo_jefe","desempleo_jefe","tipo_casa")
+
+
+
 logit2<-glm(as.formula(
   paste("Pobre~",
-        paste(predictores_logit, collapse = " * "))),data = train_hogares)
-
-summary(logit2)
+        paste(interacciones, collapse = " * "))),data = train_hogares)
 ```
 
 Se evalua dentro de muestra
 
 ```{r}
 train_hogares$prob_logit2<-predict(logit2,newdata = train_hogares)
-train_hogares$logit2_predict<-ifelse(train_hogares$prob_logit2>=0.5,1,0)
-confusionMatrix(data = train_hogares$logit_predict2,
-                reference = train_hogares$Pobre,
-                positive="Pobre",
-                mode = "prec_recall")
+train_hogares$logit_predict2<-ifelse(train_hogares$prob_logit2>0.5,1,0)
+summary(train_hogares$prob_logit2)
 ```
+La probabilidad maxima que predice la interacción entre estas variables es inferior a 0.5 por lo que no se tomó en cuenta para hacer predicciones fuera de muestra.
 
-Se realizan las predicciones fuera de muestra
-
-```{r}
-test_hogares$prob_logit2<-predict(object = logit2,newdata = test_hogares)
-test_hogares$logit2_predict<-ifelse(test_hogares$prob_logit2>0.5,1,0)
-table(test_hogares$m6_predict)
-```
-
-Se genera el submision para Kaggle
-
-```{r}
-sub4<-test_hogares %>% select(id,m6_predict)
-sub4<-sub4 %>% rename(pobre=m6_predict)
-write_csv(x = sub4,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission4.csv",)
-```
 
 ##Predicciones con Árbol Para entrenar el árbol se utilizó la siguiente
 sintaxis
