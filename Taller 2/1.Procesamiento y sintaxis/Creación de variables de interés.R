@@ -205,6 +205,12 @@ train_hogares <- train_hogares %>% mutate(tipo_casa=ifelse(P5090==1,1,0))
 
 train_hogares$tipo_casa <- factor(train_hogares$tipo_casa, levels = c("1", "0"))
 
+### En test
+test_hogares <- test_hogares %>% mutate(tipo_casa=ifelse(P5090==1,1,0))
+
+test_hogares$tipo_casa <- factor(test_hogares$tipo_casa, levels = c("1", "0"))
+
+
 ### Edad del jefe de hogar
 
 crear_edad_jefe<-function(df){
@@ -223,10 +229,21 @@ table(is.na(train_hogares$edad_jefe))
 test_personas<-crear_edad_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"edad_jefe")
 
+
+#Creamos la variable en Train
+
 train_hogares<-train_hogares %>%
   mutate(edad_jefe_joven = ifelse(edad_jefe<=30,1,0))
 
 train_hogares$edad_jefe_joven <- factor(train_hogares$edad_jefe_joven, levels = c("1", "0"))
+
+#Creamos la variable en Test
+test_hogares<-test_hogares %>%
+  mutate(edad_jefe_joven = ifelse(edad_jefe<=30,1,0))
+
+test_hogares$edad_jefe_joven <- factor(test_hogares$edad_jefe_joven, levels = c("1", "0"))
+
+
 ### Subsidio
 
 
@@ -304,6 +321,13 @@ train_hogares$informalidad_jefe <- ifelse(train_hogares$informalidad_jefe %in% c
 train_hogares$informalidad_jefe <- factor(train_hogares$informalidad_jefe, levels = c("0", "1"))
 
 
+
+
+test_hogares$informalidad_jefe <- factor(test_hogares$informalidad_jefe, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9"))
+test_hogares$informalidad_jefe <- ifelse(test_hogares$informalidad_jefe %in% c("1","2", "3", "4"), "1", "0")
+
+# Convertir a factor
+test_hogares$informalidad_jefe <- factor(test_hogares$informalidad_jefe, levels = c("0", "1"))
 
 
 
