@@ -1,0 +1,233 @@
+---
+title: "Modelos y resultados"
+author: "William Alexander Aguirre A"
+date: "2024-04-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+set.seed(1234)
+library(devtools)
+library(caret)
+library(rpart)
+library(pacman)
+library(rpart.plot)
+library(glmnet)
+library(tidyverse)
+```
+
+#1. Modelos de clasificación
+En esta sección se muestran los resultados de los modelos más relevantes encontrados para clasificar como pobres o no pobres a los hogares. La variable objetivo a predecir es $Pobre$ y como predictores se utilizaron las siguientes variables.
+
+```{r}
+predictores<-c("desempleo_jefe",
+                          "educacion_jefe", 
+                          "sexo_jefe",
+                          "Clase", 
+                          "Dominio",  #Completa pero sin Bogotá en Test
+                          "P5090", 
+                          "Ina_jefe",
+                          "Des_jefe",
+                          "Oc_jefe")
+```
+
+Capturamos la data que se encuentra en el repositorio con las diferentes variables que hemos traido a partir de la información de personas y las transformaciones de interés. Para ver mayor información.  
+
+```{r}
+#Cargamos los datos
+source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/Creaci%C3%B3n%20de%20variables%20de%20inter%C3%A9s.R")
+
+#Debido a que Dominio=Bogotá no se encuentra en Test, filtramos el conjunto de entrenamiento para poder usar esta variable.
+
+train_hogares_sin_bogota<-train_hogares %>% filter(Dominio=="BOGOTA")
+```
+
+##Predicciones con Logit.
+
+
+##Predicciones con Árbol
+```{r}
+
+```
+
+#2. Modelos de regresión del ingreso
+
+En esta sección se muestran los resultados de los modelos más relevantes encontrados para predecir el ingreso con el objetivo de apartir de estas predicciones poder clasificar como pobres o no pobres a los hogares, tomando el umbral de pobreza como límite de clasificación entre los dos grupos de hogares. 
+
+##Predicciones con regresión lineal.
+
+Para realizar la predicción del ingreso de los hogares utilizamos como variable
+dependiente el ingreso total de la unidad de gasto con impotación de arriendo a propietarios y usufructuario ($Ingtotugarr$). Las variables independientes utilizadas fueron las siguientes.
+
+```{r}
+predictores<-c("desempleo_jefe",
+                          "educacion_jefe", 
+                          "sexo_jefe",
+                          "Clase", 
+                          "Dominio",  #Completa pero sin Bogotá en Test
+                          "P5090", 
+                          "Ina_jefe",
+                          "Des_jefe",
+                          "Oc_jefe")
+```
+
+Para correr el modelo se utilizó la siguiente sintaxis:
+
+```{r}
+modelo_lm<-lm(as.formula( #Entrenamos el modelo
+  paste("Ingtotug~",paste(predictores, collapse = " + "))),
+  data =train_hogares_sin_bogota)
+
+summary(modelo_lm)
+```
+
+Realizamos las predicciones en el conjunto de entrenamiento para poder clasificar
+
+```{r}
+train_hogares_sin_bogota<-train_hogares %>% 
+                             filter(Dominio!="BOGOTA")
+train_hogares_sin_bogota$modelo_lm_ingreso<-predict(object = modelo_lm,
+                    newdata = train_hogares_sin_bogota)
+
+#Clasificamos los hogares en pobres o no según el ingreso predicho
+train_hogares_sin_bogota$modelo_lm_predict<-ifelse(
+  train_hogares_sin_bogota$modelo_lm_ingreso<train_hogares_sin_bogota$Lp,
+                   1,0) 
+
+confusionMatrix(data = train_hogares_sin_bogota$modelo_lm_predict,
+                reference = train_hogares_sin_bogota$Pobre,
+                positive="1", mode = "prec_recall")
+```
+
+Luego realizamos la predicción en el conjunto de prueba y exportamos con el formato adecuado para realizar submitir en Keaggle.
+
+```{r}
+test_hogares$modelo_lm_ingreso<-predict(object = modelo_lm,
+                                        newdata = test_hogares)
+
+test_hogares$modelo_lm_predict<-ifelse(
+  test_hogares$modelo_lm_ingreso<test_hogares$Lp,
+  1,0) #Clasificamos los hogares en pobres o no según el ingreso predicho
+
+sub1<-test_hogares %>% select(id,modelo_lm_predict)
+sub1<-sub1 %>% rename(pobre=modelo_lm_predict)
+write_csv(x = sub1,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission1.csv",)
+```
+
+Posteriormente se realizan diferentes combinaciones de variables predictivas para encontrar aquellas que tengan una mejor capacidad de predicción.
+
+##Predicciones con Regularización.
+Para aplicar regularización tenemos que trabajar con nuestros datos en formato matriz
+
+```{r}
+X<-as.matrix(train_hogares[,predictores])
+
+Y<-train_hogares_sin_bogota[,"Ingtotugarr"]
+
+X_test<-as.matrix(test_hogares[,predictores])
+
+```
+
+###Rige
+
+Para realizar las predicciones utilizando Ridge se utilizó la siguiente sintaxis
+
+```{r}
+cv_ridge <- cv.glmnet(x = X, #Utilizamos cross validation para hallar lambda
+                      y = Y,alpha = 0) #Notese que alpha=0 para ser Ridge
+coef(cv_ridge, s = "lambda.min") #Extraemos el lambda optimo 
+
+test_hogares$predict_ingreso_rige<-predict(cv_ridge, #Generamos las predicciones
+                                           newx = X_test,
+                                           s = "lambda.min")
+
+test_hogares$predict_rige<-ifelse(
+  test_hogares$predict_ingreso_rige<test_hogares$Lp*test_hogares$Npersug,
+  1,0) #Clasificamos los hogares en pobres o no según el ingreso predicho
+table(test_hogares$predict_rige)
+```
+
+###Lasso
+
+```{r}
+cv_lasso <- cv.glmnet(x = X, #Utilizamos cross validation para hallar lambda
+                      y = Y,alpha = 1) #Notese que alpha=1 para ser Lasso
+coef(cv_lasso, s = "lambda.min") #Extraemos el lambda optimo 
+
+test_hogares$predict_ingreso_lasso<-predict(  #Realizamos la predicción con Lasso
+  cv_lasso,
+  newx = X_test,
+  s = "lambda.min")
+
+test_hogares$predict_lasso<-ifelse( 
+  test_hogares$predict_ingreso_lasso<test_hogares$Lp*test_hogares$Npersug,
+  1,0) #Clasificamos los hogares en pobres o no según el ingreso predicho
+table(test_hogares$predict_lasso)
+```
+
+###Elastic Net
+
+```{r}
+
+cv_en <- cv.glmnet(x = X,
+                      y = Y,alpha = 0.75) #Aplicamos un 0<alpha<1
+
+coef(cv_en, s = "lambda.min")
+test_hogares$predict_ingreso_en<-predict(
+  cv_en,
+  newx = X_test,
+  s = "lambda.min")
+
+test_hogares$predict_en<-ifelse(
+  test_hogares$predict_ingreso_en<test_hogares$Lp*test_hogares$Npersug,
+  1,0)
+table(test_hogares$predict_en)
+```
+
+
+
+##Predicciones con Árbol.
+Para realizar la predicción con arboles de decisión se realizó la siguiente sintaxis
+
+```{r}
+arbol<-rpart(formula = as.formula(paste("Ingtotugarr~",
+                                        paste(predictores_modelo,
+                                              collapse = " + "))),
+                      data=train_hogares_sin_bogota,
+                      parms = list(split="Gini"))
+
+prp(arbol,box.palette = "green")
+```
+
+Luego de entrenar el modelo realizamos la predicción en train y evaluamos su resultado dentro de muestra
+```{r}
+train_hogares$predic_arbol_ingreso<-predict(arbol,
+                                            newdata =train_hogares)
+
+train_hogares_sin_bogota$predict_arbol<-ifelse(
+  train_hogares_sin_bogota$predic_arbol_ingreso<
+    train_hogares_sin_bogota$Lp*train_hogares_sin_bogota$Npersug,
+  1,0)
+
+confusionMatrix(data = train_hogares_sin_bogota$predic_arbol,
+                reference = train_hogares_sin_bogota$Pobre,
+                mode = "prec_recall")
+```
+
+Luego realizamos la predicción fuera de muestra 
+
+```{r}
+test_hogares$predic_arbol_ingreso<-predict(arbol,
+                                           newdata =test_hogares)
+
+test_hogares$predict_arbol3<-ifelse(
+  test_hogares$predic_arbol_ingreso<
+    test_hogares$Lp*test_hogares$Npersug,
+  1,0)
+table(test_hogares$predict_arbol)
+```
+
