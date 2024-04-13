@@ -39,6 +39,10 @@ test_hogares$sexo_jefe<-as.factor(test_hogares$sexo_jefe)
 
 train_hogares$sexo_jefe<- ifelse(train_hogares$sexo_jefe=='1','1','0')
 train_hogares$sexo_jefe <- factor(train_hogares$sexo_jefe, levels = c("1", "0"))
+
+test_hogares$sexo_jefe<- ifelse(test_hogares$sexo_jefe=='1','1','0')
+test_hogares$sexo_jefe <- factor(test_hogares$sexo_jefe, levels = c("1", "0"))
+
 #Los hogares cuyo jefe pertenece al regimen subsidiado podrían ser probablemente más pobres####
 
 crear_regimen_jefe<-function(df){
@@ -283,9 +287,9 @@ train_hogares$Clase<-as.factor(train_hogares$Clase)
 #Creamos la variable en Test
 test_personas<-crear_zona_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"zona_jefe")
-test_hogares$posicion_jefe<-as.factor(test_hogares$Clase)
+#test_hogares$posicion_jefe<-as.factor(test_hogares$Clase) ##Esto creo que es un error por eso lo dejo comentado (Por: WILLIAM)
 train_hogares$zona_jefe <- factor(train_hogares$zona_jefe, levels = c("1", "2"))
-
+test_hogares$zona_jefe <- factor(test_hogares$zona_jefe, levels = c("1", "2"))
 
 
 
