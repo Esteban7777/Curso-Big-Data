@@ -58,7 +58,7 @@ crear_regimen_jefe<-function(df){
 train_personas<-crear_regimen_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"regimen_jefe")
 train_hogares$regimen_subsidiado_jefe<-ifelse(train_hogares$regimen_jefe==3,1,0)
-
+train_hogares$regimen_jefe<-as.factor(train_hogares$regimen_jefe)
 #Creamos la variable en Test
 test_personas<-crear_regimen_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"regimen_jefe")

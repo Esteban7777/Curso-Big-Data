@@ -60,13 +60,18 @@ predictores_logit<-c("informalidad_jefe","edad_jefe_joven","Ina_jefe","Des_jefe"
 ```
 
 
-```{r, warning=FALSE}
+```{r, warning=FALSE,eval=FALSE}
 logit<-glm(as.formula(
   paste("Pobre~",
         paste(predictores_logit, collapse = " + "))),data = train_hogares)
 
 stargazer(logit, type = "text")
 ```
+```{r, echo=FALSE}
+logit<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/modelo logit.rds")
+stargazer(logit, type = "text")
+```
+
 Se evalua el modelo dentro de muestra
 
 ```{r}
@@ -98,7 +103,7 @@ write_csv(x = sub3,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/
 
 También se genera un modelo con las interacciones entre las variables.
 
-```{r,warning=FALSE}
+```{r,warning=FALSE,eval=FALSE}
 
 interacciones<-c("informalidad_jefe","edad_jefe_joven","sexo_jefe","desempleo_jefe","tipo_casa")
 
@@ -119,17 +124,23 @@ summary(train_hogares$prob_logit2)
 La probabilidad maxima que predice la interacción entre estas variables es inferior a 0.5 por lo que no se tomó en cuenta para hacer predicciones fuera de muestra.
 
 
-##Predicciones con Árbol Para entrenar el árbol se utilizó la siguiente
+##Predicciones con Árbol
+
+Para entrenar el árbol se utilizó la siguiente
 sintaxis
 
-```{r}
+```{r,eval=FALSE}
 arbol<-rpart(formula = as.formula(paste("pobre_texto~",
-                                         paste(predictores_modelo, 
+                                         paste(predictores, 
                                                collapse = " + "))),
               data=train_hogares,
               method = "class",
               parms = list(split="Gini"))
-prp(arbol,box.palette = "greens")
+prp(arbol,box.col = "gray")
+```
+```{r, echo=FALSE=FALSE,}
+arbol<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/arbol.rds")
+prp(arbol,box.col = "gray")
 ```
 
 Se evaluan los resultados dentro de muestra
