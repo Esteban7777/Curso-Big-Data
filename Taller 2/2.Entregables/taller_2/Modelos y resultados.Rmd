@@ -31,8 +31,7 @@ no pobres a los hogares. La variable objetivo a predecir es $Pobre$ y
 como predictores se utilizaron las siguientes variables.
 
 ```{r}
-predictores<-c("informalidad_jefe","subsidio_jefe","edad_jefe",
-                      "posicion_jefe","Ina_jefe","Des_jefe","Oc_jefe","Pet_jefe","ocupacion_jefe","educacion_jefe","regimen_jefe","sexo_jefe","Clase","Dominio","P5000","P5010","P5090","P5100","P5130","P5140","Nper","Npersug","Depto","regimen_subsidiado_jefe","desempleo_jefe","Personas_habitacion","tipo_casa","edad_jefe_joven","Personas_habitacion_round","edad_jefe_joven")
+predictores<-c("informalidad_jefe","subsidio_jefe","edad_jefe","posicion_jefe","Ina_jefe","Des_jefe","Oc_jefe","Pet_jefe","ocupacion_jefe","educacion_jefe","regimen_jefe","sexo_jefe","Clase","Dominio","P5000","P5010","P5090","P5100","P5130","P5140","Nper","Npersug","Depto","regimen_subsidiado_jefe","desempleo_jefe","Personas_habitacion","tipo_casa","edad_jefe_joven","Personas_habitacion_round","edad_jefe_joven")
 ```
 
 Capturamos la data que se encuentra en el repositorio con las diferentes
@@ -113,6 +112,9 @@ logit2<-glm(as.formula(
   paste("Pobre~",
         paste(interacciones, collapse = " * "))),data = train_hogares)
 ```
+```{r,echo=FALSE}
+logit2<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/modelo logit con interacciones.rds")
+```
 
 Se evalua dentro de muestra
 
@@ -138,7 +140,7 @@ arbol<-rpart(formula = as.formula(paste("pobre_texto~",
               parms = list(split="Gini"))
 prp(arbol,box.col = "gray")
 ```
-```{r, echo=FALSE=FALSE,}
+```{r, echo=FALSE}
 arbol<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/arbol.rds")
 prp(arbol,box.col = "gray")
 ```
@@ -161,21 +163,43 @@ Kaggle
 ```{r}
 test_hogares$predic_arbol<-predict(arbol,newdata =test_hogares,type = "class")
 table(test_hogares$predic_arbol)
+```
 
+```{r, eval=FALSE}
 sub9<-test_hogares %>% select(id,predic_arbol)
 sub9<-sub9 %>% rename(pobre=predic_arbol)
 sub9$pobre<-ifelse(sub9$pobre=="Pobre",1,0)
 table(test_hogares$predic_arbol)
 table(sub9$pobre)
 write_csv(x = sub9,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission9.csv",)
+
 ```
 
-##Predicciones con Ramdom Forest Se realiza un entrenamiento inicial de
-un modelo de Ramdom Forest utilizando la siguiente sintaxis
+##Predicciones con Random Forest 
+El algoritmo de Random Forest no nos permite utilizar variables con valores perdidos por lo que se excluyen de los predictores algunas variables que no aplican para toda la muestra.
 
 ```{r}
+predictores<-c("informalidad_jefe",
+               #"subsidio_jefe",
+               "edad_jefe",
+               #"posicion_jefe",
+               "Ina_jefe","Des_jefe","Oc_jefe","Pet_jefe","ocupacion_jefe","educacion_jefe",
+               #"regimen_jefe",
+               "sexo_jefe","Clase","Dominio","P5000",
+               #"P5010",
+               "P5090",
+               #"P5100","P5130","P5140",
+               "Nper","Npersug","Depto",
+               #"regimen_subsidiado_jefe",
+               "desempleo_jefe","Personas_habitacion","tipo_casa","edad_jefe_joven","Personas_habitacion_round","edad_jefe_joven")
+
+```
+
+Se realiza un entrenamiento inicial de un modelo de Ramdom Forest utilizando la siguiente sintaxis
+
+```{r, eval=FALSE}
 RF<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))), 
+                                       paste(predictores, collapse = " + "))), 
             data = train_hogares,
             num.trees= 500, ## Numero de arboles a estimar
             mtry= 4,   # N. var aleatoriamente seleccionadas en cada partición. 
@@ -183,13 +207,15 @@ RF<- ranger(formula = as.formula(paste("pobre_texto~",
             importance="impurity") 
 RF
 ```
+```{r, echo=FALSE}
+RF<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Ramdom Forest.rds")
+RF
+```
+Después se prueba aumentar la cantidad de arboles para identificar que hay una reducción importante del OOB predictor error.
 
-Después se prueba aumentar la cantidad de arboles para identificar que
-hay una reducción importante del OOB predictor error.
-
-```{r}
+```{r, eval=FALSE}
 RF1000<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))), 
+                                       paste(predictores, collapse = " + "))), 
             data = train_hogares,
             num.trees= 1000, ## Aumentamos de 500 a 1000
             mtry= 4,  
@@ -198,13 +224,15 @@ RF1000<- ranger(formula = as.formula(paste("pobre_texto~",
 RF1000
 ```
 
-Se observa que no hay reducción importante del OBB predictor error. Para
-continuar de afinar hiperparametros del modelo aumentamos la cantidad de
-minima de observaciones por nodo.
+```{r, echo=FALSE}
+outputRF1000<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF1000.txt")
+cat(outputRF1000, sep = "\n")
+```
+Se observa que no hay reducción importante del OBB predictor error. Para continuar de afinar hiperparametros del modelo aumentamos la cantidad de minima de observaciones por nodo.
 
-```{r}
+```{r, eval=FALSE}
 RF_NODE100<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))),
+                                       paste(predictores, collapse = " + "))),
             data = train_hogares,
             num.trees= 500,
             mtry= 4,   
@@ -212,13 +240,16 @@ RF_NODE100<- ranger(formula = as.formula(paste("pobre_texto~",
             importance="impurity") 
 RF_NODE100
 ```
-
+```{r, echo=FALSE}
+outputRF_NODE100<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF_NODE100.txt")
+cat(outputRF_NODE100, sep = "\n")
+```
 Vemos que tampoco existe un cambio importante en el OBB predictor error.
 Finalmente probamos aumentar la cantidad de variables por arbol.
 
 ```{r}
 RF_5VAR<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))), 
+                                       paste(predictores, collapse = " + "))), 
             data = train_hogares,
             num.trees= 500, 
             mtry= 5,  
@@ -226,7 +257,7 @@ RF_5VAR<- ranger(formula = as.formula(paste("pobre_texto~",
             importance="impurity") 
 
 RF_6VAR<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))), 
+                                       paste(predictores, collapse = " + "))), 
             data = train_hogares,
             num.trees= 500, 
             mtry= 6,  
@@ -234,7 +265,7 @@ RF_6VAR<- ranger(formula = as.formula(paste("pobre_texto~",
             importance="impurity") 
 
 RF_7VAR<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))), 
+                                       paste(predictores, collapse = " + "))), 
             data = train_hogares,
             num.trees= 500, 
             mtry= 7,  
