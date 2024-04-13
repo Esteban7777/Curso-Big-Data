@@ -360,9 +360,13 @@ test_hogares$Personas_habitacion_round<-as.factor(test_hogares$Personas_habitaci
 
 
 table(is.na(train_hogares$ocupacion_jefe))
-#Ocupación_jefe tiene un NA que se imputa con un valor aleatorio 0 o 1
+#Ocupación_jefe tiene un NA que se imputa con un valor aleatorio 0 a 6
 train_hogares$ocupacion_jefe<-ifelse(is.na(train_hogares$ocupacion_jefe),sample(x = c(0,1,2,3,4,5,6),1),train_hogares$ocupacion_jefe)
 table(train_hogares$ocupacion_jefe)
 
-test_hogares$ocupacion_jefe<-ifelse(is.na(test_hogares$ocupacion_jefe),sample(x = c(0,1,2,3,4,5,6),1),train_hogares$ocupacion_jefe)
+test_hogares$ocupacion_jefe<-ifelse(is.na(test_hogares$ocupacion_jefe),sample(x = c(0,1,2,3,4,5,6),1),test_hogares$ocupacion_jefe)
 table(test_hogares$ocupacion_jefe)
+
+#Desempleo jefe tiene un NA se reemplaza con un aleatorios de 0 o 1 
+test_hogares$desempleo_jefe<-ifelse(is.na(test_hogares$desempleo_jefe),sample(x = c(0,1),1),test_hogares$desempleo_jefe)
+table(test_hogares$desempleo_jefe)
