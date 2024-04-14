@@ -106,4 +106,62 @@ Xgboost_tree <- train(class~.,
                       trControl = ctrl,
                       tuneGrid=grid_xbgoost,
                       metric = "ROC",
-                      verbosity = 0)         
+                      verbosity = 0)   
+
+Xgboost_pred<-Xgboost_tree$pred
+
+cf_xgb_smote<-confusionMatrix(data = Xgboost_pred$pred,
+                             reference = Xgboost_pred$obs,
+                             positive = "X1",
+                             mode = "prec_recall")
+
+cf_xgb_smote
+
+test_hogares$informalidad_jefe<-as.numeric(test_hogares$informalidad_jefe)
+test_hogares$sexo_jefe<-as.numeric(test_hogares$sexo_jefe)
+test_hogares$Clase<-as.numeric(test_hogares$Clase)
+test_hogares$tipo_casa<-as.numeric(test_hogares$tipo_casa)
+test_hogares$edad_jefe_joven<-as.numeric(test_hogares$edad_jefe_joven)
+test_hogares$Personas_habitacion_round<-as.numeric(test_hogares$Personas_habitacion_round)
+
+test_hogares$Personas_habitacion_round<-ifelse(test_hogares$Personas_habitacion<=2.5,1,0)
+
+#Identificar un NA
+table(is.na(test_hogares$informalidad_jefe))
+
+test_hogares$sexo_jefe<-as.numeric(test_hogares$sexo_jefe)
+test_hogares$Clase<-as.numeric(test_hogares$Clase)
+test_hogares$tipo_casa<-as.numeric(test_hogares$tipo_casa)
+test_hogares$edad_jefe_joven<-as.numeric(test_hogares$edad_jefe_joven)
+test_hogares$Personas_habitacion_round<-as.numeric(test_hogares$Personas_habitacion_round)
+
+
+table(is.na(test_hogares$desempleo_jefe))
+
+table(is.na(test_hogares$ocupacion_jefe))
+table(test_hogares$ocupacion_jefe)
+respaldo<-test_hogares$ocupacion_jefe
+test_hogares$ocupacion_jefe<-ifelse(is.na(test_hogares$ocupacion_jefe),sample(c(1,2,3,4,5,6),1),test_hogares$ocupacion_jefe)
+
+table(is.na(test_hogares$ocupacion_jefe))
+table(test_hogares$desempleo_jefe)
+respaldo<-test_hogares$desempleo_jefe
+test_hogares$desempleo_jefe<-ifelse(is.na(test_hogares$desempleo_jefe),sample(c(0,1),1),test_hogares$desempleo_jefe)
+
+
+predic_smote_xgboost<-predict(Xgboost_tree,newdata = test_hogares)
+
+table(predic_smote_xgboost)
+
+length(predic_smote_xgboost)
+
+test_hogares$predic_xgboost<-predic_smote_xgboost
+
+sub14<-test_hogares %>% select(id,predic_xgboost)
+sub14<-sub14 %>% rename(pobre=predic_xgboost)
+sub14$pobre<-ifelse(sub14$pobre=="X1",1,0)
+table(sub14$pobre)
+table(test_hogares$predic_xgboost)
+write_csv(x = sub14,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission14.csv",)
+
+table(test_hogares$predic_xgboost,predict_smote_RF)
