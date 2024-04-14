@@ -121,7 +121,9 @@ table(test_hogares$predic_ada)
 sub15 <- test_hogares %>% select(id, predic_ada)
 sub15 <- sub15 %>% rename(pobre = predic_ada)
 sub15$pobre <- ifelse(sub15$pobre == "X1", 1, 0)
-write_csv(x = sub15, "C://Submission15.csv")
+write_csv(x = sub15, "C:/Users/windows/Documents/GitHub/Problem_Set_1/Curso-Big-Data/Taller 2/2.Entregables/Submission15.csv")
 
 # Resumen del modelo
 print(pobre_smote_boost)
+
+
