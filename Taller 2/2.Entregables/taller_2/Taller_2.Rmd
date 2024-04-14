@@ -3,8 +3,9 @@ title: "Taller_2"
 author: "John Esteban"
 date: "2024-03-25"
 output:
-  word_document: default
+  pdf_document: default
   html_document: default
+  word_document: default
 ---
 
 ```{r}
@@ -147,7 +148,6 @@ El analisis exploratorio se datos se divide en dos partes: Analisis univariado y
 
 ### Analisis univariado
 
-
 ```{r}
 options(repr.plot.width = 10, repr.plot.height = 5)
 
@@ -179,15 +179,12 @@ pobreza <- train_hogares %>%
        x = "Pobre",
        y = "Proporcion") +
   theme_minimal()
-grid.arrange(ingresos, pobreza, ncol = 2)
+gridExtra::grid.arrange(ingresos, pobreza, ncol = 2)
 ```
 
 Estas son las dos variables objetivo que se van a explicar en este informe. En la primera gráfica se presentan los ingresos agregados del hogar, que se utilizan para determinar si un hogar es pobre utilizando la línea de pobreza, mientras que la variable 'Pobre' está categorizada como 0 cuando el hogar no es pobre y 1 cuando lo es. Los datos muestran que aproximadamente el 80% de los hogares no están en condición de pobreza, lo que implica un desafío en términos del proceso de modelado debido a que hay un claro desbalance de clases.
 
-
-
 ### Variables explicativas
-
 
 ```{r}
 options(repr.plot.width = 10, repr.plot.height = 5)
@@ -198,7 +195,7 @@ grafico_sexo <- train_hogares %>%
     prop = n / sum(n),
     sexo_jefe = case_when(
       sexo_jefe == 1 ~ "Hombre",
-      sexo_jefe == 2 ~ "Mujer"
+      sexo_jefe == 0 ~ "Mujer"
     )
   ) %>%
   ggplot(aes(x = sexo_jefe, y = prop, fill = sexo_jefe)) +
@@ -235,7 +232,7 @@ grafico_regimen <- train_hogares %>%
   theme_minimal()
 
 # Presentar ambos gráficos en una grilla
-grid.arrange(grafico_sexo, grafico_regimen, ncol = 2)
+gridExtra::grid.arrange(grafico_sexo, grafico_regimen, ncol = 2)
 ```
 
 En este caso, observamos que la representación de jefes de hogar masculinos es ligeramente mayor que la de las mujeres que encabezan el hogar. Según la literatura económica, cuando la mujer es la jefa de hogar, existe un mayor riesgo de pobreza en el hogar. Esta situación puede atribuirse a diversos factores, como la brecha salarial de género y la responsabilidad desproporcionada de cuidado y trabajo doméstico no remunerado.
@@ -296,7 +293,7 @@ grafico_desempleo<-train_hogares %>%
   theme(legend.position = "none")
 
 
-grid.arrange(
+gridExtra::grid.arrange(
   grafico_educacion, 
   grafico_desempleo,
   ncol = 2
@@ -355,7 +352,7 @@ casa_propia<-train_hogares %>%
   labs(x = "Tipo de Casa", y = "Proporción", title = "Proporción de Hogares por Tipo de Casa") +
   scale_x_discrete(labels = c("Casa Propia" = "Casa Propia", "No Casa Propia" = "No Casa Propia"))
 
-grid.arrange(
+gridExtra::grid.arrange(
   empleo, 
   casa_propia,
   ncol = 2
@@ -365,7 +362,6 @@ grid.arrange(
 La posición del jefe de hogar en el empleo es importante para determinar si el hogar corre riesgo de estar en situación de pobreza. Se espera que los jefes de hogar que trabajen sin remuneración tengan un mayor riesgo de pobreza. Sin embargo, en nuestro análisis no se observa que esta sea la situación predominante, ya que al combinar estas dos categorías apenas llegan al 1%.
 
 Tener casa propia, en principio, puede ayudar a explicar la situación de pobreza del hogar. Esto se debe a que contar con una vivienda propia permite disponer de una mayor cantidad de ingresos que pueden destinarse a cubrir otras necesidades. La propiedad de una casa se considera una inversión y un seguro en momentos de dificultades económicas. Se supone que las personas que no tienen casa propia podrían ser más vulnerables relativamente a ser pobres. En nuestra muestra, observamos que la mayoría de los jefes de hogar no cuentan con vivienda propia y deben pagar arriendo por su alojamiento. Es fundamental profundizar en esta información para comprender mejor la dinámica de la pobreza en los hogares.
-
 
 ```{r}
 options(repr.plot.width = 10, repr.plot.height = 5)
@@ -388,7 +384,7 @@ edad<-train_hogares %>%
        y = "Frecuencia") +
   theme_minimal()
 
-grid.arrange(
+gridExtra::grid.arrange(
   personas, 
   edad,
   ncol = 2
@@ -404,7 +400,6 @@ En el contexto colombiano, esta teoría cobra especial relevancia, ya que tanto 
 Por otro lado, la teoría del ciclo de vida también reconoce que los ancianos, especialmente después de su retiro, pueden enfrentar dificultades económicas debido a ingresos fijos y limitados, como pensiones o jubilaciones, que pueden no ser suficientes para cubrir todas sus necesidades. A pesar de haber contribuido al mercado laboral durante años, las limitaciones en los ingresos de jubilación pueden dejar a los ancianos en una situación económica precaria, lo que aumenta la probabilidad de que los hogares encabezados por personas mayores estén en situación de pobreza.
 
 Si bien en nuestra muestra de datos observamos una distribución uniforme de las edades de los jefes de hogar, la teoría del ciclo de vida nos permite anticipar que los hogares liderados por personas más jóvenes y más mayores podrían enfrentar mayores dificultades económicas, cada uno por razones asociadas a su etapa de vida.
-
 
 ```{r}
 options(repr.plot.width = 10, repr.plot.height = 5)
@@ -440,16 +435,15 @@ informal<-train_hogares %>%
 
 
 
-grid.arrange(  informal, 
+gridExtra::grid.arrange(  informal, 
   zona,
   ncol = 2
 )
 ```
+
 La distinción entre el tipo de empleo a través de la informalidad laboral es un factor crucial para determinar las condiciones de pobreza de un hogar. El trabajo informal se caracteriza por salarios bajos y condiciones laborales precarias, lo que puede aumentar significativamente el riesgo de pobreza para quienes se desempeñan en este sector. En nuestros datos, observamos que aproximadamente el 47% de las personas trabajan en condiciones de informalidad, una cifra que concuerda con los datos nacionales y subraya la magnitud del desafío que representa la informalidad laboral en términos de pobreza.
 
 Además, la ubicación geográfica del hogar también desempeña un papel crucial, ya que las viviendas ubicadas en áreas más alejadas del centro económico suelen considerarse más vulnerables. Esta disparidad se explica en parte por la teoría del centro-periferia, que destaca las diferencias en el desarrollo económico entre las áreas urbanas centrales y las regiones periféricas. En el contexto urbano, el centro se caracteriza por un mayor desarrollo económico e industrial, mientras que las áreas rurales tienden a tener un menor desarrollo, con actividades económicas centradas en la agricultura y la extracción de recursos, que generalmente se asocian con salarios más bajos. Aunque en nuestra muestra hay una representación limitada del área rural, este análisis nos brinda una aproximación útil para evaluar la probabilidad de pobreza en función de la ubicación del hogar y su relación con la teoría del centro-periferia.
-
-
 
 ```{r}
 
@@ -471,7 +465,7 @@ for (variable in cualitativas) {
 }
 
 
-grid.arrange(grobs = plots_list, ncol =3)
+gridExtra::grid.arrange(grobs = plots_list, ncol =3)
 ```
 
 En la gráfica anterior, se observan las variables seleccionadas en relación con el logaritmo de los ingresos del hogar. Este enfoque se utiliza para normalizar los datos y facilitar la comparación entre las variables de interés. En términos generales, se puede apreciar que las personas afiliadas al régimen subsidiado tienen ingresos ligeramente inferiores en comparación con aquellos que son cotizantes. Del mismo modo, se evidencia que las personas desempleadas tienden a tener ingresos menores en el hogar. En cuanto al sexo del jefe de hogar, las diferencias en los ingresos no son tan marcadas. Sin embargo, se observan diferencias significativas en los ingresos agregados según el nivel educativo del jefe de hogar y su posición laboral.
@@ -479,6 +473,7 @@ En la gráfica anterior, se observan las variables seleccionadas en relación co
 Además, se aprecia que a medida que aumenta el número de personas por habitación, la media de ingresos del hogar tiende a disminuir, lo cual coincide con lo reportado en la literatura. Respecto a las variables tipo_casa y edad_jefe_joven, los resultados son coherentes con lo esperado, ya que los jefes de hogar que poseen vivienda propia y son adultos suelen tener mayores ingresos, lo que reduce la probabilidad de estar en situación de pobreza.
 
 El tema de la informalidad laboral también muestra diferencias significativas en los ingresos de las personas. En general, aquellos que trabajan en condiciones de informalidad tienen ingresos más bajos, lo que aumenta su vulnerabilidad económica y, por ende, la probabilidad de estar en situación de pobreza.
+
 ```{r}
 generar_grafico <- function(data, variable) {
   grafico <- data %>%
@@ -502,10 +497,10 @@ for (variable in cualitativas) {
 }
 
 # Mostrar los gráficos en una grilla
-grid.arrange(grobs = plots_list, ncol = 4)
+gridExtra::grid.arrange(grobs = plots_list, ncol = 4)
 ```
-Cuando se analiza en relación con la variable de pobreza, se observa un patrón muy similar al analizar los ingresos del hogar. Sin embargo, se destaca que la tenencia de vivienda propia marca una diferencia más significativa que cuando se analiza únicamente por medio de los ingresos. Esto sugiere que la posesión de vivienda propia puede ser un factor más determinante en la reducción de la probabilidad de pobreza, independientemente de los niveles de ingresos del hogar.
 
+Cuando se analiza en relación con la variable de pobreza, se observa un patrón muy similar al analizar los ingresos del hogar. Sin embargo, se destaca que la tenencia de vivienda propia marca una diferencia más significativa que cuando se analiza únicamente por medio de los ingresos. Esto sugiere que la posesión de vivienda propia puede ser un factor más determinante en la reducción de la probabilidad de pobreza, independientemente de los niveles de ingresos del hogar.
 
 # Estimacion de los modelos
 
