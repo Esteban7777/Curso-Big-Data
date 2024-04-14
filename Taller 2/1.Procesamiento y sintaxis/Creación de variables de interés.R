@@ -277,53 +277,58 @@ test_hogares<-traer_variable(test_hogares,test_personas,"subsidio_jefe")
 
 ###### clase_rural
 
-crear_zona_jefe<-function(df){
-  aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(zona_jefe=aux$Dominio,id=aux$id)
-  df<-left_join(df,aux2,by="id")
-  return(df)
-}
+# crear_zona_jefe<-function(df){
+#   aux<-df %>% filter(jefe==1)
+#   aux2<-data.frame(zona_jefe=aux$Dominio,id=aux$id)
+#   df<-left_join(df,aux2,by="id")
+#   return(df)
+# }
+# 
+# 
+# #Creamos la variable en Train
+# train_personas<-crear_zona_jefe(train_personas)
+# train_hogares<-traer_variable(train_hogares,train_personas,"zona_jefe")
+# 
+# train_hogares$zona_jefe<-as.factor(train_hogares$zona_jefe)
+# train_hogares$Dominio
+# train_hogares$zona_jefe<-
 
-#Creamos la variable en Train
-train_personas<-crear_zona_jefe(train_personas)
-train_hogares<-traer_variable(train_hogares,train_personas,"zona_jefe")
-train_hogares$zona_jefe<-as.factor(train_hogares$zona_jefe)
+# train_hogares <- train_hogares %>%
+#   mutate(
+#     zona_jefe = case_when(
+#       zona_jefe == "RURAL" ~ 1,
+#       zona_jefe == "RESTO URBANO" ~ 2,
+#       TRUE ~ 3
+#     )
+#   )
 
-test_personas<-crear_zona_jefe(test_personas)
-test_hogares<-traer_variable(test_hogares,test_personas,"zona_jefe")
-test_hogares$zona_jefe<-as.factor(test_hogares$zona_jefe)
-
-train_hogares <- train_hogares %>%
-  mutate(
-    zona_jefe = case_when(
-      zona_jefe == "RURAL" ~ 1,
-      zona_jefe == "RESTO URBANO" ~ 2,
-      TRUE ~ 3
-    )
-  )
-
-
-train_hogares$zona_jefe <- factor(train_hogares$zona_jefe, levels = c("1", "2","3"))
 
 #Creamos la variable en Test
-test_personas<-crear_zona_jefe(test_personas)
-train_hogares<-traer_variable(train_hogares,train_personas,"zona_jefe")
-train_hogares$zona_jefe<-as.factor(train_hogares$zona_jefe)
+# test_personas<-crear_zona_jefe(test_personas)
+# train_hogares<-traer_variable(train_hogares,train_personas,"zona_jefe")
+# train_hogares$zona_jefe<-as.factor(train_hogares$zona_jefe)
+# 
+# test_personas<-crear_zona_jefe(test_personas)
+# test_hogares<-traer_variable(test_hogares,test_personas,"zona_jefe")
+# test_hogares$zona_jefe<-as.factor(test_hogares$zona_jefe)
+# 
+# test_hogares <- test_hogares %>%
+#   mutate(
+#     zona_jefe = case_when(
+#       zona_jefe == "RURAL" ~ 1,
+#       zona_jefe == "RESTO URBANO" ~ 2,
+#       TRUE ~ 3
+#     )
+#   )
+# 
 
-test_personas<-crear_zona_jefe(test_personas)
-test_hogares<-traer_variable(test_hogares,test_personas,"zona_jefe")
-test_hogares$zona_jefe<-as.factor(test_hogares$zona_jefe)
 
-test_hogares <- test_hogares %>%
-  mutate(
-    zona_jefe = case_when(
-      zona_jefe == "RURAL" ~ 1,
-      zona_jefe == "RESTO URBANO" ~ 2,
-      TRUE ~ 3
-    )
-  )
+train_hogares$zona_jefe<- ifelse(train_hogares$Dominio=="RURAL",1,0)
+table(train_hogares$zona_jefe)
+train_hogares$zona_jefe <- factor(train_hogares$zona_jefe, levels = c("1", "2","3"))
 
-
+test_hogares$zona_jefe<- ifelse(test_hogares$Dominio=="RURAL",1,0)
+table(test_hogares$zona_jefe)
 test_hogares$zona_jefe <- factor(test_hogares$zona_jefe, levels = c("1", "2","3"))
 
 
@@ -387,7 +392,6 @@ test_hogares$Sexo_informalidad <- factor(test_hogares$Sexo_informalidad)
 
 #En train
 train_hogares$Pobre <- factor(train_hogares$Pobre,levels= c('1','0'))
-test_hogares$Pobre <- factor(test_hogares$Pobre,levels= c('1','0'))
 
 # Personas por habitacion cortada por el punto donde los arboles encuentran diferencias
 
@@ -409,5 +413,4 @@ test_hogares$Clase<-as.numeric(test_hogares$Clase)
 # Creamos la variable pobre texto 
 train_hogares$pobre_texto<-ifelse(train_hogares$Pobre==1,"Pobre","No_Pobre")
 
-test_hogares$pobre_texto<-ifelse(test_hogares$Pobre==1,"Pobre","No_Pobre")
 
