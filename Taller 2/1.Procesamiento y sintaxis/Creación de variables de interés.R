@@ -412,5 +412,5 @@ test_hogares$Clase<-as.factor(test_hogares$Clase)
 
 # Creamos la variable pobre texto 
 train_hogares$pobre_texto<-ifelse(train_hogares$Pobre==1,"Pobre","No_Pobre")
-
+train_hogares$pobre_texto<-as.factor(train_hogares$pobre_texto)
 

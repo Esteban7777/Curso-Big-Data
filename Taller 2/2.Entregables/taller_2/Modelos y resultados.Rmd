@@ -95,16 +95,15 @@ ajuste se pueden observar en [summary
 logit](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Summarys/summary%20logit.txt).
 Se evalua el modelo dentro de muestra:
 
-```{r}
+```{r, warning=FALSE}
 train_hogares$prob_logit<-predict(logit,newdata = train_hogares)
 train_hogares$logit_predict<-ifelse(train_hogares$prob_logit>0.5,1,0)
 
-matrix_logit<-table(train_hogares$logit_predict,
-                    train_hogares$Pobre)
-
-cf_logit<-confusionMatrix(matrix_logit,
-                positive = "1",
-                mode="prec_recall")
+train_hogares$logit_predict<-as.factor(train_hogares$logit_predict)
+cf_logit<-confusionMatrix(data = train_hogares$logit_predict,
+                          reference = train_hogares$Pobre,
+                          positive = "1",
+                          mode="prec_recall")
 cf_logit$byClass["F1"]
 ```
 
