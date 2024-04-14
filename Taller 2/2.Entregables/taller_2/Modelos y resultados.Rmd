@@ -2,9 +2,11 @@
 title: "Modelos y resultados"
 author: "William Alexander Aguirre A"
 date: "2024-04-13"
-output: html_document
-editor_options: 
-  markdown: 
+output:
+  pdf_document: default
+  html_document: default
+editor_options:
+  markdown:
     wrap: 72
 ---
 
@@ -12,7 +14,7 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r,attr.message=F}
+```{r,include=FALSE}
 set.seed(1234)
 library(devtools)
 library(caret)
@@ -25,13 +27,25 @@ library(ranger)
 library(stargazer)
 ```
 
-#1. Modelos de clasificación En esta sección se muestran los resultados
-de los modelos más relevantes encontrados para clasificar como pobres o
-no pobres a los hogares. La variable objetivo a predecir es $Pobre$ y
-como predictores se utilizaron las siguientes variables.
+# 1. Modelos de clasificación 
 
-```{r}
-predictores<-c("informalidad_jefe","subsidio_jefe","edad_jefe","posicion_jefe","Ina_jefe","Des_jefe","Oc_jefe","Pet_jefe","ocupacion_jefe","educacion_jefe","regimen_jefe","sexo_jefe","Clase","Dominio","P5000","P5010","P5090","P5100","P5130","P5140","Nper","Npersug","Depto","regimen_subsidiado_jefe","desempleo_jefe","Personas_habitacion","tipo_casa","edad_jefe_joven","Personas_habitacion_round","edad_jefe_joven")
+En esta sección se muestran los resultados de los modelos más relevantes
+encontrados para clasificar como pobres o no pobres a los hogares. La
+variable objetivo a predecir es $Pobre$ y como predictores se utilizaron
+las variables que se encuentran en
+[Predictores](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20con%20predictores/Predictores%20principales.R).
+
+```{r, include=FALSE}
+predictores<-c("informalidad_jefe","subsidio_jefe","edad_jefe",
+               "posicion_jefe","Ina_jefe","Des_jefe","Oc_jefe",
+               "Pet_jefe","ocupacion_jefe","educacion_jefe",
+               "regimen_jefe","sexo_jefe","Clase","Dominio",
+               "P5000","P5010","P5090","P5100","P5130","P5140",
+               "Nper","Npersug","Depto",
+               "regimen_subsidiado_jefe","desempleo_jefe",
+               "Personas_habitacion","tipo_casa",
+               "edad_jefe_joven","Personas_habitacion_round",
+               "edad_jefe_joven")
 ```
 
 Capturamos la data que se encuentra en el repositorio con las diferentes
@@ -40,7 +54,7 @@ transformaciones de interés. Para ver mayor detalle del procesamiento de
 la data se puede consultar el script [Creación de variables de
 interés.R](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Creaci%C3%B3n%20de%20variables%20de%20inter%C3%A9s.R).
 
-```{r, attr.message=F,attr.warning=F,attr.chunk=F}
+```{r, include=FALSE}
 #Cargamos los datos
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/Creaci%C3%B3n%20de%20variables%20de%20inter%C3%A9s.R")
 
@@ -49,29 +63,37 @@ source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Ta
 train_hogares_sin_bogota<-train_hogares %>% filter(Dominio!="BOGOTA")
 ```
 
-##Predicciones con Logit.
+## Predicciones con Logit.
 
-Inicialmeante se entrena un modelo con todos los predictores que no poseen valores perdidos en los set de entrenamiento y prueba.Inicialmente se hizo un entrenamiento con la data sin Bogotá para utilizar la variable Dominio, sin embargo, al no ser significativa se retiró la variable y trabajamos con el set de entrenamiento completo. Tambien se retiraron las variables que tienen multicolinealidad.
-```{r}
+Inicialmeante se entrena un modelo con todos los predictores que no
+poseen valores perdidos en los set de entrenamiento y
+prueba.Inicialmente se hizo un entrenamiento con la data sin Bogotá para
+utilizar la variable Dominio, sin embargo, al no ser significativa se
+retiró la variable y trabajamos con el set de entrenamiento completo.
+Tambien se retiraron las variables que tienen multicolinealidad, estos
+predictores se pueden consultar en [Predictores
+Logit](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20con%20predictores/Predictores%20Logit.R).
+
+```{r,include=FALSE}
 predictores_logit<-c("informalidad_jefe","edad_jefe_joven","Ina_jefe","Des_jefe","Oc_jefe","ocupacion_jefe","educacion_jefe","sexo_jefe","Clase","P5000","P5010","P5090","Nper","Npersug","desempleo_jefe","tipo_casa","edad_jefe_joven","Personas_habitacion_round"
   
 )
 ```
 
-
 ```{r, warning=FALSE,eval=FALSE}
 logit<-glm(as.formula(
   paste("Pobre~",
         paste(predictores_logit, collapse = " + "))),data = train_hogares)
-
-stargazer(logit, type = "text")
 ```
+
 ```{r, echo=FALSE}
 logit<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/modelo logit.rds")
-stargazer(logit, type = "text")
 ```
 
-Se evalua el modelo dentro de muestra
+Los detalles de los coeficientes, niveles de significancia y métricas de
+ajuste se pueden observar en [summary
+logit](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Summarys/summary%20logit.txt).
+Se evalua el modelo dentro de muestra:
 
 ```{r}
 train_hogares$prob_logit<-predict(logit,newdata = train_hogares)
@@ -80,27 +102,36 @@ train_hogares$logit_predict<-ifelse(train_hogares$prob_logit>0.5,1,0)
 matrix_logit<-table(train_hogares$logit_predict,
                     train_hogares$Pobre)
 
-confusionMatrix(matrix_logit,
+cf_logit<-confusionMatrix(matrix_logit,
                 positive = "1",
                 mode="prec_recall")
+cf_logit$byClass["F1"]
 ```
 
-Se realiza la predicción fuera de muestra y se genera el submission para Kaggle
-```{r}
+Los detalles de la salida de la matriz de confusion se encuentran en
+[matriz de confusión modelo
+Logit](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Output%20matrices%20de%20confusi%C3%B3n/outputcf_logit.txt).
+
+Se realiza la predicción fuera de muestra y se genera el submission para
+Kaggle utilizando la sintaxis que se encuentra en [Submission
+Logit](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20para%20dar%20formato%20a%20submission/Submission%20Logit.R)
+
+```{r, include=FALSE}
 test_hogares$prob_logit<-predict(object = logit,newdata = test_hogares)
 test_hogares$logit_predict<-ifelse(test_hogares$prob_logit>0.5,1,0)
-
-table(is.na(test_hogares$logit_predict))
-
+table(test_hogares$logit_predict)
 ```
+
 ```{r,eval=FALSE}
 sub3<-test_hogares %>% select(id,logit_predict)
 sub3<-sub3 %>% rename(pobre=logit_predict)
 write_csv(x = sub3,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission3.csv",)
-
 ```
 
-También se genera un modelo con las interacciones entre las variables.
+También se genera un modelo con las interacciones entre las variables
+[predictores para
+interacciones](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20con%20predictores/Predictores%20interacci%C3%B3n%20Logit.R).
+Evaluamos el modelo dentro de muestra.
 
 ```{r,warning=FALSE,eval=FALSE}
 
@@ -112,24 +143,24 @@ logit2<-glm(as.formula(
   paste("Pobre~",
         paste(interacciones, collapse = " * "))),data = train_hogares)
 ```
+
 ```{r,echo=FALSE}
 logit2<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/modelo logit con interacciones.rds")
 ```
-
-Se evalua dentro de muestra
 
 ```{r}
 train_hogares$prob_logit2<-predict(logit2,newdata = train_hogares)
 train_hogares$logit_predict2<-ifelse(train_hogares$prob_logit2>0.5,1,0)
 summary(train_hogares$prob_logit2)
 ```
-La probabilidad maxima que predice la interacción entre estas variables es inferior a 0.5 por lo que no se tomó en cuenta para hacer predicciones fuera de muestra.
 
+La probabilidad maxima que predice la interacción entre estas variables
+es inferior a 0.5 por lo que no se tomó en cuenta para hacer
+predicciones fuera de muestra.
 
-##Predicciones con Árbol
+## Predicciones con Árbol
 
-Para entrenar el árbol se utilizó la siguiente
-sintaxis
+Para entrenar el árbol se utilizó la siguiente sintaxis.
 
 ```{r,eval=FALSE}
 arbol<-rpart(formula = as.formula(paste("pobre_texto~",
@@ -140,25 +171,31 @@ arbol<-rpart(formula = as.formula(paste("pobre_texto~",
               parms = list(split="Gini"))
 prp(arbol,box.col = "gray")
 ```
+
 ```{r, echo=FALSE}
 arbol<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/arbol.rds")
 prp(arbol,box.col = "gray")
 ```
 
-Se evaluan los resultados dentro de muestra
+Se evaluan los resultados dentro de muestra, el detalle de la matriz de
+confusión se encuentra en [matriz de confusión árbol de
+clasificación](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Output%20matrices%20de%20confusi%C3%B3n/outputcf_arbol.txt).
 
 ```{r}
 train_hogares$predic_arbol<-predict(arbol,newdata =train_hogares,
                                     type = "class")
 
-confusionMatrix(data = train_hogares$predic_arbol,
+cf_arbol<-confusionMatrix(data = train_hogares$predic_arbol,
                 reference = train_hogares$pobre_texto,
                 positive="Pobre",
                 mode = "prec_recall")
+cf_arbol$byClass["F1"]
 ```
 
 Se realiza la predicción fuera de muestra y se genera el submission para
-Kaggle
+Kaggle. La sintaxis utilizada para generar el submission se encuentra en
+[Submission
+Árbol](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20para%20dar%20formato%20a%20submission/Submission%20Arbol.R).
 
 ```{r}
 test_hogares$predic_arbol<-predict(arbol,newdata =test_hogares,type = "class")
@@ -172,13 +209,20 @@ sub9$pobre<-ifelse(sub9$pobre=="Pobre",1,0)
 table(test_hogares$predic_arbol)
 table(sub9$pobre)
 write_csv(x = sub9,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission9.csv",)
-
 ```
 
-##Predicciones con Random Forest 
-El algoritmo de Random Forest no nos permite utilizar variables con valores perdidos por lo que se excluyen de los predictores algunas variables que no aplican para toda la muestra.
+## Predicciones con Random Forest
 
-```{r}
+El algoritmo de Random Forest no nos permite utilizar variables con
+valores perdidos por lo que se excluyen de los predictores algunas
+variables que no aplican para toda la muestra. Los predictores
+utilizados para entrenar el modelo se pueden consultar en [Predictores
+Random
+Forest](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20con%20predictores/Predictores%20Random%20Forest.R).
+Se realiza un entrenamiento inicial de un modelo de Ramdom Forest
+utilizando la siguiente sintaxis.
+
+```{r, include=FALSE}
 predictores<-c("informalidad_jefe",
                #"subsidio_jefe",
                "edad_jefe",
@@ -195,8 +239,6 @@ predictores<-c("informalidad_jefe",
 
 ```
 
-Se realiza un entrenamiento inicial de un modelo de Ramdom Forest utilizando la siguiente sintaxis
-
 ```{r, eval=FALSE}
 RF<- ranger(formula = as.formula(paste("pobre_texto~",
                                        paste(predictores, collapse = " + "))), 
@@ -207,11 +249,15 @@ RF<- ranger(formula = as.formula(paste("pobre_texto~",
             importance="impurity") 
 RF
 ```
+
 ```{r, echo=FALSE}
 RF<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Ramdom Forest.rds")
 RF
 ```
-Después se prueba aumentar la cantidad de arboles para identificar que hay una reducción importante del OOB predictor error.
+
+Para definir la cantidad optima de variables seleccionada por cada
+partición se prueba aumentar la cantidad de arboles para identificar que
+hay una reducción importante del OOB predictor error.
 
 ```{r, eval=FALSE}
 RF1000<- ranger(formula = as.formula(paste("pobre_texto~",
@@ -228,7 +274,10 @@ RF1000
 outputRF1000<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF1000.txt")
 cat(outputRF1000, sep = "\n")
 ```
-Se observa que no hay reducción importante del OBB predictor error. Para continuar de afinar hiperparametros del modelo aumentamos la cantidad de minima de observaciones por nodo.
+
+Se observa que no hay reducción importante del OBB predictor error. Para
+continuar de afinar hiperparametros del modelo aumentamos la cantidad de
+minima de observaciones por nodo.
 
 ```{r, eval=FALSE}
 RF_NODE100<- ranger(formula = as.formula(paste("pobre_texto~",
@@ -240,11 +289,14 @@ RF_NODE100<- ranger(formula = as.formula(paste("pobre_texto~",
             importance="impurity") 
 RF_NODE100
 ```
+
 ```{r, echo=FALSE}
 outputRF_NODE100<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF_NODE100.txt")
 cat(outputRF_NODE100, sep = "\n")
 ```
-Vemos que tampoco existe un cambio importante en el OBB predictor error. Finalmente probamos aumentar la cantidad de variables por arbol.
+
+Vemos que tampoco existe un cambio importante en el OBB predictor error.
+Finalmente probamos aumentar la cantidad de variables por árbol.
 
 ```{r}
 RF_5VAR<- ranger(formula = as.formula(paste("pobre_texto~",
@@ -274,21 +326,26 @@ RF_5VAR$prediction.error
 RF_6VAR$prediction.error
 RF_7VAR$prediction.error
 ```
+
 ```{r,echo=FALSE}
 output5<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF_5VAR.txt")
 output6<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF_6VAR.txt")
 output7<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF_7VAR.txt")
 
 RF_5VAR<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Ramdom Forest 5 VARIABLES.rds")
-
+print('OBB predictor error')
 cat(output5, sep = "\n")
 cat(output6, sep = "\n")
 cat(output7, sep = "\n")
 ```
 
-Observamos que después de cinco variables por árbol el OBB predictor error deja de reducirse. Por lo que se toma la decisión de trabajar con el primer arbol.
+Observamos que después de cinco variables por árbol el OBB predictor
+error deja de reducirse. Por lo que se toma la decisión de trabajar con
+el primer árbol.
 
-Podemos observar también la importancia que tienen las variables en el arbol para identificar que algunas cobran mayor relevancia en comparación de un arbol sencillo.
+Podemos observar también la importancia que tienen las variables en el
+arbol para identificar que algunas cobran mayor relevancia en
+comparación de un arbol sencillo.
 
 ```{r}
 imp<-importance(RF)
@@ -300,17 +357,25 @@ ggplot(imp, aes(x = reorder(variables, importancia) , y =importancia )) +
   coord_flip() 
 ```
 
-Analizamos las predicciones realizadas dentro de muestra
+Analizamos las predicciones realizadas dentro de muestra. El detalle de
+la matriz de confusión se encuentra en [matriz de confusión de modelo
+Ramdom
+Forest](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Output%20matrices%20de%20confusi%C3%B3n/outputcf_rf.txt).
 
 ```{r}
-confusionMatrix(data = RF$predictions,
+cf_rf<-confusionMatrix(data = RF$predictions,
                 reference = train_hogares$pobre_texto,
                 positive = "Pobre",
                 mode = "prec_recall")
+cf_rf$byClass["F1"]
 ```
-Predecimos fuera de muestra y generamos el submision para Kaggle
 
-```{r}
+Predecimos fuera de muestra y generamos el submission para Kaggle.
+Podemos consultar la sintaxis con la que se dió formato a las predicción
+en [formato de submission con Random
+Forest](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20con%20predictores/Predictores%20Random%20Forest.R).
+
+```{r, include=FALSE}
 X<-test_hogares %>% select(predictores)
 
 predic_RF<-predict(RF,X)
@@ -320,7 +385,8 @@ sub11<-sub11 %>% rename(pobre=predic_RF)
 sub11$pobre<-ifelse(sub11$pobre=="Pobre",1,0)
 table(sub11$pobre)
 ```
-#2. Modelos de regresión del ingreso
+
+# 2. Modelos de regresión del ingreso
 
 En esta sección se muestran los resultados de los modelos más relevantes
 encontrados para predecir el ingreso con el objetivo de apartir de estas
@@ -328,14 +394,16 @@ predicciones poder clasificar como pobres o no pobres a los hogares,
 tomando el umbral de pobreza como límite de clasificación entre los dos
 grupos de hogares.
 
-##Predicciones con regresión lineal.
+## Predicciones con regresión lineal
 
 Para realizar la predicción del ingreso de los hogares utilizamos como
 variable dependiente el ingreso total de la unidad de gasto con
 impotación de arriendo a propietarios y usufructuario ($Ingtotugarr$).
-Las variables independientes utilizadas fueron las siguientes.
+Las variables predictoras se pueden consultar en [predictores para
+regresión
+líneal](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20con%20predictores/Predictores%20Regresi%C3%B3n%20L%C3%ADneal.R).
 
-```{r}
+```{r,include=FALSE}
 predictores<-c("desempleo_jefe",
                           "educacion_jefe", 
                           "sexo_jefe",
@@ -354,36 +422,44 @@ Para correr el modelo se utilizó la siguiente sintaxis:
 modelo_lm<-lm(as.formula( #Entrenamos el modelo
   paste("Ingtotug~",paste(predictores, collapse = " + "))),
   data =train_hogares_sin_bogota)
-
-stargazer(modelo_lm, type = "text")
 ```
 
-Realizamos las predicciones en el conjunto de entrenamiento para poder clasificar
+Los detalles de la salida de regresión se pueden consultar en [summary
+modelo de regresión
+lineal](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Summarys/summary%20lm.txt).
+Realizamos las predicciones en el conjunto de entrenamiento para poder
+clasificar, la tabla derivada de la matriz de confusión se puede
+consultar completa en [matriz de confusión de modelo de regresión
+lineal](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Output%20matrices%20de%20confusi%C3%B3n/outputcf_lm.txt).
 
 ```{r}
-train_hogares_sin_bogota$modelo_lm_ingreso<-predict(object = modelo_lm,
-                    newdata = train_hogares_sin_bogota)
+train_hogares_sin_bogota$modelo_lm_ingreso<-predict(object = modelo_lm, newdata = train_hogares_sin_bogota)
 
 #Clasificamos los hogares en pobres o no según el ingreso predicho
 train_hogares_sin_bogota$modelo_lm_predict<-ifelse(
   train_hogares_sin_bogota$modelo_lm_ingreso<train_hogares_sin_bogota$Lp,
                    1,0) 
 matrix_lm<-table(train_hogares_sin_bogota$modelo_lm_predict,train_hogares_sin_bogota$Pobre)
-confusionMatrix(matrix_lm,
+cf_lm<-confusionMatrix(matrix_lm,
                 positive="1",
                 mode = "prec_recall")
+cf_lm$byClass["F1"]
 ```
 
-Luego realizamos la predicción en el conjunto de prueba y exportamos con el formato adecuado para realizar submitir en Keaggle.
+Luego realizamos la predicción en el conjunto de prueba y exportamos con
+el formato adecuado para realizar submitir en Keaggle. La sintaxis
+utilizada para esto se encuentra en [formato para submission con
+regresión
+lineal](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20para%20dar%20formato%20a%20submission/Submission%20Regresi%C3%B3n%20Lineal.R).
 
-```{r}
+```{r, include=FALSE}
 test_hogares$modelo_lm_ingreso<-predict(object = modelo_lm,
                                         newdata = test_hogares)
 
 test_hogares$modelo_lm_predict<-ifelse(
   test_hogares$modelo_lm_ingreso<test_hogares$Lp,
   1,0) #Clasificamos los hogares en pobres o no según el ingreso predicho
-table(test_hogares$modelo_lm_predict)
+#table(test_hogares$modelo_lm_predict)
 ```
 
 ```{r, eval=FALSE}
@@ -397,10 +473,9 @@ Posteriormente se realizan diferentes combinaciones de variables
 predictivas para encontrar aquellas que tengan una mejor capacidad de
 predicción.
 
-##Predicciones con Regularización. 
+## Predicciones con Regularización.
 
-Para realizar estos modelos utilizamos solo las variables que no poseen NA en train ni en test.
-```{r}
+```{r,include=FALSE}
 predictores<-c("desempleo_jefe", #Completa
                         "educacion_jefe", #Completa 
                         "sexo_jefe", #Completa
@@ -413,9 +488,15 @@ predictores<-c("desempleo_jefe", #Completa
 
 ```
 
-Para aplicar regularización tenemos que trabajar con nuestros datos en formato matriz
+Para realizar estos modelos utilizamos solo las variables que no poseen
+NA en train ni en test, estos se pueden consultar en [predictores
+regularización](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20con%20predictores/Predictores%20Regularizaci%C3%B3n.R).
+Para aplicar regularización tenemos que trabajar con nuestros datos en
+formato matriz, la sintaxis utilizada también se puede observar en
+[transformación en matriz para
+regularización](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Transformaci%C3%B3n%20de%20data%20en%20formato%20matriz%20para%20realizar%20Regularizaci%C3%B3n.R).
 
-```{r}
+```{r, include=FALSE}
 X<-train_hogares_sin_bogota %>% select(predictores)
 X$sexo_jefe<-as.numeric(X$sexo_jefe)
 X$Clase<-as.numeric(X$Clase)
@@ -430,12 +511,25 @@ X_test$Clase<-as.numeric(X_test$Clase)
 X_test<-as.matrix(X_test)
 ```
 
-###Rige
+## Ridge, Lasso y Elastic Net
 
-Para realizar las predicciones utilizando Ridge se utilizó la siguiente
-sintaxis
+Para entrenar los modelos fue necesario afinar los parámetros lambda
+utilizados para la predicción. En este caso, el parámetro lambda mínimo
+fue encontrado mediante cross validation utilizando la siguiente
+sintaxis:
 
-```{r}
+```{r, eval=FALSE}
+cv_ridge <- cv.glmnet(x = X, 
+                      y = Y,alpha =i) 
+# Para Ridge i=1, Lasso i=0 Lasso, Elastic Net i=0.75. 
+
+coef(cv_ridge, s = "lambda.min") 
+test_hogares$predict_ingreso_rige<-predict(cv_ridge,
+                                           newx = X_test,
+                                           s = "lambda.min")
+```
+
+```{r, include=FALSE}
 cv_ridge <- cv.glmnet(x = X, #Utilizamos cross validation para hallar lambda
                       y = Y,alpha = 0) #Notese que alpha=0 para ser Ridge
 coef(cv_ridge, s = "lambda.min") #Extraemos el lambda optimo 
@@ -450,9 +544,7 @@ test_hogares$predict_rige<-ifelse(
 table(test_hogares$predict_rige)
 ```
 
-###Lasso
-
-```{r}
+```{r, include=FALSE}
 cv_lasso <- cv.glmnet(x = X, #Utilizamos cross validation para hallar lambda
                       y = Y,alpha = 1) #Notese que alpha=1 para ser Lasso
 coef(cv_lasso, s = "lambda.min") #Extraemos el lambda optimo 
@@ -468,9 +560,7 @@ test_hogares$predict_lasso<-ifelse(
 table(test_hogares$predict_lasso)
 ```
 
-###Elastic Net
-
-```{r}
+```{r, include=FALSE}
 
 cv_en <- cv.glmnet(x = X,
                       y = Y,alpha = 0.75) #Aplicamos un 0<alpha<1
@@ -487,10 +577,21 @@ test_hogares$predict_en<-ifelse(
 table(test_hogares$predict_en)
 ```
 
-##Predicciones con Árbol.
+## Elastic Net con Cartet
 
-Para predecir el ingreso contamos con mas flexibilidad al momento de utilizar variables con NA
+Para identificar los hiperparametros optimos de Elastic Net con Caret se
+utilizó la siguiente sintaxis.
+
 ```{r}
+tc_10 <- trainControl(method = "cv", number = 10)
+
+en_caret <- train(x=X,y=Y,method = "glmnet",trControl = tc_10,
+  tuneLength=100)
+```
+
+## Predicciones con Árbol
+
+```{r, include=FALSE}
 predictores<-c("posicion_jefe",
                       "Des_jefe",
                       "Oc_jefe",
@@ -516,8 +617,12 @@ predictores<-c("posicion_jefe",
 )
 ```
 
-
-Para realizar la predicción con árboles de decisión se realizó la siguiente sintaxis
+Para predecir el ingreso contamos con mas flexibilidad al momento de
+utilizar variables con NA, estas variables se pueden consultar en
+[predictores para árbol de
+regresión](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20con%20predictores/Predictores%20Arbol%20de%20regresi%C3%B3n.R)
+. Para realizar la predicción con árboles de decisión se realizó la
+siguiente sintaxis
 
 ```{r}
 arbol<-rpart(formula = as.formula(paste("Ingtotugarr~",
@@ -530,7 +635,10 @@ prp(arbol,box.palette = "gray")
 ```
 
 Luego de entrenar el modelo realizamos la predicción en train y
-evaluamos su resultado dentro de muestra
+evaluamos su resultado dentro de muestra. La totalidad de las métricas
+derivadas de la matriz de confusión se encuentran en [matriz de
+confusión árbol de
+regresión](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Output%20matrices%20de%20confusi%C3%B3n/outputcf_arbol_reg.txt).
 
 ```{r}
 train_hogares_sin_bogota$predic_arbol_ingreso<-predict(arbol,
@@ -542,12 +650,14 @@ train_hogares_sin_bogota$predict_arbol<-ifelse(
   1,0)
 
 matriz_arbol<-table(train_hogares_sin_bogota$predict_arbol,train_hogares_sin_bogota$Pobre)
-confusionMatrix(matriz_arbol,
+cf_arbol_reg<-confusionMatrix(matriz_arbol,
                 positive="1",
                 mode = "prec_recall")
+
+cf_arbol_reg$byClass["F1"]
 ```
 
-Luego realizamos la predicción fuera de muestra
+Luego realizamos la predicción fuera de muestra:
 
 ```{r}
 test_hogares$predic_arbol_ingreso<-predict(arbol,
