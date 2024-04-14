@@ -39,10 +39,6 @@ test_hogares$sexo_jefe<-as.factor(test_hogares$sexo_jefe)
 
 train_hogares$sexo_jefe<- ifelse(train_hogares$sexo_jefe=='1','1','0')
 train_hogares$sexo_jefe <- factor(train_hogares$sexo_jefe, levels = c("1", "0"))
-
-test_hogares$sexo_jefe<- ifelse(test_hogares$sexo_jefe=='1','1','0')
-test_hogares$sexo_jefe <- factor(test_hogares$sexo_jefe, levels = c("1", "0"))
-
 #Los hogares cuyo jefe pertenece al regimen subsidiado podrían ser probablemente más pobres####
 
 crear_regimen_jefe<-function(df){
@@ -58,7 +54,7 @@ crear_regimen_jefe<-function(df){
 train_personas<-crear_regimen_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"regimen_jefe")
 train_hogares$regimen_subsidiado_jefe<-ifelse(train_hogares$regimen_jefe==3,1,0)
-train_hogares$regimen_jefe<-as.factor(train_hogares$regimen_jefe)
+
 #Creamos la variable en Test
 test_personas<-crear_regimen_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"regimen_jefe")
@@ -274,7 +270,7 @@ test_hogares<-traer_variable(test_hogares,test_personas,"subsidio_jefe")
 
 crear_zona_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(zona_jefe=aux$Clase,id=aux$id)
+  aux2<-data.frame(zona_jefe=aux$Dominio,id=aux$id)
   df<-left_join(df,aux2,by="id")
   return(df)
 }
@@ -282,23 +278,31 @@ crear_zona_jefe<-function(df){
 #Creamos la variable en Train
 train_personas<-crear_zona_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"zona_jefe")
+train_hogares$zona_jefe<-as.factor(train_hogares$zona_jefe)
 
-train_hogares$Clase<-as.factor(train_hogares$Clase)
-test_hogares$Clase<-as.factor(test_hogares$Clase)
-
-#Creamos la variable en Test
 test_personas<-crear_zona_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"zona_jefe")
-#test_hogares$posicion_jefe<-as.factor(test_hogares$Clase) ##Esto creo que es un error por eso lo dejo comentado (Por: WILLIAM)
-train_hogares$zona_jefe <- factor(train_hogares$zona_jefe, levels = c("1", "2"))
-test_hogares$zona_jefe <- factor(test_hogares$zona_jefe, levels = c("1", "2"))
+
+
+train_hogares <- train_hogares %>%
+  mutate(
+    zona_jefe = case_when(
+      zona_jefe == "RURAL" ~ 1,
+      zona_jefe == "RESTO URBANO" ~ 2,
+      TRUE ~ 3
+    )
+  )
+
+
+train_hogares$zona_jefe <- factor(train_hogares$zona_jefe, levels = c("1", "2","3"))
 
 
 
 
 
 
-#### Horas trabajadas
+
+#### Informalidad
 
 
 crear_informalidad_jefe<-function(df){
@@ -346,33 +350,16 @@ train_hogares <- subset(train_hogares, select = -c(sexo_jefe_numeric, informalid
 train_hogares$Sexo_informalidad <- factor(train_hogares$Sexo_informalidad)
 
 
+## Limpieza variable pobre
 
-#Otras transformaciones de utilidad
-train_hogares$pobre_texto<-ifelse(train_hogares$Pobre==1,"Pobre","No_Pobre")
-train_hogares$pobre_texto<-as.factor(train_hogares$pobre_texto)
-
-train_hogares$jefe_menor<-ifelse(train_hogares$edad_jefe<18,"Menor","No_Menor")
-train_hogares$jefe_menor<-as.factor(train_hogares$jefe_menor)
-test_hogares$jefe_menor<-ifelse(test_hogares$edad_jefe<18,"Menor","No_Menor")
-test_hogares$jefe_menor<-as.factor(test_hogares$jefe_menor) 
-
-
-train_hogares$Personas_habitacion_round<-ifelse(train_hogares$Personas_habitacion<=2.5,1,0)
-train_hogares$Personas_habitacion_round<-as.factor(train_hogares$Personas_habitacion_round)
-
-test_hogares$Personas_habitacion_round<-ifelse(test_hogares$Personas_habitacion<=2.5,1,0)
-test_hogares$Personas_habitacion_round<-as.factor(test_hogares$Personas_habitacion_round)
+train_hogares$Pobre <- factor(train_hogares$Pobre,levels= c('1','0'))
 
 
 
-table(is.na(train_hogares$ocupacion_jefe))
-#Ocupación_jefe tiene un NA que se imputa con un valor aleatorio 0 a 6
-train_hogares$ocupacion_jefe<-ifelse(is.na(train_hogares$ocupacion_jefe),sample(x = c(0,1,2,3,4,5,6),1),train_hogares$ocupacion_jefe)
-table(train_hogares$ocupacion_jefe)
 
-test_hogares$ocupacion_jefe<-ifelse(is.na(test_hogares$ocupacion_jefe),sample(x = c(0,1,2,3,4,5,6),1),test_hogares$ocupacion_jefe)
-table(test_hogares$ocupacion_jefe)
 
-#Desempleo jefe tiene un NA se reemplaza con un aleatorios de 0 o 1 
-test_hogares$desempleo_jefe<-ifelse(is.na(test_hogares$desempleo_jefe),sample(x = c(0,1),1),test_hogares$desempleo_jefe)
-table(test_hogares$desempleo_jefe)
+
+
+
+
+
