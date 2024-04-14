@@ -414,3 +414,18 @@ test_hogares$Clase<-as.factor(test_hogares$Clase)
 train_hogares$pobre_texto<-ifelse(train_hogares$Pobre==1,"Pobre","No_Pobre")
 train_hogares$pobre_texto<-as.factor(train_hogares$pobre_texto)
 
+#Ocupación jefe tiene un NA lo reemplazamos por un aleatorio entre 1 - 6
+table(is.na(train_hogares$ocupacion_jefe))
+table(train_hogares$ocupacion_jefe)
+train_hogares$ocupacion_jefe<-ifelse(is.na(train_hogares$ocupacion_jefe),
+                                     sample(c(1,2,3,4,5,6),1),
+                                     train_hogares$ocupacion_jefe)
+
+table(is.na(test_hogares$ocupacion_jefe))
+table(test_hogares$ocupacion_jefe)
+test_hogares$ocupacion_jefe<-ifelse(is.na(test_hogares$ocupacion_jefe),
+                                     sample(c(1,2,3,4,5,6),1),
+                                     test_hogares$ocupacion_jefe)
+
+
+

@@ -181,7 +181,6 @@ clasificación](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%2
 ```{r}
 train_hogares$predic_arbol<-predict(arbol,newdata =train_hogares,
                                     type = "class")
-
 cf_arbol<-confusionMatrix(data = train_hogares$predic_arbol,
                 reference = train_hogares$pobre_texto,
                 positive="Pobre",
