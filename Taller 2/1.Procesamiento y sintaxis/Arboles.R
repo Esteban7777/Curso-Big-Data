@@ -9,26 +9,6 @@ library(rpart.plot)
 library(boot)
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/Creaci%C3%B3n%20de%20variables%20de%20inter%C3%A9s.R")
 
-train_hogares$pobre_texto<-ifelse(train_hogares$Pobre==1,"Pobre","No_Pobre")
-train_hogares$pobre_texto<-as.factor(train_hogares$pobre_texto)
-
-
-train_hogares$jefe_joven<-ifelse(train_hogares$edad_jefe<=28,"Joven","No_Joven")
-train_hogares$jefe_joven<-as.factor(train_hogares$jefe_joven)
-test_hogares$jefe_joven<-ifelse(test_hogares$edad_jefe<=28,"Joven","No_Joven")
-test_hogares$jefe_joven<-as.factor(test_hogares$jefe_joven) 
-
-train_hogares$jefe_menor<-ifelse(train_hogares$edad_jefe<18,"Menor","No_Menor")
-train_hogares$jefe_menor<-as.factor(train_hogares$jefe_menor)
-test_hogares$jefe_menor<-ifelse(test_hogares$edad_jefe<18,"Menor","No_Menor")
-test_hogares$jefe_menor<-as.factor(test_hogares$jefe_menor) 
-
-
-train_hogares$Personas_habitacion_round<-ifelse(train_hogares$Personas_habitacion<=2.5,1,0)
-train_hogares$Personas_habitacion_round<-as.factor(train_hogares$Personas_habitacion_round)
-
-test_hogares$Personas_habitacion_round<-ifelse(test_hogares$Personas_habitacion<=2.5,1,0)
-test_hogares$Personas_habitacion_round<-as.factor(test_hogares$Personas_habitacion_round)
 
 train_hogares$rural<-ifelse(train_hogares$Dominio=="RURAL",1,0)
 test_hogares$rural<-ifelse(test_hogares$Dominio=="RURAL",1,0)
@@ -79,89 +59,6 @@ arbol1<-rpart(formula = as.formula(paste("pobre_texto~",
         minbucket=30
         )
 prp(arbol1)
-
-#Random forest
-library(ranger)
-
-RF<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))), 
-            data = train_hogares,
-            num.trees= 500, ## Numero de bootstrap samples y arboles a estimar. Default 500  
-            mtry= 4,   # N. var aleatoriamente seleccionadas en cada partición. Baggin usa todas las vars.
-            min.node.size  = 1, ## Numero minimo de observaciones en un nodo para intentar 
-            importance="impurity") 
-
-#Aumentamos la cantidad de arboles para identificar si se reduce el OOB predictor error
-
-RF1000<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))), 
-            data = train_hogares,
-            num.trees= 1000, ## Numero de bootstrap samples y arboles a estimar. Default 500  
-            mtry= 4,   # N. var aleatoriamente seleccionadas en cada partición. Baggin usa todas las vars.
-            min.node.size  = 1, ## Numero minimo de observaciones en un nodo para intentar 
-            importance="impurity") 
-
-#Observamos que no se reduce de manera significativa el OOB predictor error
-#Se prueba aumentar la cantidad de observaciones por nodo
-RF_NODE100<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))), 
-            data = train_hogares,
-            num.trees= 500, ## Numero de bootstrap samples y arboles a estimar. Default 500  
-            mtry= 4,   # N. var aleatoriamente seleccionadas en cada partición. Baggin usa todas las vars.
-            min.node.size  = 100, ## Numero minimo de observaciones en un nodo para intentar 
-            importance="impurity") 
-RF_NODE100
-#Se identifica que la cantidad el OOB es indiferente a la cantidad minima de observaciones por nodo
-#Miramos la importancia de las variables en el Ramdom Forest
-imp<-importance(RF)
-imp<-data.frame(variables=names(imp),importancia=imp)
-ggplot(imp, aes(x = reorder(variables, importancia) , y =importancia )) +
-  geom_bar(stat = "identity", fill = "blue") +
-  labs(title = "Variable ", x = "Importancia", y="Variable") +
-  theme_minimal() +
-  coord_flip() 
-
-#Se identifica que hay cinco variables que son mucho más importantes que el resto.
-#Se aumenta a cinco el número de variables por arbol
-RF_5VAR<- ranger(formula = as.formula(paste("pobre_texto~",
-                                       paste(predictores_modelo, collapse = " + "))), 
-            data = train_hogares,
-            num.trees= 500, ## Numero de bootstrap samples y arboles a estimar. Default 500  
-            mtry= 5,   # N. var aleatoriamente seleccionadas en cada partición. Baggin usa todas las vars.
-            min.node.size  = 1, ## Numero minimo de observaciones en un nodo para intentar 
-            importance="impurity") 
-#Si le aumentamos una variable por arbol se reduce el OOB predictor error
-RF_6VAR<- ranger(formula = as.formula(paste("pobre_texto~",
-                                            paste(predictores_modelo, collapse = " + "))), 
-                 data = train_hogares,
-                 num.trees= 500, ## Numero de bootstrap samples y arboles a estimar. Default 500  
-                 mtry=6 ,   # N. var aleatoriamente seleccionadas en cada partición. Baggin usa todas las vars.
-                 min.node.size  = 1, ## Numero minimo de observaciones en un nodo para intentar 
-                 importance="impurity") 
-
-#Con cinco variables por arbol se logra el menor error de predicción
-#Evaluamos las predicciones dentro de muestra
-confusionMatrix(data = RF_5VAR$predictions,
-                reference = train_hogares$pobre_texto,
-                positive = "Pobre",
-                mode = "prec_recall")
-
-table(is.na(test_hogares$desmpleo_jefe)) #Tiene 1 solo NA que se le imputa aleatoriamente
-test_hogares$desempleo_jefe[is.na(test_hogares$desempleo_jefe)] <- sample(0:1, 1)
-
-X<-test_hogares %>% select(predictores_modelo)
-
-predic_RF5<-predict(RF_5VAR,X)
-test_hogares$predic_RF5<-predic_RF5$predictions
-table(test_hogares$predic_RF5)
-
-sub11<-test_hogares %>% select(id,predic_RF5)
-sub11<-sub11 %>% rename(pobre=predic_RF5)
-sub11$pobre<-ifelse(sub11$pobre=="Pobre",1,0)
-table(sub11$pobre)
-table(test_hogares$predic_RF5)
-write_csv(x = sub11,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission11.csv",)
-
 
 train_hogares$predic_arbol1<-predict(arbol1,newdata =train_hogares,type = "class")
 

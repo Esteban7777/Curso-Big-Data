@@ -1,0 +1,10 @@
+predictores<-c("informalidad_jefe","subsidio_jefe","edad_jefe",
+               "posicion_jefe","Ina_jefe","Des_jefe","Oc_jefe",
+               "Pet_jefe","ocupacion_jefe","educacion_jefe",
+               "regimen_jefe","sexo_jefe","Clase","Dominio",
+               "P5000","P5010","P5090","P5100","P5130","P5140",
+               "Nper","Npersug","Depto",
+               "regimen_subsidiado_jefe","desempleo_jefe",
+               "Personas_habitacion","tipo_casa",
+               "edad_jefe_joven","Personas_habitacion_round",
+               "edad_jefe_joven")

@@ -1,0 +1,14 @@
+Ranger result
+
+Call:
+ ranger(formula = as.formula(paste("pobre_texto~", paste(predictores,      collapse = " + "))), data = train_hogares, num.trees = 1000,      mtry = 4, min.node.size = 1, importance = "impurity") 
+
+Type:                             Classification 
+Number of trees:                  1000 
+Sample size:                      164960 
+Number of independent variables:  21 
+Mtry:                             4 
+Target node size:                 1 
+Variable importance mode:         impurity 
+Splitrule:                        gini 
+OOB prediction error:             16.95 % 

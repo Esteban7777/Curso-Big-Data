@@ -1,0 +1,6 @@
+sub9<-test_hogares %>% select(id,predic_arbol)
+sub9<-sub9 %>% rename(pobre=predic_arbol)
+sub9$pobre<-ifelse(sub9$pobre=="Pobre",1,0)
+table(test_hogares$predic_arbol)
+table(sub9$pobre)
+write_csv(x = sub9,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission9.csv",)
