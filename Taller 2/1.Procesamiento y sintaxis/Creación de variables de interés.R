@@ -354,8 +354,13 @@ train_hogares$Sexo_informalidad <- factor(train_hogares$Sexo_informalidad)
 
 train_hogares$Pobre <- factor(train_hogares$Pobre,levels= c('1','0'))
 
+# Personas por habitacion cortada por el punto donde los arboles encuentran diferencias
 
+train_hogares$Personas_habitacion_round<-ifelse(train_hogares$Personas_habitacion<=2.5,1,0)
+train_hogares$Personas_habitacion_round<-as.factor(train_hogares$Personas_habitacion_round)
 
+test_hogares$Personas_habitacion_round<-ifelse(test_hogares$Personas_habitacion<=2.5,1,0)
+test_hogares$Personas_habitacion_round<-as.factor(test_hogares$Personas_habitacion_round)
 
 
 
