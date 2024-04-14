@@ -5,7 +5,7 @@ library(randomForest)
 library(caret)
 library(smotefamily)
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/Creaci%C3%B3n%20de%20variables%20de%20inter%C3%A9s.R")
-<<<<<<< HEAD
+
 #Probando sobre muestreo para random forest
 predictores<-c("informalidad_jefe",
                #"subsidio_jefe",
@@ -69,7 +69,7 @@ for (col in predictores) {
 
 # Guarda los datos en un archivo CSV
 #write.csv(train_hogares, file = ruta_descarga, row.names = FALSE)
-=======
+
 
 # Definir predictores
 predictores <- c("informalidad_jefe",
@@ -82,7 +82,6 @@ predictores <- c("informalidad_jefe",
                  "Nper", "Npersug",
                  "desempleo_jefe", "Personas_habitacion", "tipo_casa", "edad_jefe_joven",
                  "Personas_habitacion_round")
->>>>>>> parent of a7b5435 (Ajustes al Modelo)
 
 # Convertir variables factor a numéricas
 train_hogares$Personas_habitacion_r <- as.numeric(train_hogares$Personas_habitacion_r)
@@ -98,11 +97,6 @@ ctrl <- trainControl(method = "cv",
 smote_output <- SMOTE(X = train_hogares[predictores],
                       target = train_hogares$Pobre)
 
-<<<<<<< HEAD
-view(train_hogares[predictores])
-
-=======
->>>>>>> parent of a7b5435 (Ajustes al Modelo)
 smote_data <- smote_output$data
 smote_data$class <- as.factor(smote_data$class)
 levels(smote_data$class) <- make.names(levels(smote_data$class))
@@ -115,7 +109,6 @@ pobre_smote_boost <- train(class ~ .,
                            verbose = FALSE,
                            tuneLength = 10) # Ajustar este parámetro según necesidad
 
-<<<<<<< HEAD
 # Evaluación del modelo
 predictions <- predict(ada_model, newdata = test_hogares)
 confusionMatrix <- confusionMatrix(predictions, test_hogares$class)
@@ -130,8 +123,5 @@ sub15 <- sub15 %>% rename(pobre = predic_ada)
 sub15$pobre <- ifelse(sub15$pobre == "X1", 1, 0)
 write_csv(x = sub15, "C://Submission15.csv")
 
-
-=======
 # Resumen del modelo
 print(pobre_smote_boost)
->>>>>>> parent of a7b5435 (Ajustes al Modelo)
