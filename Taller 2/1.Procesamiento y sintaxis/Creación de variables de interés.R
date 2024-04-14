@@ -398,8 +398,11 @@ test_hogares$Personas_habitacion_round<-ifelse(test_hogares$Personas_habitacion<
 test_hogares$Personas_habitacion_round<-as.factor(test_hogares$Personas_habitacion_round)
 
 
+#Se organizan los formatos de las Clases
+str(train_hogares$Clase)
+str(test_hogares$Clase)
 
-
-
+train_hogares$Clase<-as.numeric(train_hogares$Clase)
+test_hogares$Clase<-as.numeric(test_hogares$Clase)
 
 
