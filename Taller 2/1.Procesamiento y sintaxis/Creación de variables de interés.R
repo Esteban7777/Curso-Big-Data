@@ -39,6 +39,10 @@ test_hogares$sexo_jefe<-as.factor(test_hogares$sexo_jefe)
 
 train_hogares$sexo_jefe<- ifelse(train_hogares$sexo_jefe=='1','1','0')
 train_hogares$sexo_jefe <- factor(train_hogares$sexo_jefe, levels = c("1", "0"))
+
+test_hogares$sexo_jefe<- ifelse(test_hogares$sexo_jefe=='1','1','0')
+test_hogares$sexo_jefe <- factor(test_hogares$sexo_jefe, levels = c("1", "0"))
+
 #Los hogares cuyo jefe pertenece al regimen subsidiado podrían ser probablemente más pobres####
 
 crear_regimen_jefe<-function(df){
@@ -53,6 +57,7 @@ crear_regimen_jefe<-function(df){
 #Creamos la variable en Train
 train_personas<-crear_regimen_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"regimen_jefe")
+train_hogares$regimen_jefe<-as.factor(train_hogares$regimen_jefe)
 train_hogares$regimen_subsidiado_jefe<-ifelse(train_hogares$regimen_jefe==3,1,0)
 
 #Creamos la variable en Test
@@ -194,10 +199,14 @@ test_hogares$posicion_jefe<-as.factor(test_hogares$posicion_jefe)
 
 #En train
 train_hogares$Personas_habitacion<-train_hogares$Nper/train_hogares$P5010
-#En test
-test_hogares$Personas_habitacion<-test_hogares$Nper/test_hogares$P5010
+
 train_hogares$Personas_habitacion_r <- round(train_hogares$Personas_habitacion)
 train_hogares$Personas_habitacion_r <- as.factor(train_hogares$Personas_habitacion_r)
+
+test_hogares$Personas_habitacion<-test_hogares$Nper/test_hogares$P5010
+
+test_hogares$Personas_habitacion_r <- round(test_hogares$Personas_habitacion)
+test_hogares$Personas_habitacion_r <- as.factor(test_hogares$Personas_habitacion_r)
 
 ### Tipo de vivienda
 
@@ -282,7 +291,7 @@ train_hogares$zona_jefe<-as.factor(train_hogares$zona_jefe)
 
 test_personas<-crear_zona_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"zona_jefe")
-
+test_hogares$zona_jefe<-as.factor(test_hogares$zona_jefe)
 
 train_hogares <- train_hogares %>%
   mutate(
@@ -296,6 +305,26 @@ train_hogares <- train_hogares %>%
 
 train_hogares$zona_jefe <- factor(train_hogares$zona_jefe, levels = c("1", "2","3"))
 
+#Creamos la variable en Test
+test_personas<-crear_zona_jefe(test_personas)
+train_hogares<-traer_variable(train_hogares,train_personas,"zona_jefe")
+train_hogares$zona_jefe<-as.factor(train_hogares$zona_jefe)
+
+test_personas<-crear_zona_jefe(test_personas)
+test_hogares<-traer_variable(test_hogares,test_personas,"zona_jefe")
+test_hogares$zona_jefe<-as.factor(test_hogares$zona_jefe)
+
+test_hogares <- test_hogares %>%
+  mutate(
+    zona_jefe = case_when(
+      zona_jefe == "RURAL" ~ 1,
+      zona_jefe == "RESTO URBANO" ~ 2,
+      TRUE ~ 3
+    )
+  )
+
+
+test_hogares$zona_jefe <- factor(test_hogares$zona_jefe, levels = c("1", "2","3"))
 
 
 
@@ -324,35 +353,41 @@ test_hogares<-traer_variable(test_hogares,test_personas,"informalidad_jefe")
 
 
 
+
+# Convertir a factor en train
 train_hogares$informalidad_jefe <- factor(train_hogares$informalidad_jefe, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9"))
 train_hogares$informalidad_jefe <- ifelse(train_hogares$informalidad_jefe %in% c("1","2", "3", "4"), "1", "0")
-
-# Convertir a factor
 train_hogares$informalidad_jefe <- factor(train_hogares$informalidad_jefe, levels = c("0", "1"))
 
 
-
-
+# Convertir a factor en Test
 test_hogares$informalidad_jefe <- factor(test_hogares$informalidad_jefe, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9"))
 test_hogares$informalidad_jefe <- ifelse(test_hogares$informalidad_jefe %in% c("1","2", "3", "4"), "1", "0")
-
-# Convertir a factor
 test_hogares$informalidad_jefe <- factor(test_hogares$informalidad_jefe, levels = c("0", "1"))
-
-
 
 ### Interacción jefe de hogar informalidad
 
+#En train
 train_hogares$sexo_jefe_numeric <- as.numeric(train_hogares$sexo_jefe)
 train_hogares$informalidad_jefe_numeric <- as.numeric(train_hogares$informalidad_jefe)
 train_hogares$Sexo_informalidad <- train_hogares$sexo_jefe_numeric * train_hogares$informalidad_jefe_numeric
 train_hogares <- subset(train_hogares, select = -c(sexo_jefe_numeric, informalidad_jefe_numeric))
 train_hogares$Sexo_informalidad <- factor(train_hogares$Sexo_informalidad)
 
+#En test
+test_hogares$sexo_jefe_numeric <- as.numeric(test_hogares$sexo_jefe)
+test_hogares$informalidad_jefe_numeric <- as.numeric(test_hogares$informalidad_jefe)
+test_hogares$Sexo_informalidad <- test_hogares$sexo_jefe_numeric * test_hogares$informalidad_jefe_numeric
+test_hogares <- subset(test_hogares, select = -c(sexo_jefe_numeric, informalidad_jefe_numeric))
+test_hogares$Sexo_informalidad <- factor(test_hogares$Sexo_informalidad)
+
+
 
 ## Limpieza variable pobre
 
+#En train
 train_hogares$Pobre <- factor(train_hogares$Pobre,levels= c('1','0'))
+test_hogares$Pobre <- factor(test_hogares$Pobre,levels= c('1','0'))
 
 # Personas por habitacion cortada por el punto donde los arboles encuentran diferencias
 
