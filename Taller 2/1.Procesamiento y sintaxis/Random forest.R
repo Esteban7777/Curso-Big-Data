@@ -113,13 +113,13 @@ test_hogares$desempleo_jefe[is.na(test_hogares$desempleo_jefe)] <- sample(0:1, 1
 
 X<-test_hogares %>% select(predictores_modelo)
 
-predic_RF5<-predict(RF_5VAR,X)
-test_hogares$predic_RF5<-predic_RF5$predictions
-table(test_hogares$predic_RF5)
+predic_RF5<-predict(RF,X)
+test_hogares$predic_RF<-predic_RF$predictions
+table(test_hogares$predic_RF)
 
-sub11<-test_hogares %>% select(id,predic_RF5)
-sub11<-sub11 %>% rename(pobre=predic_RF5)
+sub11<-test_hogares %>% select(id,predic_RF)
+sub11<-sub11 %>% rename(pobre=predic_RF)
 sub11$pobre<-ifelse(sub11$pobre=="Pobre",1,0)
 table(sub11$pobre)
-table(test_hogares$predic_RF5)
-write_csv(x = sub11,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission11.csv",)
+table(test_hogares$predic_RF)
+write_csv(x = sub11,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/2.Entregables/Submission12.csv",)
