@@ -6,10 +6,10 @@ library(tidyverse)
 #Cargar la data ####
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/Script%20para%20cargar%20la%20data%20desde%20el%20repositorio.R")
 
-#Cargamos la función para los marge
+#Cargamos la funciC3n para los marge
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/funMergePersonasHogares.R")
 
-#Creación de variables de interés####
+#CreaciC3n de variables de interC)s####
 
 #Nos interesa las caracteristicas del jefe de hogar####
 #Creamos jefe para Train
@@ -17,7 +17,7 @@ train_personas$jefe<-ifelse(test = train_personas$P6050==1,1,0)
 #Creamos jefe para Test
 test_personas$jefe<-ifelse(test = test_personas$P6050==1,1,0)
 
-#Los hogares que tienen una mujer como jefe de hogar podrían ser probablemente más pobres####
+#Los hogares que tienen una mujer como jefe de hogar podrC-an ser probablemente mC!s pobres####
 train_personas$jefe<-ifelse(test = train_personas$P6050==1,1,0)
 
 crear_sexo_jefe<-function(df){
@@ -43,7 +43,7 @@ train_hogares$sexo_jefe <- factor(train_hogares$sexo_jefe, levels = c("1", "0"))
 test_hogares$sexo_jefe<- ifelse(test_hogares$sexo_jefe=='1','1','0')
 test_hogares$sexo_jefe <- factor(test_hogares$sexo_jefe, levels = c("1", "0"))
 
-#Los hogares cuyo jefe pertenece al regimen subsidiado podrían ser probablemente más pobres####
+#Los hogares cuyo jefe pertenece al regimen subsidiado podrC-an ser probablemente mC!s pobres####
 
 crear_regimen_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
@@ -66,7 +66,7 @@ test_hogares<-traer_variable(test_hogares,test_personas,"regimen_jefe")
 test_hogares$regimen_jefe<-as.factor(test_hogares$regimen_jefe)
 test_hogares$regimen_subsidiado_jefe<-ifelse(test_hogares$regimen_jefe==3,1,0)
 
-#Los hogares con jefes con menor nivel de escolaridad podrían ser probablemente más pobres####
+#Los hogares con jefes con menor nivel de escolaridad podrC-an ser probablemente mC!s pobres####
 
 crear_educacion_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
@@ -77,17 +77,17 @@ crear_educacion_jefe<-function(df){
 
 #Creamos la variable en Train
 train_personas<-crear_educacion_jefe(train_personas)
-#Ya que 9 es el código de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
+#Ya que 9 es el cC3digo de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
 train_personas$educacion_jefe<-ifelse(train_personas$educacion_jefe==9,0,train_personas$educacion_jefe)
 train_hogares<-traer_variable(train_hogares,train_personas,"educacion_jefe")
 
 #Creamos la variable en Test
 test_personas<-crear_educacion_jefe(test_personas)
-#Ya que 9 es el código de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
+#Ya que 9 es el cC3digo de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
 test_personas$educacion_jefe<-ifelse(test_personas$educacion_jefe==9,0,test_personas$educacion_jefe)
 test_hogares<-traer_variable(test_hogares,test_personas,"educacion_jefe")
 
-#Los hogares cuyo jefe de hogar no está empleado probablemente sean más pobres #####
+#Los hogares cuyo jefe de hogar no estC! empleado probablemente sean mC!s pobres #####
 
 crear_ocupacion_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
@@ -176,7 +176,7 @@ test_hogares$Oc_jefe[is.na(test_hogares$Oc_jefe)] <- 0
 test_hogares$Des_jefe[is.na(test_hogares$Des_jefe)] <- 0
 test_hogares$Ina_jefe[is.na(test_hogares$Ina_jefe)] <- 0
 
-#Posición laboral del jefe de hogar####
+#PosiciC3n laboral del jefe de hogar####
 
 crear_posicion_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
@@ -195,7 +195,7 @@ test_personas<-crear_posicion_jefe(test_personas)
 test_hogares<-traer_variable(test_hogares,test_personas,"posicion_jefe")
 test_hogares$posicion_jefe<-as.factor(test_hogares$posicion_jefe)
 
-#Creamos personas por habitación
+#Creamos personas por habitaciC3n
 
 #En train
 train_hogares$Personas_habitacion<-train_hogares$Nper/train_hogares$P5010
@@ -370,7 +370,7 @@ test_hogares$informalidad_jefe <- factor(test_hogares$informalidad_jefe, levels 
 test_hogares$informalidad_jefe <- ifelse(test_hogares$informalidad_jefe %in% c("1","2", "3", "4"), "1", "0")
 test_hogares$informalidad_jefe <- factor(test_hogares$informalidad_jefe, levels = c("0", "1"))
 
-### Interacción jefe de hogar informalidad
+### InteracciC3n jefe de hogar informalidad
 
 #En train
 train_hogares$sexo_jefe_numeric <- as.numeric(train_hogares$sexo_jefe)
@@ -414,7 +414,7 @@ test_hogares$Clase<-as.factor(test_hogares$Clase)
 train_hogares$pobre_texto<-ifelse(train_hogares$Pobre==1,"Pobre","No_Pobre")
 train_hogares$pobre_texto<-as.factor(train_hogares$pobre_texto)
 
-#Ocupación jefe tiene un NA lo reemplazamos por un aleatorio entre 1 - 6
+#Ocupaci??n jefe tiene un NA lo reemplazamos por un aleatorio entre 1 - 6
 table(is.na(train_hogares$ocupacion_jefe))
 table(train_hogares$ocupacion_jefe)
 train_hogares$ocupacion_jefe<-ifelse(is.na(train_hogares$ocupacion_jefe),
@@ -429,3 +429,14 @@ test_hogares$ocupacion_jefe<-ifelse(is.na(test_hogares$ocupacion_jefe),
 
 
 
+#Desempleo jefe tiene un NA en la data de test. Lo reempalzamos con un aleatorio entre 0-1
+
+table(is.na(test_hogares$desempleo_jefe))
+table(test_hogares$desempleo_jefe)
+test_hogares$desempleo_jefe<-ifelse(is.na(test_hogares$desempleo_jefe),
+                                    sample(c(0,1),1),
+                                    test_hogares$desempleo_jefe)
+
+table(is.na(test_hogares$desempleo_jefe))
+
+table(test_hogares$desempleo_jefe)
