@@ -12,7 +12,7 @@ output:
 set.seed(1234)
 library("rvest")
 library(httr)
-library(tidyverse)
+#library(tidyverse)
 library(devtools)
 library(gridExtra)
 library(knitr)
