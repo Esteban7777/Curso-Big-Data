@@ -27,7 +27,7 @@ library(ranger)
 library(stargazer)
 ```
 
-# 1. Modelos de clasificación 
+# 1. Modelos de clasificación
 
 En esta sección se muestran los resultados de los modelos más relevantes
 encontrados para clasificar como pobres o no pobres a los hogares. La
@@ -87,7 +87,7 @@ logit<-glm(as.formula(
 ```
 
 ```{r, echo=FALSE}
-logit<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/modelo logit.rds")
+logit<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/modelo logit.rds")
 ```
 
 Los detalles de los coeficientes, niveles de significancia y métricas de
@@ -145,7 +145,7 @@ logit2<-glm(as.formula(
 ```
 
 ```{r,echo=FALSE}
-logit2<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/modelo logit con interacciones.rds")
+logit2<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/modelo logit con interacciones.rds")
 ```
 
 ```{r}
@@ -158,7 +158,7 @@ La probabilidad maxima que predice la interacción entre estas variables
 es inferior a 0.5 por lo que no se tomó en cuenta para hacer
 predicciones fuera de muestra.
 
-## Predicciones con Árbol
+## Predicciones con árbol de clasificación
 
 Para entrenar el árbol se utilizó la siguiente sintaxis.
 
@@ -173,7 +173,7 @@ prp(arbol,box.col = "gray")
 ```
 
 ```{r, echo=FALSE}
-arbol<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/arbol.rds")
+arbol<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/arbol.rds")
 prp(arbol,box.col = "gray")
 ```
 
@@ -251,7 +251,7 @@ RF
 ```
 
 ```{r, echo=FALSE}
-RF<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Ramdom Forest.rds")
+RF<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/Ramdom Forest.rds")
 RF
 ```
 
@@ -271,7 +271,7 @@ RF1000
 ```
 
 ```{r, echo=FALSE}
-outputRF1000<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF1000.txt")
+outputRF1000<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Summarys/RF1000.txt")
 cat(outputRF1000, sep = "\n")
 ```
 
@@ -291,7 +291,7 @@ RF_NODE100
 ```
 
 ```{r, echo=FALSE}
-outputRF_NODE100<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF_NODE100.txt")
+outputRF_NODE100<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Summarys/RF_NODE100.txt")
 cat(outputRF_NODE100, sep = "\n")
 ```
 
@@ -328,11 +328,11 @@ RF_7VAR$prediction.error
 ```
 
 ```{r,echo=FALSE}
-output5<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF_5VAR.txt")
-output6<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF_6VAR.txt")
-output7<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/RF_7VAR.txt")
+output5<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Summarys/RF_5VAR.txt")
+output6<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Summarys/RF_6VAR.txt")
+output7<-readLines("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Summarys/RF_7VAR.txt")
 
-RF_5VAR<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Ramdom Forest 5 VARIABLES.rds")
+RF_5VAR<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/Ramdom Forest 5 VARIABLES.rds")
 print('OBB predictor error')
 cat(output5, sep = "\n")
 cat(output6, sep = "\n")
@@ -589,7 +589,7 @@ en_caret <- train(x=X,y=Y,method = "glmnet",trControl = tc_10,
   tuneLength=100)
 ```
 
-## Predicciones con Árbol
+## Predicciones con árbol de regresión
 
 ```{r, include=FALSE}
 predictores<-c("posicion_jefe",
