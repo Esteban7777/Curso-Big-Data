@@ -406,3 +406,8 @@ train_hogares$Clase<-as.numeric(train_hogares$Clase)
 test_hogares$Clase<-as.numeric(test_hogares$Clase)
 
 
+# Creamos la variable pobre texto 
+train_hogares$pobre_texto<-ifelse(train_hogares$Pobre=1,"Pobre","No_Pobre")
+
+test_hogares$pobre_texto<-ifelse(test_hogares$Pobre=1,"Pobre","No_Pobre")
+

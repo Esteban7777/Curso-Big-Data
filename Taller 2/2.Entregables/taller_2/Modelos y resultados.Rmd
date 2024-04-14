@@ -80,13 +80,13 @@ predictores_logit<-c("informalidad_jefe","edad_jefe_joven","Ina_jefe","Des_jefe"
 )
 ```
 
-```{r, warning=FALSE,eval=FALSE}
+```{r, eval=FALSE}
 logit<-glm(as.formula(
   paste("Pobre~",
         paste(predictores_logit, collapse = " + "))),data = train_hogares)
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
 logit<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/modelo logit.rds")
 ```
 
@@ -133,10 +133,8 @@ También se genera un modelo con las interacciones entre las variables
 interacciones](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Scripts%20con%20predictores/Predictores%20interacci%C3%B3n%20Logit.R).
 Evaluamos el modelo dentro de muestra.
 
-```{r,warning=FALSE,eval=FALSE}
-
+```{r,eval=FALSE}
 interacciones<-c("informalidad_jefe","edad_jefe_joven","sexo_jefe","desempleo_jefe","tipo_casa")
-
 
 
 logit2<-glm(as.formula(
@@ -144,7 +142,7 @@ logit2<-glm(as.formula(
         paste(interacciones, collapse = " * "))),data = train_hogares)
 ```
 
-```{r,echo=FALSE}
+```{r,include=FALSE}
 logit2<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/modelo logit con interacciones.rds")
 ```
 
@@ -172,7 +170,7 @@ arbol<-rpart(formula = as.formula(paste("pobre_texto~",
 prp(arbol,box.col = "gray")
 ```
 
-```{r, echo=FALSE}
+```{r,include=FALSE}
 arbol<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/arbol.rds")
 prp(arbol,box.col = "gray")
 ```
@@ -202,7 +200,7 @@ test_hogares$predic_arbol<-predict(arbol,newdata =test_hogares,type = "class")
 table(test_hogares$predic_arbol)
 ```
 
-```{r, eval=FALSE}
+```{r, eval=FALSE, include=FALSE}
 sub9<-test_hogares %>% select(id,predic_arbol)
 sub9<-sub9 %>% rename(pobre=predic_arbol)
 sub9$pobre<-ifelse(sub9$pobre=="Pobre",1,0)
