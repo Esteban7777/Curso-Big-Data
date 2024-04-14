@@ -205,16 +205,23 @@ train_hogares$Personas_habitacion_r <- as.factor(train_hogares$Personas_habitaci
 
 ### Tipo de vivienda
 
+#En train
 train_hogares <- train_hogares %>% mutate(tipo_casa=ifelse(P5090==1,1,0))
-
 train_hogares$tipo_casa <- factor(train_hogares$tipo_casa, levels = c("1", "0"))
 
+<<<<<<< Updated upstream
 ### En test
 test_hogares <- test_hogares %>% mutate(tipo_casa=ifelse(P5090==1,1,0))
 
 test_hogares$tipo_casa <- factor(test_hogares$tipo_casa, levels = c("1", "0"))
 
 
+=======
+#En test
+test_hogares <- test_hogares %>% mutate(tipo_casa=ifelse(P5090==1,1,0))
+test_hogares$tipo_casa <- factor(test_hogares$tipo_casa, levels = c("1", "0"))
+
+>>>>>>> Stashed changes
 ### Edad del jefe de hogar
 
 crear_edad_jefe<-function(df){
