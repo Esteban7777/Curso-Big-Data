@@ -15,14 +15,16 @@ library(tidyverse)
 library(devtools)
 library(tidyverse)
 library(gridExtra)
+library(knitr)
+library(kableExtra)
 ```
 
 ```{r}
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/Script%20para%20cargar%20la%20data%20desde%20el%20repositorio.R")
 
-#Cargamos la función para los marge
 source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%202/1.Procesamiento%20y%20sintaxis/funMergePersonasHogares.R")
 ```
+
 # Introduccion
 
 La pobreza es uno de los temas centrales de investigación en la economía del bienestar y en las agendas políticas de todos los gobiernos, especialmente en los países en vías de desarrollo. Sin embargo, no hay un consenso en su definición y en su forma de ser medida. A pesar de esto, se puede entender que ser pobre es no disponer de los recursos para obtener los medios mínimos de subsistencia, una definición general. El Banco Mundial define la pobreza como incapacidades para llevar una vida plena, desagregándolo en buena alimentación, calidad de la vivienda, buena salud, buena educación y tener un trabajo digno. También tenemos la definición de uno de los economistas que más influencia tiene en el estudio de la pobreza, Amartya Sen. Con la teoría de las capacidades, este autor dice que la pobreza no es simplemente la falta de ingreso, sino la falta de capacidades básicas y la libertad para obtenerlo, definición muy parecida a la propuesta del Banco Mundial. En resumen, los avances del estudio teórico de la pobreza han reposado en que es un fenómeno multidimensional y no solamente carencia de ingresos.
@@ -43,42 +45,36 @@ Un factor común que utilizan todos los estudios es trabajar y estimar la pobrez
 
 La seleccion de las variables se hacen tomando como referencia los estudios analizados para este proceso y todo se trabaja a nivel de hogar como lo recomienda Chaves(2010), (Torres, et al,2022), (Klose,2012)
 
-* p6050: Si es jefe de hogar
-* p620: Sexo del jefe de hogar
-* p6100: Tipo de regimen
-* p6210: Educacion
-* p6240: Empleado
-* p6430: Posicion laboral del jefe de hogar
-* Personas por habitacion
-* Tipo de vivienda: propia o no
-* Edad del jefe de hogar
-* Zona: Rural o Urbana
-* Tipo de trabajo
+-   p6050: Si es jefe de hogar
+-   p620: Sexo del jefe de hogar
+-   p6100: Tipo de regimen
+-   p6210: Educacion
+-   p6240: Empleado
+-   p6430: Posicion laboral del jefe de hogar
+-   Personas por habitacion
+-   Tipo de vivienda: propia o no
+-   Edad del jefe de hogar
+-   Zona: Rural o Urbana
+-   Tipo de trabajo
 
+## Limpieza de los datos.
 
-## Limpieza de los datos
-
-Primero se crear la variable independiente jefe de hogar, de esta forma cuando la variable tome 1 sabemos que el individuo es jefe de hogar
+Todo el analisis exploratorio de datos y la modelación se hace para las personas que han reportado que son jefes de hogar, por esto la limpieza mas importante es crear la variable jefe, que establece que si es jefe de hogar tiene el valor de 1 y 0 en los otros caso, por esto al momento de traer las variables del nivel de personas al de hogar se hace tomando como referencia si es jefe de hogar,
 
 ```{r}
 train_personas$jefe<-ifelse(test = train_personas$P6050==1,1,0)
 test_personas$jefe<-ifelse(test = test_personas$P6050==1,1,0)
 ```
 
-Tambien pueden existir diferencias cuando el jefe de hogar es hombre o mujer, se espera que si es mujer la probabilidad de ser pobre sea mayor, con la funcion crear_sexo_jefe se recibe el dataframe completo  y luego se agrega en la base original como un factor
-
-Para traer la variable desde la base de datos de personas para los hogares se creo la siguiente funcion. Esta funcion filtra la base de datos de personas solo para los jefes de hogares y luego la trae por medio del id a la base de datos a nivel de hogares. Este proceso se hace tanto para el subconjunto train y test.
+Para automatizar el proceso de traer las caracteristicas que pueden explicar la pobreza monetaria de un hogar se crea la función crear\_, que tiene el siguiente funcionamiento. Primero se guarda la función segun seal nombre de la variable a traer, esta funcion recibe como parametro la base de datos sobre la cual se va a construir la variable, el primer filtro que se aplica es que en la base de datos de personas debe estar filtrada solo para los jefes de hogar, del dataframe se toma la variable de interes junto con el identificador unico de personas que crea la base de datos y por ultimo se crea el join con la base de datos de hogares por medio de este identificador. La función llamada traer variable garantiza que no se repitan los id y que tenenmos registros unicos en toda la muestra.
 
 ```{r}
-train_personas$jefe<-ifelse(test = train_personas$P6050==1,1,0)
-
 crear_sexo_jefe<-function(df){
   aux<-df %>% filter(jefe==1)
   aux2<-data.frame(sexo_jefe=aux$P6020,id=aux$id)
   df<-left_join(df,aux2,by="id")
   return(df)
 }
-
 train_personas<-crear_sexo_jefe(train_personas)
 train_hogares<-traer_variable(train_hogares,train_personas,"sexo_jefe")
 train_hogares$sexo_jefe<-as.factor(train_hogares$sexo_jefe)
@@ -88,199 +84,109 @@ test_hogares<-traer_variable(test_hogares,test_personas,"sexo_jefe")
 test_hogares$sexo_jefe<-as.factor(test_hogares$sexo_jefe)
 ```
 
+Este proceso se hace para cada una de las variables , en este dosumento solo se presenta el caso para el sexo del jefe del hogar, en el script Creación de variables de interes esta el proceso para cada una de las variables.
 
-Luego se espera que las personas que pertenezcan al regimen subsidiado tambien tengan mayor de probabilidad de ser pobres, esto porque las personas que pertenecen a esta modalidad en general no cotizan al sistema de seguridad social por lo que no estan trabajando o estan trabajando en condiciones de informalidad.
+Este proceso se hace para las siguientes variables:
 
-```{r}
-crear_regimen_jefe<-function(df){
-  aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(regimen_jefe=aux$P6100,id=aux$id)
-  df<-left_join(df,aux2,by="id")
-  return(df)
-}
-#Creamos la variable en Train
-train_personas<-crear_regimen_jefe(train_personas)
-train_hogares<-traer_variable(train_hogares,train_personas,"regimen_jefe")
-train_hogares$regimen_subsidiado_jefe<-ifelse(train_hogares$regimen_jefe==3,1,0)
+```{r,echo=FALSE}
+variables <- data.frame(
+  Variable = c('Sexo_jefe',
+               'Regimen_subsidiado',
+               'Educacion_jefe',
+               'Ocupacion_jefe',
+               'Posicion_Jefe',
+               'Personas_habitacion',
+               'Edad del jefe del hogar',
+               'Informalidad_jefe'
+  ),
+  Transformacion = c('Se trabaja como una variable dummy 1 cuando es hombre y cero cuando es mujer',
+                     
+                     '1 cuando el jefe de hogar esta afiliado en el regimen subsidiado, 0 en otro caso',
+                     
+                     'Ultimo grado aprobado por el jefe de hogar',
+                     
+                     'Si el jefe de hogar manifiesta que la semana anterior trabajo, 0 y 1 para cualquier otra respuesta',
+                     
+                     'Se trabajan todas las categorias de la variable sin ninguna transformacion',
+                     
+                     'Se divide el total de personas por la cantidad de habitaciones que reporto el jefe de hogar',
+                     
+                     'Se toma la definición de informalidad del DANE si el establecimiento tiene menos de 10 trabajadores se considera como informal',
+                     
+                     'Se trabaja tal cual se reporta en la encuesta'
+  ),
+  Hipotesis = c('Las mujeres son mas vulnerables que los hombres',
+                
+                'Las personas afiliadas al regimen subsidiado son mas vulnerables',
+                
+                'Entre mas alto el grado de educacion, menos es la probabilidad de ser pobre',
+                
+                'Los jefes de hogar que se encuentren desempleados hacen que el hogar sea mas vulnerable a estar en condicion de pobreza',
+                
+                'La actividad que desarrolla un jefe de hogar ayuda a determinar si su hogar puede estar en condicion de pobreza por el diferencial de ingresos en cada actividad',
+                
+                'Entre mas alto sea el número de personas por hogar mas vulnerable es a estar en condición de pobreza',
+                
+                'Por la teoria del ciclo vital hay intervalos donde se es mas vulnerable a  estar en la pobreza.',
+                
+                'Las personas en condición de informalidad son mas vulnerables a estar en pobreza'
+  )
+)
 
-#Creamos la variable en Test
-test_personas<-crear_regimen_jefe(test_personas)
-test_hogares<-traer_variable(test_hogares,test_personas,"regimen_jefe")
-test_hogares$regimen_jefe<-as.factor(test_hogares$regimen_jefe)
-test_hogares$regimen_subsidiado_jefe<-ifelse(test_hogares$regimen_jefe==3,1,0)
+
+tabla <- kable(variables,) %>%
+  add_header_above(c(" " = 1, "Tabla 1.Variables" = 2), bold = TRUE, align = "c") %>%
+  kable_styling(full_width = FALSE)
+
+tabla
 ```
-
-Uno de las variables que mas impacto tiene sobre los deteminantes de la pobreza que se exploraron en la introduccion de este trabajo fue la educacion, por esto se crea la funcion de educacion jefe de hogar y se crea en test y en train
-
-```{r}
-#Los hogares con jefes con menor nivel de escolaridad podrían ser probablemente más pobres####
-
-crear_educacion_jefe<-function(df){
-  aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(educacion_jefe=aux$P6210,id=aux$id)
-  df<-left_join(df,aux2,by="id")
-  return(df)
-}
-#Creamos la variable en Train
-train_personas<-crear_educacion_jefe(train_personas)
-#Ya que 9 es el código de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
-train_personas$educacion_jefe<-ifelse(train_personas$educacion_jefe==9,0,train_personas$educacion_jefe)
-train_hogares<-traer_variable(train_hogares,train_personas,"educacion_jefe")
-
-#Creamos la variable en Test
-test_personas<-crear_educacion_jefe(test_personas)
-#Ya que 9 es el código de no  sabe no informa se reemplazo con Cero asumiendo que la persona que no sabe su nivel educativo es porque no tiene ninguno
-test_personas$educacion_jefe<-ifelse(test_personas$educacion_jefe==9,0,test_personas$educacion_jefe)
-test_hogares<-traer_variable(test_hogares,test_personas,"educacion_jefe")
-```
-
-Otra variable importante para determinar o clasificar un hogar como pobre es el estado en que se encuentra el jefe de hogar en el mercado laboral, de esta forma se verifica si tiene o no ingresos
-
-
-
-```{r}
-#Los hogares cuyo jefe de hogar no está empleado probablemente sean más pobres #####
-
-crear_ocupacion_jefe<-function(df){
-  aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(ocupacion_jefe=aux$P6240,id=aux$id)
-  df<-left_join(df,aux2,by="id")
-  return(df)
-}
-
-#Creamos la variable en Train
-train_personas<-crear_ocupacion_jefe(train_personas)
-train_hogares<-traer_variable(train_hogares,train_personas,"ocupacion_jefe")
-train_hogares$desempleo_jefe<-ifelse(train_hogares$ocupacion_jefe==1,0,1)
-table(is.na(train_hogares$desempleo_jefe))
-#Tiene un dato perdido. Lo imputamos con un valor aleatorio
-
-train_hogares$desempleo_jefe <- replace(train_hogares$desempleo_jefe,
-                                        is.na(train_hogares$desempleo_jefe),
-                                        sample(c(0,1),1))
-
-#Creamos la variable en Test
-test_personas<-crear_ocupacion_jefe(test_personas)
-test_hogares<-traer_variable(test_hogares,test_personas,"ocupacion_jefe")
-test_hogares$desempleo_jefe<-ifelse(test_hogares$ocupacion_jefe==1,0,1)
-
-```
-
-Por ultimo se agregan las variables relacionadas con los ingresos  con los que dispone el jefe de hogar
-
-```{r}
-crear_Pet_jefe<-function(df){
-  aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(Pet_jefe=aux$Pet,
-                   id=aux$id)
-  df<-left_join(df,aux2,by="id")
-  return(df)
-}
-crear_Oc_jefe<-function(df){
-  aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(Oc_jefe=aux$Oc,
-                   id=aux$id)
-  df<-left_join(df,aux2,by="id")
-  return(df)
-}
-crear_Des_jefe<-function(df){
-  aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(Des_jefe=aux$Des,
-                   id=aux$id)
-  df<-left_join(df,aux2,by="id")
-  return(df)
-}
-crear_Ina_jefe<-function(df){
-  aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(Ina_jefe=aux$Ina,
-                   id=aux$id)
-  df<-left_join(df,aux2,by="id")
-  return(df)
-}
-
-#En Train
-train_personas<-crear_Pet_jefe(train_personas)
-train_personas<-crear_Oc_jefe(train_personas)
-train_personas<-crear_Des_jefe(train_personas)
-train_personas<-crear_Ina_jefe(train_personas)
-
-train_hogares<-traer_variable(train_hogares,train_personas,"Pet_jefe")
-train_hogares<-traer_variable(train_hogares,train_personas,"Oc_jefe")
-train_hogares<-traer_variable(train_hogares,train_personas,"Des_jefe")
-train_hogares<-traer_variable(train_hogares,train_personas,"Ina_jefe")
-
-train_hogares$Pet_jefe[is.na(train_hogares$Pet_jefe)] <- 0
-train_hogares$Oc_jefe[is.na(train_hogares$Oc_jefe)] <- 0
-train_hogares$Des_jefe[is.na(train_hogares$Des_jefe)] <- 0
-train_hogares$Ina_jefe[is.na(train_hogares$Ina_jefe)] <- 0
-#En Test
-test_personas<-crear_Pet_jefe(test_personas)
-test_personas<-crear_Oc_jefe(test_personas)
-test_personas<-crear_Des_jefe(test_personas)
-test_personas<-crear_Ina_jefe(test_personas)
-
-test_hogares<-traer_variable(test_hogares,test_personas,"Pet_jefe")
-test_hogares<-traer_variable(test_hogares,test_personas,"Oc_jefe")
-test_hogares<-traer_variable(test_hogares,test_personas,"Des_jefe")
-test_hogares<-traer_variable(test_hogares,test_personas,"Ina_jefe")
-
-test_hogares$Pet_jefe[is.na(test_hogares$Pet_jefe)] <- 0
-test_hogares$Oc_jefe[is.na(test_hogares$Oc_jefe)] <- 0
-test_hogares$Des_jefe[is.na(test_hogares$Des_jefe)] <- 0
-test_hogares$Ina_jefe[is.na(test_hogares$Ina_jefe)] <- 0
-```
-
-Luego tenemos la posicion laboral del jefe de hogar, porque refleja la posicion y ganancias percibidad por el jefe de hogar
-
-```{r}
-crear_posicion_jefe<-function(df){
-  aux<-df %>% filter(jefe==1)
-  aux2<-data.frame(posicion_jefe=aux$P6430,id=aux$id)
-  df<-left_join(df,aux2,by="id")
-  return(df)
-}
-
-#Creamos la variable en Train
-train_personas<-crear_posicion_jefe(train_personas)
-train_hogares<-traer_variable(train_hogares,train_personas,"posicion_jefe")
-train_hogares$posicion_jefe<-as.factor(train_hogares$posicion_jefe)
-
-#Creamos la variable en Test
-test_personas<-crear_posicion_jefe(test_personas)
-test_hogares<-traer_variable(test_hogares,test_personas,"posicion_jefe")
-test_hogares$posicion_jefe<-as.factor(test_hogares$posicion_jefe)
-```
-
-tambien se ingresa el numero de personas por habitacion, un indicador importante de pobreza que se ve en la literatura, entre mas intengrantes tengan por habitacion un hogar mayor es la probabilidad de ser pobres.
-```{r}
-#Creamos personas por habitación
-
-#En train
-train_hogares$Personas_habitacion<-train_hogares$Nper/train_hogares$P5010
-#En test
-test_hogares$Personas_habitacion<-test_hogares$Nper/test_hogares$P5010
-```
-
-Cambio en los formatos para
-
 
 ## Analisis exploratorio de los datos
 
 El analisis exploratorio se datos se divide en dos partes: Analisis univariado y analisis multivariado de datos. En el analisis univariado el proposito es analizar como se distribuyen de forma individual las variables que vamos a utilizar en el proceso de modelacion. Luego con el analisis multivariado nuestro objetivo es ver como se relacionan las variable independientes con el ingreso de los hogares.
 
-
 ### Analisis univariado
 
-```{r}
-#train_hogares<- train_hogares[!is.na(train_hogares$regimen_subsidiado_jefe), ]
-#train_hogares<- train_hogares[!is.na(train_hogares$posicion_jefe), ]
-```
-
 
 ```{r}
-table(train_hogares$sexo_jefe_numeric)
+options(repr.plot.width = 10, repr.plot.height = 5)
+
+ingresos<-train_hogares %>%
+  ggplot(aes(x = log(Ingtotugarr))) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribucion de los ingresos por hogar",
+       x = "Ingresos",
+       y = "Frecuencia") +
+  theme_minimal()
+
+
+pobreza <- train_hogares %>%
+  count(Pobre) %>%
+  mutate(
+    prop = n / sum(n),
+    Pobre = case_when(
+      Pobre == 1 ~ "Pobre",
+      Pobre == 0 ~ "No pobre"
+    )
+  ) %>%
+  ggplot(aes(x = Pobre, y = prop, fill = Pobre)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(prop, accuracy = 0.01)), 
+            position = position_stack(vjust = 1.05), 
+            size = 3) +
+  scale_fill_manual(values = c("Pobre" = "#1f78b4", "No pobre" = "#33a02c")) +
+  labs(title = "Proporción de pobres por hogar",
+       x = "Pobre",
+       y = "Proporcion") +
+  theme_minimal()
+grid.arrange(ingresos, pobreza, ncol = 2)
 ```
 
+Estas son las dos variables objetivo que se van a explicar en este informe. En la primera gráfica se presentan los ingresos agregados del hogar, que se utilizan para determinar si un hogar es pobre utilizando la línea de pobreza, mientras que la variable 'Pobre' está categorizada como 0 cuando el hogar no es pobre y 1 cuando lo es. Los datos muestran que aproximadamente el 80% de los hogares no están en condición de pobreza, lo que implica un desafío en términos del proceso de modelado debido a que hay un claro desbalance de clases.
+
+
+
+### Variables explicativas
 
 
 ```{r}
@@ -331,16 +237,14 @@ grafico_regimen <- train_hogares %>%
 # Presentar ambos gráficos en una grilla
 grid.arrange(grafico_sexo, grafico_regimen, ncol = 2)
 ```
-  En este caso tenemos que la representacion de jefes de hogar masculinos son ligeramente mas que el caso donde las mujeres estan al frente de la familia.  Desde la literatura economica se considera que cuando la mujer es jefe de hogar hay una mayor riesgo de pobreza en el hogar, esto se puede atribuir a una serie de factores, como la brecha salarial de genero y la responsabilidad desproporcionada de ciudado y trabajo domestico no remunerado
 
-Los jefes de hogar que pertenecen al regimen subsidiado representan un 42 %. Esta variable es importante de analizar porque este mecanismo del que disponen los colombianos para acceder al servicio cuando no tienen capacidad de pago, sirve como una variable proxy de la condicion de pobreza de un hogar.
+En este caso, observamos que la representación de jefes de hogar masculinos es ligeramente mayor que la de las mujeres que encabezan el hogar. Según la literatura económica, cuando la mujer es la jefa de hogar, existe un mayor riesgo de pobreza en el hogar. Esta situación puede atribuirse a diversos factores, como la brecha salarial de género y la responsabilidad desproporcionada de cuidado y trabajo doméstico no remunerado.
 
-
-`
-
+Respecto a los jefes de hogar afiliados al régimen subsidiado, representan aproximadamente el 42% del total. Esta variable es crucial de analizar, ya que el acceso a este mecanismo por parte de los colombianos para obtener servicios cuando no tienen capacidad de pago, sirve como una medida indirecta de la condición de pobreza de un hogar.
 
 ```{r}
-train_hogares %>%
+options(repr.plot.width = 10, repr.plot.height = 5)
+grafico_educacion<-train_hogares %>%
   mutate(
     educacion_jefe = case_when(
       educacion_jefe %in% c(0, 6) ~ "Ninguno o no informa",
@@ -366,13 +270,11 @@ train_hogares %>%
        y = "Proporción") +
   theme_minimal() +
   theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank())
-```
-Para la revision de la educacion de los jefes de hogar primero se filtra los que no saben o no responden y se calcula la proporicon con las personas que reportaron su nivel de educacion.  En este caso vemos que l Mayoria de los jefes de hogar tienen al menos aprobada la basica secundaria. Esta variable es una de las mas importante para predecir el nivel de ingresos de un hogar. Como se menciono en la introduccion de este reporte, entre mas educado formalmente sea un jefe de hogar la probabilidad de ser pobre es menor debido a que un alto grado de educacion se traduce en mayores nivles de ingreso. Sin embargo un tema preocupante es la gran cantidad de personas que no reportan su ultimo nivel educativo alcanzado
+        axis.title.x = element_text('Nivel educativo')) +
+  theme(legend.position = "none")
 
 
-```{r}
-train_hogares %>%
+grafico_desempleo<-train_hogares %>%
   count(desempleo_jefe) %>%
   mutate(
     prop = n / sum(n),
@@ -389,17 +291,26 @@ train_hogares %>%
   scale_fill_manual(values = c("No desempleado" = "#1f78b4", "Desempleado" = "#33a02c")) +
   labs(title = "Proporción de estado de empleo del jefe de hogar",
        x = "Estado de empleo del jefe de hogar",
-       y = "Proporción") +
-  theme_minimal()
+       y = "Proporcion") +
+  theme_minimal()  +
+  theme(legend.position = "none")
 
+
+grid.arrange(
+  grafico_educacion, 
+  grafico_desempleo,
+  ncol = 2
+)
 ```
 
-El estado de empleo es fundamental para determinar si el hogar esta en condicion de pobreza. Esto se explica porque si el jefe de hogar esta desempleado significa que el hogar no esta percibiendo ingresos por la persona encargada del cuidado de la familia lo cual aumenta la probabilidad de ser pobre. En este caso se observa que aproximadamente el 37% de los jefes de hogar no estan empleados, cifra considerable y que puede explicar la situacion del hogar.
+Para revisar la educación de los jefes de hogar, primero se filtran aquellos que no saben o no responden, y se calcula la proporción con respecto al total de personas que reportaron su nivel educativo. En este análisis, observamos que la mayoría de los jefes de hogar tienen al menos aprobada la educación básica secundaria. Esta variable es una de las más importantes para predecir el nivel de ingresos de un hogar. Como se mencionó en la introducción de este informe, a medida que el jefe de hogar obtiene un mayor nivel de educación formal, la probabilidad de ser pobre disminuye, ya que una mayor educación se traduce en mayores niveles de ingresos. Sin embargo, es preocupante la gran cantidad de personas que no reportan su último nivel educativo alcanzado.
 
-
+El estado de empleo es fundamental para determinar si un hogar está en condición de pobreza. Esto se explica porque si el jefe de hogar está desempleado, significa que el hogar no está percibiendo ingresos por parte de la persona encargada del sustento familiar, lo cual aumenta la probabilidad de ser pobre. En este caso, observamos que aproximadamente el 37% de los jefes de hogar no están empleados, una cifra considerable que puede explicar la situación del hogar.
 
 ```{r}
-train_hogares %>%
+
+options(repr.plot.width = 10, repr.plot.height = 5)
+empleo<-train_hogares %>%
   mutate(
     posicion_jefe = case_when(
       posicion_jefe == 1 ~ "Empleado empresa",
@@ -428,25 +339,12 @@ train_hogares %>%
        x = "Posición del jefe de hogar",
        y = "Proporción") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-La posicion del jefe de hogar en el empleo sirve para determinar si el hogar tiene riezgo de estar en situacion de pobreza. Se espera que los jefes de hogar que trabajen sin remuneracion tengan mas riesgo de pobreza, sin embargo en nuetro analisis no se observa que esta sea la situacion ya que si se juntan estas dos categorias apenas no llegan al 1 %.
-
-```{r}
-train_hogares %>%
-  filter(Personas_habitacion <= 7) %>%
-  ggplot(aes(x = Personas_habitacion)) +
-  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
-  labs(title = "Distribución de personas por habitación",
-       x = "Número de personas por habitación",
-       y = "Frecuencia") +
-  theme_minimal()
-```
-El numero de personas por habitacion tambien se considera importante para la prediccion de la pobreza, ya que se espera que entre mas personas por habitacion se tenga se tendra un hacinamieto lo cual aumenta el riezgo de ser pobre. En este caso la mayoria de los datos se concnetran en 2 personas por habitacion que es una situacion normal.
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(legend.position = "none")
 
 
-```{r}
-train_hogares %>%
+
+casa_propia<-train_hogares %>%
   mutate(tipo_casa = ifelse(tipo_casa == 1, "Casa Propia", "No Casa Propia")) %>%
   count(tipo_casa) %>%
   mutate(prop = n / sum(n)) %>%
@@ -457,51 +355,79 @@ train_hogares %>%
   labs(x = "Tipo de Casa", y = "Proporción", title = "Proporción de Hogares por Tipo de Casa") +
   scale_x_discrete(labels = c("Casa Propia" = "Casa Propia", "No Casa Propia" = "No Casa Propia"))
 
+grid.arrange(
+  empleo, 
+  casa_propia,
+  ncol = 2
+)
 ```
-Tener casa propia en principio puede ayudar a explicar la pobreza del hogar. Esto se explica debido a que tener casa propia permite tener disponible una mayor cantidad de ingresos que puedan ser utilizados para cubrir con otras necesidades. Se considera la casa propia como una inversion y seguro en momentos de dificultades economicas. Se supone que las personas que no tienen casa propia podrian ser mas vulnerables relativamente a ser pobres. Para esta muestra se observa que la mayoria de los jefes de hogar no cuentan con casa propia y deben pagar arriendo por su vivienda.
+
+La posición del jefe de hogar en el empleo es importante para determinar si el hogar corre riesgo de estar en situación de pobreza. Se espera que los jefes de hogar que trabajen sin remuneración tengan un mayor riesgo de pobreza. Sin embargo, en nuestro análisis no se observa que esta sea la situación predominante, ya que al combinar estas dos categorías apenas llegan al 1%.
+
+Tener casa propia, en principio, puede ayudar a explicar la situación de pobreza del hogar. Esto se debe a que contar con una vivienda propia permite disponer de una mayor cantidad de ingresos que pueden destinarse a cubrir otras necesidades. La propiedad de una casa se considera una inversión y un seguro en momentos de dificultades económicas. Se supone que las personas que no tienen casa propia podrían ser más vulnerables relativamente a ser pobres. En nuestra muestra, observamos que la mayoría de los jefes de hogar no cuentan con vivienda propia y deben pagar arriendo por su alojamiento. Es fundamental profundizar en esta información para comprender mejor la dinámica de la pobreza en los hogares.
 
 
 ```{r}
-train_hogares %>%
+options(repr.plot.width = 10, repr.plot.height = 5)
+
+personas<-train_hogares %>%
+  filter(Personas_habitacion <= 7) %>%
+  ggplot(aes(x = Personas_habitacion)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribución de personas por habitación",
+       x = "Numero de personas por habitación",
+       y = "Frecuencia") +
+  theme_minimal()
+
+
+edad<-train_hogares %>%
   ggplot(aes(x = edad_jefe)) +
   geom_histogram(binwidth = 1, fill = "blue", color = "black") +
   labs(title = "Distribución de la edad de los jefes de hogar",
        x = "Edad jefes de hogar",
        y = "Frecuencia") +
   theme_minimal()
+
+grid.arrange(
+  personas, 
+  edad,
+  ncol = 2
+)
 ```
-Es importante incluir la edad del jefe del hogar porque en Colombia porque se considera que la poblacion en edad joven es la mas vulnerable, generalmente porque tiene las mayores tasas de desempleo. POr tanto se cree que un jefe de hogar joven tiene mayor probabilidad de ser pobre relativamente. Para nuestra muestra de datos la distribucion de las edades es uniforme, sin embargo para obtener una interpretacion mas apropiada de este fenomeno se crea una variable dummy que clasifique a los jovenes a los jefes de hogar menores de 30 anos. En los datos esta poblacion es relativamente menor que los adultos
+
+El número de personas por habitación también se considera importante para predecir la pobreza, ya que se espera que a mayor número de personas por habitación, exista un hacinamiento que aumente el riesgo de pobreza. En nuestro análisis, la mayoría de los datos se concentran en 2 personas por habitación, lo cual es una situación normal.
+
+Es fundamental incorporar la edad del jefe del hogar en nuestro análisis, ya que está intrínsecamente ligada a la teoría del ciclo de vida en economía, la cual postula que las personas atraviesan diferentes etapas en su vida, cada una con características económicas específicas que pueden influir en su vulnerabilidad a la pobreza.
+
+En el contexto colombiano, esta teoría cobra especial relevancia, ya que tanto los jóvenes como los ancianos son considerados grupos de población vulnerables. Por un lado, los jóvenes tienden a enfrentar mayores dificultades económicas debido a su entrada reciente al mercado laboral y su menor experiencia, lo que puede traducirse en ingresos más bajos y una mayor vulnerabilidad financiera. Este fenómeno se ve exacerbado por las altas tasas de desempleo que suelen afectar a este grupo demográfico. Por lo tanto, es plausible suponer que los jefes de hogar más jóvenes enfrenten desafíos adicionales para alcanzar la estabilidad financiera, lo que podría aumentar su probabilidad de experimentar situaciones de pobreza.
+
+Por otro lado, la teoría del ciclo de vida también reconoce que los ancianos, especialmente después de su retiro, pueden enfrentar dificultades económicas debido a ingresos fijos y limitados, como pensiones o jubilaciones, que pueden no ser suficientes para cubrir todas sus necesidades. A pesar de haber contribuido al mercado laboral durante años, las limitaciones en los ingresos de jubilación pueden dejar a los ancianos en una situación económica precaria, lo que aumenta la probabilidad de que los hogares encabezados por personas mayores estén en situación de pobreza.
+
+Si bien en nuestra muestra de datos observamos una distribución uniforme de las edades de los jefes de hogar, la teoría del ciclo de vida nos permite anticipar que los hogares liderados por personas más jóvenes y más mayores podrían enfrentar mayores dificultades económicas, cada uno por razones asociadas a su etapa de vida.
 
 
 ```{r}
-train_hogares %>%
-  mutate(edad_jefe_joven = ifelse(edad_jefe_joven == 1, "Joven", "Adulto")) %>%
-  count(edad_jefe_joven) %>%
-  mutate(prop = n / sum(n)) %>%
-  ggplot(aes(x = edad_jefe_joven, y = prop, fill = edad_jefe_joven, label = scales::percent(prop))) +
-  geom_bar(stat = "identity") +
-  geom_text(position = position_stack(vjust = 1.05), size = 3) +
-  scale_fill_manual(values = c("Joven" = "#1f78b4", "Adulto" = "#33a02c")) +
-  labs(x = "Joven", y = "Proporción", title = "Proporción de edad joven") +
-  scale_x_discrete(labels = c("Joven" = "Joven", "Adulto" = "Adulto"))
-```
-```{r}
-train_hogares %>%
-  mutate(zona_jefe = ifelse(zona_jefe == 1, "Urbana", "Rural")) %>%
+options(repr.plot.width = 10, repr.plot.height = 5)
+
+
+zona<-train_hogares %>%
+  mutate(
+    zona_jefe = case_when(
+      zona_jefe == 1 ~ "Rural",
+      zona_jefe == 2 ~ "Resto urbano",
+      zona_jefe == 3 ~ "Ciudad"
+    )
+  ) %>%
   count(zona_jefe) %>%
   mutate(prop = n / sum(n)) %>%
   ggplot(aes(x = zona_jefe, y = prop, fill = zona_jefe, label = scales::percent(prop))) +
   geom_bar(stat = "identity") +
   geom_text(position = position_stack(vjust = 1.05), size = 3) +
-  scale_fill_manual(values = c("Urbana" = "#1f78b4", "Rural" = "#33a02c")) +
-  labs(x = "Joven", y = "Proporción", title = "Proporción de zona") +
-  scale_x_discrete(labels = c("Urbana" = "Urbana", "Rural" = "Rural"))
-```
-La ubicacion del hogar tambien es imporante porque aquellas viviendas mas alejadas del centro economico se considera que es mas vulnerable. Esto se explica por la teoria del centro perifera que fundamenta muy bien las disparidades del desarrollo entre aquellas regiones mas dispersas, el centro urbano se caracteriza por tener alto desarrollo economico e industrial mientras que las areas rurales tienen bajo desarrollo y las actividades economicas estan relacionadas con extraccion de recursos y agricultura que generalmete no estan bien pagadas. En la muestra hay poca representacion del area rural pero sirve como una aproximacion para detectar la probabilidad de ser pobre.
+  scale_fill_manual(values = c("Rural" = "#1f78b4", "Resto urbano" = "#33a02c", "Ciudad" = "#e31a1c")) +
+  labs(x = "Zona", y = "Proporción", title = "Proporción de zona") +
+  scale_x_discrete(labels = c("Rural" = "Rural", "Resto urbano" = "Resto urbano", "Ciudad" = "Ciudad"))
 
-
-```{r}
-train_hogares %>%
+informal<-train_hogares %>%
   mutate(informalidad_jefe = ifelse(informalidad_jefe == 1, "Informal", "Formal")) %>%
   count(informalidad_jefe) %>%
   mutate(prop = n / sum(n)) %>%
@@ -511,9 +437,19 @@ train_hogares %>%
   scale_fill_manual(values = c("Formal" = "#1f78b4", "Informal" = "#33a02c")) +
   labs(x = "Tipo de trabajo", y = "Proporción", title = "Proporción tipo de trabajo") +
   scale_x_discrete(labels = c("Informal" = "Informal", "Formal" = "Formal"))
-```
 
-La disitincion entre el tipo de trabajo a traves de la informalidad laboral es importante para determinar las condiciones de pobreza de un hogar. El trabajo informal se caracteriza por tener bajos salarios y condiciones precarias de trabajo. En nuestros datos se observa que el 47 % de las personas trabajan en condicion de informalidad cifra que es consistente con los datos nacionales.
+
+
+grid.arrange(  informal, 
+  zona,
+  ncol = 2
+)
+```
+La distinción entre el tipo de empleo a través de la informalidad laboral es un factor crucial para determinar las condiciones de pobreza de un hogar. El trabajo informal se caracteriza por salarios bajos y condiciones laborales precarias, lo que puede aumentar significativamente el riesgo de pobreza para quienes se desempeñan en este sector. En nuestros datos, observamos que aproximadamente el 47% de las personas trabajan en condiciones de informalidad, una cifra que concuerda con los datos nacionales y subraya la magnitud del desafío que representa la informalidad laboral en términos de pobreza.
+
+Además, la ubicación geográfica del hogar también desempeña un papel crucial, ya que las viviendas ubicadas en áreas más alejadas del centro económico suelen considerarse más vulnerables. Esta disparidad se explica en parte por la teoría del centro-periferia, que destaca las diferencias en el desarrollo económico entre las áreas urbanas centrales y las regiones periféricas. En el contexto urbano, el centro se caracteriza por un mayor desarrollo económico e industrial, mientras que las áreas rurales tienden a tener un menor desarrollo, con actividades económicas centradas en la agricultura y la extracción de recursos, que generalmente se asocian con salarios más bajos. Aunque en nuestra muestra hay una representación limitada del área rural, este análisis nos brinda una aproximación útil para evaluar la probabilidad de pobreza en función de la ubicación del hogar y su relación con la teoría del centro-periferia.
+
+
 
 ```{r}
 
@@ -538,19 +474,39 @@ for (variable in cualitativas) {
 grid.arrange(grobs = plots_list, ncol =3)
 ```
 
-En la grafica anterior se observan las variables elegidas frente al logaritmo del nivel de ingresos, esto con el proposito de normalizar y ver mejor las diferencias entre las variables de interes. En general se observa que las personas que pertenencen al regimen subisdiado sus ingresos son ligeramente menores que cuando es cotizante por ejemplo y tambien es claro como las personas desempleadas tambien presentan menores ingresos en el hogar. En el sexo del jefe de hogar las diferencias no son tan significativas. Mientras que a traves del nivel educativo del hogar y la posicion que desempena como empleado si se observan diferencias importantes en el nivel de ingresos agregados.
+En la gráfica anterior, se observan las variables seleccionadas en relación con el logaritmo de los ingresos del hogar. Este enfoque se utiliza para normalizar los datos y facilitar la comparación entre las variables de interés. En términos generales, se puede apreciar que las personas afiliadas al régimen subsidiado tienen ingresos ligeramente inferiores en comparación con aquellos que son cotizantes. Del mismo modo, se evidencia que las personas desempleadas tienden a tener ingresos menores en el hogar. En cuanto al sexo del jefe de hogar, las diferencias en los ingresos no son tan marcadas. Sin embargo, se observan diferencias significativas en los ingresos agregados según el nivel educativo del jefe de hogar y su posición laboral.
 
-Tambien se observa como a medida que sube el numero de perosnas por habitacion la media del ingreso del hogar disminuye, tal como se menciona en la revision de literatrura. Para las variables de tipo_casa y edad_jeje_joven los resultados son consistentes con lo esperado y es que los jefes de hogar con casa propia y que son adultos tiene mas capacidad en los ingresos por lo que la probabilidad de ser pobres es menor.
+Además, se aprecia que a medida que aumenta el número de personas por habitación, la media de ingresos del hogar tiende a disminuir, lo cual coincide con lo reportado en la literatura. Respecto a las variables tipo_casa y edad_jefe_joven, los resultados son coherentes con lo esperado, ya que los jefes de hogar que poseen vivienda propia y son adultos suelen tener mayores ingresos, lo que reduce la probabilidad de estar en situación de pobreza.
 
-El tema de la inforamlidad tambien muestra diferencias importantes en el ingreso de las personas. En general las personas que trabajan en condicion de informalidad tiene menos ingresos lo cual aumenta la probabilidad de ser pobres.
+El tema de la informalidad laboral también muestra diferencias significativas en los ingresos de las personas. En general, aquellos que trabajan en condiciones de informalidad tienen ingresos más bajos, lo que aumenta su vulnerabilidad económica y, por ende, la probabilidad de estar en situación de pobreza.
+```{r}
+generar_grafico <- function(data, variable) {
+  grafico <- data %>%
+    group_by(!!variable, Pobre) %>%
+    summarise(count = n()) %>%
+    mutate(prop = count / sum(count)) %>%
+    ggplot(aes(x = !!variable, y = prop, fill = Pobre)) +
+    geom_bar(position = "fill", stat = "identity") +
+    labs(x = as_label(ensym(variable)), y = "Proporción", fill = "Pobre") +
+    theme_minimal()
+  
+  return(grafico)
+}
 
+cualitativas <- c("sexo_jefe", "regimen_subsidiado_jefe", "educacion_jefe", "desempleo_jefe", "posicion_jefe","Personas_habitacion_r","tipo_casa","edad_jefe_joven","zona_jefe","informalidad_jefe")
+
+plots_list <- list()
+
+for (variable in cualitativas) {
+  plots_list[[variable]] <- generar_grafico(train_hogares, sym(variable))
+}
+
+# Mostrar los gráficos en una grilla
+grid.arrange(grobs = plots_list, ncol = 4)
+```
+Cuando se analiza en relación con la variable de pobreza, se observa un patrón muy similar al analizar los ingresos del hogar. Sin embargo, se destaca que la tenencia de vivienda propia marca una diferencia más significativa que cuando se analiza únicamente por medio de los ingresos. Esto sugiere que la posesión de vivienda propia puede ser un factor más determinante en la reducción de la probabilidad de pobreza, independientemente de los niveles de ingresos del hogar.
 
 
 # Estimacion de los modelos
-
-
-
-
-
 
 # Conclusiones
