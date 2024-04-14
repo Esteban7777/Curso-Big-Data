@@ -24,3 +24,9 @@ writeLines(outputcf_lm,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Talle
 
 outputcf_arbol_reg<-capture.output(cf_arbol_reg)
 writeLines(outputcf_arbol_reg,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/outputcf_arbol_reg.txt")
+
+outputcf_rf_smote<-capture.output(cf_rm_smote)
+writeLines(outputcf_rf_smote,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/outputcf_rm_smote.txt")
+
+outputcf_xgboost_smote<-capture.output(cf_xgb_smote)
+writeLines(outputcf_xgboost_smote,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/outputcf_xgboost_smote.txt")
