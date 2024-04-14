@@ -1,0 +1,428 @@
+---
+title: "Graficos"
+output: html_document
+date: "2024-04-14"
+---
+
+```{r}
+options(repr.plot.width = 10, repr.plot.height = 5)
+
+ingresos<-train_hogares %>%
+  ggplot(aes(x = log(Ingtotugarr))) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribucion de los ingresos por hogar",
+       x = "Ingresos",
+       y = "Frecuencia") +
+  theme_minimal()
+
+
+pobreza <- train_hogares %>%
+  count(Pobre) %>%
+  mutate(
+    prop = n / sum(n),
+    Pobre = case_when(
+      Pobre == 1 ~ "Pobre",
+      Pobre == 0 ~ "No pobre"
+    )
+  ) %>%
+  ggplot(aes(x = Pobre, y = prop, fill = Pobre)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(prop, accuracy = 0.01)), 
+            position = position_stack(vjust = 1.05), 
+            size = 3) +
+  scale_fill_manual(values = c("Pobre" = "#1f78b4", "No pobre" = "#33a02c")) +
+  labs(title = "Proporción de pobres por hogar",
+       x = "Pobre",
+       y = "Proporcion") +
+  theme_minimal()
+ingresos_pobreza<-grid.arrange(ingresos, pobreza, ncol = 2)
+
+ggsave("ingresos_pobreza.png", ingresos_pobreza, width = 10, height = 5, units = "in", dpi = 300)
+```
+
+```{r}
+options(repr.plot.width = 10, repr.plot.height = 5)
+
+grafico_sexo <- train_hogares %>%
+  count(sexo_jefe) %>%
+  mutate(
+    prop = n / sum(n),
+    sexo_jefe = case_when(
+      sexo_jefe == 1 ~ "Hombre",
+      sexo_jefe == 0 ~ "Mujer"
+    )
+  ) %>%
+  ggplot(aes(x = sexo_jefe, y = prop, fill = sexo_jefe)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(prop, accuracy = 0.01)), 
+            position = position_stack(vjust = 1.05), 
+            size = 3) +
+  scale_fill_manual(values = c("Hombre" = "#1f78b4", "Mujer" = "#33a02c")) +
+  labs(title = "Proporción de sexo del jefe de hogar",
+       x = "Sexo del jefe de hogar",
+       y = "Proporción") +
+  theme_minimal()
+
+
+grafico_regimen <- train_hogares %>%
+  count(regimen_subsidiado_jefe) %>%
+  mutate(
+    prop = n / sum(n),
+    tipo_regimen = case_when(
+      regimen_subsidiado_jefe == 1 ~ "Regimen subsidiado",
+      regimen_subsidiado_jefe == 0 ~ "Otro"
+    )
+  ) %>%
+  ggplot(aes(x = tipo_regimen, y = prop, fill = tipo_regimen)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(prop, accuracy = 0.01)), 
+            position = position_stack(vjust = 1.05), 
+            size = 3) +
+  scale_fill_manual(values = c("Regimen subsidiado" = "#1f78b4", "Otro" = "#33a02c")) +
+  labs(title = "Proporción del tipo de régimen del jefe de hogar",
+       x = "Tipo de régimen del jefe de hogar",
+       y = "Proporción") +
+  theme_minimal()
+
+
+sexo_tipo<-grid.arrange(grafico_sexo,grafico_regimen, ncol = 2)
+
+
+ggsave("sexo_tipo.png", sexo_tipo, width = 10, height = 5, units = "in", dpi = 300)
+
+```
+
+
+
+```{r}
+options(repr.plot.width = 10, repr.plot.height = 5)
+grafico_educacion<-train_hogares %>%
+  mutate(
+    educacion_jefe = case_when(
+      educacion_jefe == 1 ~ "Preescolar",
+      educacion_jefe == 2 ~ "Básica primaria",
+      educacion_jefe == 3 ~ "Básica secundaria",
+      educacion_jefe == 4 ~ "Media",
+      educacion_jefe == 5 ~ "Superior o universitaria"
+    )
+  ) %>%
+  count(educacion_jefe) %>%
+  mutate(
+    prop = n / sum(n),
+    educacion_jefe = factor(educacion_jefe, levels = c("Ninguno o no informa", "Preescolar", "Básica primaria", "Básica secundaria", "Media", "Superior o universitaria"))
+  ) %>%
+  ggplot(aes(x = educacion_jefe, y = prop, fill = educacion_jefe)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(prop, accuracy = 0.01)), 
+            position = position_stack(vjust = 1.05), 
+            size = 3) +
+  scale_fill_discrete(name = "Educación del jefe de hogar") +
+  labs(title = "Proporción de nivel educativo del jefe de hogar",
+       y = "Proporción") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_text('Nivel educativo')) +
+  theme(legend.position = "none")
+
+
+grafico_desempleo<-train_hogares %>%
+  count(desempleo_jefe) %>%
+  mutate(
+    prop = n / sum(n),
+    desempleo_jefe = case_when(
+      desempleo_jefe == 0 ~ "No desempleado",
+      desempleo_jefe == 1 ~ "Desempleado"
+    )
+  ) %>%
+  ggplot(aes(x = desempleo_jefe, y = prop, fill = desempleo_jefe)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(prop, accuracy = 0.01)), 
+            position = position_stack(vjust = 1.05), 
+            size = 3) +
+  scale_fill_manual(values = c("No desempleado" = "#1f78b4", "Desempleado" = "#33a02c")) +
+  labs(title = "Proporción de estado de empleo del jefe de hogar",
+       x = "Estado de empleo del jefe de hogar",
+       y = "Proporcion") +
+  theme_minimal()  +
+  theme(legend.position = "none")
+
+
+eduacion_empleo<-grid.arrange(
+  grafico_educacion, 
+  grafico_desempleo,
+  ncol = 2
+)
+
+
+ggsave("eduacion_empleo.png", eduacion_empleo, width = 10, height = 5, units = "in", dpi = 300)
+```
+
+
+```{r}
+options(repr.plot.width = 10, repr.plot.height = 5)
+empleo<-train_hogares %>%
+  mutate(
+    posicion_jefe = case_when(
+      posicion_jefe == 1 ~ "Empleado empresa",
+      posicion_jefe == 2 ~ "Gobierno",
+      posicion_jefe == 3 ~ "Doméstico",
+      posicion_jefe == 4 ~ "Por cuenta propia",
+      posicion_jefe == 5 ~ "Patrón",
+      posicion_jefe == 6 ~ "Trabajador familiar sin remuneración",
+      posicion_jefe == 7 ~ "Trabajador sin remuneración",
+      posicion_jefe == 8 ~ "Jornalero",
+      posicion_jefe == 9 ~ "Otro"
+    )
+  ) %>%
+  filter(!is.na(posicion_jefe)) %>%
+  count(posicion_jefe) %>%
+  mutate(
+    prop = n / sum(n)
+  ) %>%
+  ggplot(aes(x = posicion_jefe, y = prop, fill = posicion_jefe)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::percent(prop, accuracy = 0.01)), 
+            position = position_stack(vjust = 1.05), 
+            size = 3) +
+  scale_fill_discrete(name = "Posición del jefe de hogar") +
+  labs(title = "Proporción de posición del jefe de hogar",
+       x = "Posición del jefe de hogar",
+       y = "Proporción") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(legend.position = "none")
+
+
+
+casa_propia<-train_hogares %>%
+  mutate(tipo_casa = ifelse(tipo_casa == 1, "Casa Propia", "No Casa Propia")) %>%
+  count(tipo_casa) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot(aes(x = tipo_casa, y = prop, fill = tipo_casa, label = scales::percent(prop))) +
+  geom_bar(stat = "identity") +
+  geom_text(position = position_stack(vjust = 1.05), size = 3) +
+  scale_fill_manual(values = c("Casa Propia" = "#1f78b4", "No Casa Propia" = "#33a02c")) +
+  labs(x = "Tipo de Casa", y = "Proporción", title = "Proporción de Hogares por Tipo de Casa") +
+  scale_x_discrete(labels = c("Casa Propia" = "Casa Propia", "No Casa Propia" = "No Casa Propia"))
+
+casa_posicion<-grid.arrange(
+  empleo, 
+  casa_propia,
+  ncol = 2
+)
+
+ggsave("casa_posicion.png", casa_posicion, width = 10, height = 5, units = "in", dpi = 300)
+
+```
+
+
+
+```{r}
+options(repr.plot.width = 10, repr.plot.height = 5)
+
+personas<-train_hogares %>%
+  filter(Personas_habitacion <= 7) %>%
+  ggplot(aes(x = Personas_habitacion)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribución de personas por habitación",
+       x = "Numero de personas por habitación",
+       y = "Frecuencia") +
+  theme_minimal()
+
+
+edad<-train_hogares %>%
+  ggplot(aes(x = edad_jefe)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribución de la edad de los jefes de hogar",
+       x = "Edad jefes de hogar",
+       y = "Frecuencia") +
+  theme_minimal()
+
+personas_edad<-grid.arrange(
+  personas, 
+  edad,
+  ncol = 2
+)
+
+ggsave("personas_edad.png", personas_edad, width = 10, height = 5, units = "in", dpi = 300)
+
+```
+
+
+```{r}
+options(repr.plot.width = 10, repr.plot.height = 5)
+
+
+zona<-train_hogares %>%
+  mutate(
+    zona_jefe = case_when(
+      zona_jefe == 1 ~ "Rural",
+      zona_jefe == 2 ~ "Resto urbano",
+      zona_jefe == 3 ~ "Ciudad"
+    )
+  ) %>%
+  count(zona_jefe) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot(aes(x = zona_jefe, y = prop, fill = zona_jefe, label = scales::percent(prop))) +
+  geom_bar(stat = "identity") +
+  geom_text(position = position_stack(vjust = 1.05), size = 3) +
+  scale_fill_manual(values = c("Rural" = "#1f78b4", "Resto urbano" = "#33a02c", "Ciudad" = "#e31a1c")) +
+  labs(x = "Zona", y = "Proporción", title = "Proporción de zona") +
+  scale_x_discrete(labels = c("Rural" = "Rural", "Resto urbano" = "Resto urbano", "Ciudad" = "Ciudad"))
+
+informal<-train_hogares %>%
+  mutate(informalidad_jefe = ifelse(informalidad_jefe == 1, "Informal", "Formal")) %>%
+  count(informalidad_jefe) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot(aes(x = informalidad_jefe, y = prop, fill = informalidad_jefe, label = scales::percent(prop))) +
+  geom_bar(stat = "identity") +
+  geom_text(position = position_stack(vjust = 1.05), size = 3) +
+  scale_fill_manual(values = c("Formal" = "#1f78b4", "Informal" = "#33a02c")) +
+  labs(x = "Tipo de trabajo", y = "Proporción", title = "Proporción tipo de trabajo") +
+  scale_x_discrete(labels = c("Informal" = "Informal", "Formal" = "Formal"))
+
+
+
+zonas_informal<-grid.arrange(  informal, 
+  zona,
+  ncol = 2
+)
+
+
+ggsave("zona_informal.png", zonas_informal, width = 10, height = 5, units = "in", dpi = 300)
+```
+
+```{r}
+cualitativas <- c("sexo_jefe", "regimen_subsidiado_jefe", "educacion_jefe", "desempleo_jefe", "posicion_jefe","Personas_habitacion_r","tipo_casa","edad_jefe_joven","zona_jefe","informalidad_jefe")
+
+
+train_hogares[cualitativas] <- lapply(train_hogares[cualitativas], factor)
+
+plots_list <- list()
+
+
+for (variable in cualitativas) {
+  plot <- ggplot(train_hogares, aes_string(x = variable, y = "log(Ingtotugarr)", fill = variable)) +
+    geom_boxplot(show.legend = FALSE) +
+    labs(x = variable, y = "log(Ingtotugarr)") +
+    theme_minimal()
+  
+  plots_list[[variable]] <- plot
+}
+
+
+cuantitativas<-grid.arrange(grobs = plots_list, ncol =3)
+
+ggsave("cuantitativas.png", cuantitativas, width = 10, height = 5, units = "in", dpi = 300)
+```
+
+
+
+```{r}
+generar_grafico <- function(data, variable) {
+  grafico <- data %>%
+    group_by(!!variable, Pobre) %>%
+    summarise(count = n()) %>%
+    mutate(prop = count / sum(count)) %>%
+    ggplot(aes(x = !!variable, y = prop, fill = Pobre)) +
+    geom_bar(position = "fill", stat = "identity") +
+    labs(x = as_label(ensym(variable)), y = "Proporción", fill = "Pobre") +
+    theme_minimal()
+  
+  return(grafico)
+}
+
+cualitativas <- c("sexo_jefe", "regimen_subsidiado_jefe", "educacion_jefe", "desempleo_jefe", "posicion_jefe","Personas_habitacion_r","tipo_casa","edad_jefe_joven","zona_jefe","informalidad_jefe")
+
+plots_list <- list()
+
+for (variable in cualitativas) {
+  plots_list[[variable]] <- generar_grafico(train_hogares, sym(variable))
+}
+
+# Mostrar los gráficos en una grilla
+cualitativas<-grid.arrange(grobs = plots_list, ncol = 4)
+
+ggsave("cualitativas.png", cualitativas, width = 10, height = 5, units = "in", dpi = 300)
+```
+
+```{r}
+variables <- data.frame(
+  Variable = c('Sexo_jefe',
+               'Regimen_subsidiado',
+               'Educacion_jefe',
+               'Ocupacion_jefe',
+               'Posicion_Jefe',
+               'Personas_habitacion',
+               'Edad del jefe del hogar',
+               'Informalidad_jefe'
+  ),
+  Transformacion = c('Se trabaja como una variable dummy 1 cuando es hombre y cero cuando es mujer',
+                     
+                     '1 cuando el jefe de hogar esta afiliado en el regimen subsidiado, 0 en otro caso',
+                     
+                     'Ultimo grado aprobado por el jefe de hogar',
+                     
+                     'Si el jefe de hogar manifiesta que la semana anterior trabajo, 0 y 1 para cualquier otra respuesta',
+                     
+                     'Se trabajan todas las categorias de la variable sin ninguna transformacion',
+                     
+                     'Se divide el total de personas por la cantidad de habitaciones que reporto el jefe de hogar',
+                     
+                     'Se toma la definición de informalidad del DANE si el establecimiento tiene menos de 10 trabajadores se considera como informal',
+                     
+                     'Se trabaja tal cual se reporta en la encuesta'
+  ),
+  Hipotesis = c('Las mujeres son mas vulnerables que los hombres',
+                
+                'Las personas afiliadas al regimen subsidiado son mas vulnerables',
+                
+                'Entre mas alto el grado de educacion, menos es la probabilidad de ser pobre',
+                
+                'Los jefes de hogar que se encuentren desempleados hacen que el hogar sea mas vulnerable a estar en condicion de pobreza',
+                
+                'La actividad que desarrolla un jefe de hogar ayuda a determinar si su hogar puede estar en condicion de pobreza por el diferencial de ingresos en cada actividad',
+                
+                'Entre mas alto sea el número de personas por hogar mas vulnerable es a estar en condición de pobreza',
+                
+                'Por la teoria del ciclo vital hay intervalos donde se es mas vulnerable a  estar en la pobreza.',
+                
+                'Las personas en condición de informalidad son mas vulnerables a estar en pobreza'
+  )
+)
+
+
+tabla_gt <- variables %>%
+  gt() %>%
+  tab_header(
+    title = "Tabla de Variables",
+    subtitle = "Descripción de las variables y sus hipótesis"
+  )
+
+# Visualizar la tabla
+tabla_gt
+
+gtsave(tabla_gt,filename = 'variables.png')
+```
+
+
+```{r}
+tabla_html <- tableHTML(variables, 
+                        widths = c(100, 300, 400),
+                        rownames = FALSE,
+                        caption = "Tabla de Variables") %>%
+  add_css_caption(css = list(fontsize = "14px", color = "blue"))
+
+# Guardar la tabla como una imagen PNG
+save_as_image(tabla_html, file_name = "tabla_variables.png")
+```
+
+
+```{r}
+tmp_file <- tempfile(fileext = ".html")
+save_table_as_html(tabla_html, file = tmp_file)
+
+# Capturar la tabla HTML como una imagen
+webshot(tmp_file, "tabla_variables.png")
+```
+
