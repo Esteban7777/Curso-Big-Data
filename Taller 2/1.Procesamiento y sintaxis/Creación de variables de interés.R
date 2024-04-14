@@ -406,8 +406,8 @@ test_hogares$Personas_habitacion_round<-as.factor(test_hogares$Personas_habitaci
 str(train_hogares$Clase)
 str(test_hogares$Clase)
 
-train_hogares$Clase<-as.numeric(train_hogares$Clase)
-test_hogares$Clase<-as.numeric(test_hogares$Clase)
+train_hogares$Clase<-as.factor(train_hogares$Clase)
+test_hogares$Clase<-as.factor(test_hogares$Clase)
 
 
 # Creamos la variable pobre texto 
