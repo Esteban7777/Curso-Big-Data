@@ -30,3 +30,5 @@ writeLines(outputcf_rf_smote,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data
 
 outputcf_xgboost_smote<-capture.output(cf_xgb_smote)
 writeLines(outputcf_xgboost_smote,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/outputcf_xgboost_smote.txt")
+
+saveRDS(arbol_regresion,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/Arbol de regresion.rds")

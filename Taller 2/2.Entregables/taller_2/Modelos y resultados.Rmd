@@ -294,7 +294,7 @@ cat(outputRF_NODE100, sep = "\n")
 Vemos que tampoco existe un cambio importante en el OBB predictor error.
 Finalmente probamos aumentar la cantidad de variables por árbol.
 
-```{r}
+```{r,eval=FALSE}
 RF_5VAR<- ranger(formula = as.formula(paste("pobre_texto~",
                                        paste(predictores, collapse = " + "))), 
             data = train_hogares,
@@ -435,8 +435,11 @@ train_hogares_sin_bogota$modelo_lm_ingreso<-predict(object = modelo_lm, newdata 
 train_hogares_sin_bogota$modelo_lm_predict<-ifelse(
   train_hogares_sin_bogota$modelo_lm_ingreso<train_hogares_sin_bogota$Lp,
                    1,0) 
-matrix_lm<-table(train_hogares_sin_bogota$modelo_lm_predict,train_hogares_sin_bogota$Pobre)
-cf_lm<-confusionMatrix(matrix_lm,
+
+train_hogares_sin_bogota$modelo_lm_predict<-as.factor(train_hogares_sin_bogota$modelo_lm_predict)
+cf_lm<-confusionMatrix(data =train_hogares_sin_bogota$modelo_lm_predict,
+                      reference=train_hogares_sin_bogota$Pobre,
+  
                 positive="1",
                 mode = "prec_recall")
 cf_lm$byClass["F1"]
@@ -578,12 +581,13 @@ table(test_hogares$predict_en)
 Para identificar los hiperparametros optimos de Elastic Net con Caret se
 utilizó la siguiente sintaxis.
 
-```{r}
+```{r,eval=FALSE}
 tc_10 <- trainControl(method = "cv", number = 10)
 
 en_caret <- train(x=X,y=Y,method = "glmnet",trControl = tc_10,
   tuneLength=100)
 ```
+Los resultados de los modelos con Regularización no fueron tenidos en cuenta para realizar submissions ya que la cantidad de pobres predicha con estos fue muy pequeña en comparación con el resto de algoritmos.
 
 ## Predicciones con árbol de regresión
 
@@ -605,7 +609,6 @@ predictores<-c("posicion_jefe",
                       "P5140",
                       "Nper",
                       "Npersug",
-                      "jefe_menor",
                       "Depto",
                       "regimen_subsidiado_jefe",
                       "desempleo_jefe",
@@ -620,14 +623,18 @@ regresión](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1
 . Para realizar la predicción con árboles de decisión se realizó la
 siguiente sintaxis
 
-```{r}
-arbol<-rpart(formula = as.formula(paste("Ingtotugarr~",
+```{r, eval=FALSE}
+arbol_regresion<-rpart(formula = as.formula(paste("Ingtotugarr~",
                                         paste(predictores,
                                               collapse = " + "))),
                       data=train_hogares_sin_bogota,
                       parms = list(split="Gini"))
 
-prp(arbol,box.palette = "gray")
+prp(arbol_regresion,box.palette = "gray")
+```
+```{r,include=FALSE}
+arbol_regresion<-readRDS("C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 2/1.Procesamiento y sintaxis/Modelos en Rds/Arbol de regresion.rds")
+prp(arbol_regresion,box.palette = "gray")
 ```
 
 Luego de entrenar el modelo realizamos la predicción en train y
@@ -637,7 +644,7 @@ confusión árbol de
 regresión](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%202/1.Procesamiento%20y%20sintaxis/Output%20matrices%20de%20confusi%C3%B3n/outputcf_arbol_reg.txt).
 
 ```{r}
-train_hogares_sin_bogota$predic_arbol_ingreso<-predict(arbol,
+train_hogares_sin_bogota$predic_arbol_ingreso<-predict(arbol_regresion,
                                             newdata =train_hogares_sin_bogota)
 
 train_hogares_sin_bogota$predict_arbol<-ifelse(
@@ -645,8 +652,9 @@ train_hogares_sin_bogota$predict_arbol<-ifelse(
     train_hogares_sin_bogota$Lp*train_hogares_sin_bogota$Npersug,
   1,0)
 
-matriz_arbol<-table(train_hogares_sin_bogota$predict_arbol,train_hogares_sin_bogota$Pobre)
-cf_arbol_reg<-confusionMatrix(matriz_arbol,
+train_hogares_sin_bogota$predict_arbol<-as.factor(train_hogares_sin_bogota$predict_arbol)
+                                                  
+cf_arbol_reg<-confusionMatrix(data =train_hogares_sin_bogota$predict_arbol ,                              reference=train_hogares_sin_bogota$Pobre,
                 positive="1",
                 mode = "prec_recall")
 
@@ -656,12 +664,12 @@ cf_arbol_reg$byClass["F1"]
 Luego realizamos la predicción fuera de muestra:
 
 ```{r}
-test_hogares$predic_arbol_ingreso<-predict(arbol,
+test_hogares$predic_arbol_ingreso<-predict(arbol_regresion,
                                            newdata =test_hogares)
 
-test_hogares$predict_arbol3<-ifelse(
+test_hogares$predict_arbol_regresion<-ifelse(
   test_hogares$predic_arbol_ingreso<
     test_hogares$Lp*test_hogares$Npersug,
   1,0)
-table(test_hogares$predict_arbol)
+table(test_hogares$predict_arbol_regresion)
 ```
