@@ -7,7 +7,7 @@ En esta carpeta se encuentra el desarrollo del problem set 2. El sitio está org
    - El PDF con el diccionario de variables de la data utilizadas
    - Los archivos en formato .csv con los datos de entrenamiento y prueba para resolver el taller, así como un ejemplo de la estructura que debe tener el submission que será subido a Kaggle.
 
-1. Procesamiento y sintaxis: En esta carpeta se encuentran los script utilizados para realizar el taller, así como el archivo RMarkdown con el cual se generará el pdf entregado al final del taller.
+1. Procesamiento y sintaxis: En esta carpeta se encuentran los script utilizados para realizar el taller, los modelos guardados en formato .rds y los summarys de los resultados más relevantes encontrados.
 
 2. Entregables: Contiene los entregables finales del taller para su respectiva revisión:
 - PDF con informe de resultados según las especificaciones solicitadas en el problem set.
