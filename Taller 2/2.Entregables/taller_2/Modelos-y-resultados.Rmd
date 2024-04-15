@@ -674,13 +674,10 @@ test_hogares$predict_arbol_regresion<-ifelse(
 table(test_hogares$predict_arbol_regresion)
 ```
 
-##Conclusión Final
-
+Conclusión Final
 El proyecto finalizó con un enfoque robusto en la aplicación de modelos avanzados de aprendizaje automático para predecir la pobreza en hogares colombianos. Iniciamos con una regresión Logit, que sirvió como base para entender las dinámicas y las variables más influyentes en la pobreza. A partir de ahí, el proceso evolucionó hacia técnicas más sofisticadas, incluyendo árboles de decisión y Random Forest.
 En la fase final del proyecto, implementamos un modelo de Random Forest utilizando la técnica SMOTE (Synthetic Minority Over-sampling Technique) para abordar el desbalance de clases entre hogares pobres y no pobres en nuestro conjunto de datos. Este método permitió generar observaciones sintéticas de la clase minoritaria, proporcionando un entrenamiento más equilibrado y efectivo para nuestro modelo. El modelo ajustado alcanzó una puntuación F1 de 0.8111, indicando un excelente equilibrio entre la precisión y la sensibilidad, lo que refleja una alta capacidad para identificar correctamente tanto a los hogares pobres como a los no pobres.
-
 Este modelo fue publicado en la competición de Kaggle, donde obtuvimos un score de 0.52. Este resultado puede interpretarse como una moderada efectividad del modelo en la plataforma de Kaggle, considerando las complejidades y las variaciones inherentes en los datos de test reales y competitivos. La puntuación F1 alta sugiere que el modelo es bastante robusto en términos de manejar el desequilibrio de clases y efectivo en la clasificación binaria en un escenario controlado, mientras que el score de Kaggle nos proporciona una perspectiva realista de cómo el modelo podría performar en escenarios externos y con datos que podrían diferir ligeramente de nuestro conjunto de entrenamiento.
-
 Se puede concluir que, el uso de Random Forest con SMOTE demostró ser la estrategia más eficaz entre los métodos evaluados, destacándose en la capacidad de manejar grandes volúmenes de datos y capturar interacciones complejas entre las variables sin necesidad de ajustes manuales extensos. Esto subraya la importancia de técnicas de muestreo adecuadas y la selección de modelos en el análisis de datos socioeconómicos.
 
 
