@@ -1,7 +1,8 @@
-#Cargamos las librerias
+    #Cargamos las librerias
 library(tidyverse)
 library(sf)
 library(readxl)
+library(devtools)
 #Cargar la data 
 train<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%203/0.Insumos/train.csv")
 
@@ -49,6 +50,7 @@ test_map<-ggplot() + geom_sf(data = test_sf)+
 #Realizamos el join espacial para obtener el codigo de manzana donde se ubica cada vivienda
 test_join<-st_join(test_sf,MGN)
 
+######
 #Convertimos en dataframe y hacemos el join con la información del Censo
 test_join<-as.data.frame(test_join)
 
@@ -139,6 +141,43 @@ test_join<-test_join %>% select(property_id,city,price,
                                   title,description,
                                   estrato_predominante,
                                   lon,lat)
+
+
+##### 
+#Imputamos el estrato de la vivienda más cercana
+#Convertimos nuevamente el test en objeto sf
+test_sf<-st_as_sf(test_join,coords = c("lon","lat"))
+#Ajustamos el test para que comparta el mismo sistema de coordenadas que el MGN
+test_sf<-st_set_crs(test_sf,4326)
+test_sf<-st_transform(test_sf,4686)
+
+#Separar observaciones con NA en 'estrato' y sin NA
+test_with_na <- test_sf[is.na(test_join$estrato_predominante), ]
+test_without_na <- test_sf[!is.na(test_join$estrato_predominante), ]
+
+#Calcular distancias y encontrar la observación más cercana para cada NA
+
+# Usaremos st_distance para calcular distancias
+nearest_estrato <- sapply(1:nrow(test_with_na), function(i) {
+  # Calcular distancias entre la observación con NA y todas las observaciones sin NA
+  distances <- st_distance(test_with_na[i, ], test_without_na)
+  
+  # Encontrar el índice de la observación más cercana
+  nearest_idx <- which.min(distances)
+  
+  # Devolver el valor del estrato de la observación más cercana
+  return(test_without_na$estrato_predominante[nearest_idx])
+})
+
+
+source_url("funDistanciaImputar.R")
+#Imputar el estrato de la observación más cercana
+test_with_na$estrato_predominante <- nearest_estrato
+# Reintegrar el dataframe original
+test_sf_imputed <- rbind(test_without_na, test_with_na)
+
+
+
 
 #Guardamos las datas con el estrato asignado.
 write.csv(train_join,file = "C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/0.Insumos/train_join.csv")
