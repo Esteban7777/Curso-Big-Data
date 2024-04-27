@@ -34,13 +34,6 @@ manzanas_censo$estrato_predominante <- apply(
 #Validamos cuantas manzanas hay por estrato
 table(manzanas_censo$estrato_predominante)
 
-# #Le quitamos dos ceros de más que tiene el Código del Censo para que coincida con el MGN
-# manzanas_censo$manz_ccnct<-paste0(
-#   substr(manzanas_censo$Código, 1, 10),  # Toma desde el inicio hasta el carácter 9
-#   substr(manzanas_censo$Código, 13, nchar(manzanas_censo$Código))  # Toma desde el carácter 12 hasta el final
-# )
-
-
 #Convertimos test en un elemento sf para hacer el join espacial con el MGN 
 test_sf<-st_as_sf(test,coords = c("lon","lat"))
 #Ajustamos el test para que comparta el mismo sistema de coordenadas que el MGN
@@ -82,7 +75,7 @@ test_join$id_manzana<-substr(test_join$manz_ccnct,
 test_join<-test_join %>% left_join(manzanas_censo,by = "id_manzana")
 
 #Hay un 34% de viviendas que no fue posible cruzar su NSE
-table(is.na(test_join$estrato_predominante.x))
+table(is.na(test_join$estrato_predominante))
 
 ######
 
@@ -119,7 +112,34 @@ train_join<-train_join %>% left_join(manzanas_censo,by = "id_manzana")
 #Hay un 34% de viviendas que no fue posible cruzar su NSE
 table(is.na(train_join$estrato_predominante))
 
-#Cuardamos las datas con el estrato asignado.
+#Seleccionamos las variables de interés
 
-save(train_join,file = "C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/0.Insumos/train.R")
-save(test_join,file = "C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/0.Insumos/test.R")
+#Recuperamos el estrato
+
+train_coordenadas<-train %>% select(property_id,lon,lat)
+test_coordenadas<-test %>% select(property_id,lon,lat)
+
+train_join<-train_join %>% left_join(train_coordenadas, by="property_id")
+test_join<-test_join %>% left_join(test_coordenadas, by="property_id")
+
+train_join<-train_join %>% select(property_id,city,price,
+                                  month,year,surface_total,
+                                  surface_covered,rooms,
+                                  bedrooms,bathrooms,
+                                  property_type,operation_type,
+                                  title,description,
+                                  estrato_predominante,
+                                  lon,lat)
+
+test_join<-test_join %>% select(property_id,city,price,
+                                  month,year,surface_total,
+                                  surface_covered,rooms,
+                                  bedrooms,bathrooms,
+                                  property_type,operation_type,
+                                  title,description,
+                                  estrato_predominante,
+                                  lon,lat)
+
+#Guardamos las datas con el estrato asignado.
+write.csv(train_join,file = "C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/0.Insumos/train_join.csv")
+write.csv(test_join,file = "C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/0.Insumos/test_join.csv")
