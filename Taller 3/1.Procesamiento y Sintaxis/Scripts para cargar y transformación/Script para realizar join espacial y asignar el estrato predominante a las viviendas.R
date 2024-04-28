@@ -131,7 +131,7 @@ train_join<-train_join %>% select(property_id,city,price,
                                   property_type,operation_type,
                                   title,description,
                                   estrato_predominante,
-                                  lon,lat)
+                                  lon,lat,id_manzana)
 
 test_join<-test_join %>% select(property_id,city,price,
                                   month,year,surface_total,
@@ -140,42 +140,47 @@ test_join<-test_join %>% select(property_id,city,price,
                                   property_type,operation_type,
                                   title,description,
                                   estrato_predominante,
-                                  lon,lat)
+                                  lon,lat,id_manzana)
 
 
 ##### 
-#Imputamos el estrato de la vivienda más cercana
+#Imputamos el estrato y id_manzana de la vivienda más cercana
 #Convertimos nuevamente el test en objeto sf
 test_sf<-st_as_sf(test_join,coords = c("lon","lat"))
 #Ajustamos el test para que comparta el mismo sistema de coordenadas que el MGN
 test_sf<-st_set_crs(test_sf,4326)
 test_sf<-st_transform(test_sf,4686)
 
-#Separar observaciones con NA en 'estrato' y sin NA
-test_with_na <- test_sf[is.na(test_join$estrato_predominante), ]
-test_without_na <- test_sf[!is.na(test_join$estrato_predominante), ]
+#Importamos una función que construimos para imputar con el dato mas cercano
+source_url("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Scripts%20para%20cargar%20y%20transformaci%C3%B3n/funDistanciaImputar.R")
+#Aplicamos la función
+test_sf<-distancia_variable(test_sf,"estrato_predominante")
+test_sf<-distancia_variable(test_sf,"id_manzana")
 
-#Calcular distancias y encontrar la observación más cercana para cada NA
+#Repetimos para el train
+#Convertimos nuevamente el train en objeto sf
+train_sf<-st_as_sf(train_join,coords = c("lon","lat"))
+#Ajustamos el test para que comparta el mismo sistema de coordenadas que el MGN
+train_sf<-st_set_crs(train_sf,4326)
+train_sf<-st_transform(train_sf,4686)
 
-# Usaremos st_distance para calcular distancias
-nearest_estrato <- sapply(1:nrow(test_with_na), function(i) {
-  # Calcular distancias entre la observación con NA y todas las observaciones sin NA
-  distances <- st_distance(test_with_na[i, ], test_without_na)
-  
-  # Encontrar el índice de la observación más cercana
-  nearest_idx <- which.min(distances)
-  
-  # Devolver el valor del estrato de la observación más cercana
-  return(test_without_na$estrato_predominante[nearest_idx])
-})
+#Aplicamos la función
+train_sf<-distancia_variable(train_sf,"estrato_predominante")
+train_sf<-distancia_variable(train_sf,"id_manzana")
+
+#Ploteamos los estratos
+train_estrato_map<-ggplot() + geom_sf(data = train_sf, aes(color = factor(estrato_predominante)))+
+  labs(
+    title="Viviendas en Train por estrato")
+
+test_estrato_map<-ggplot() + geom_sf(data = test_sf, aes(color = factor(estrato_predominante)))+
+  labs(
+    title="Viviendas en Test por estrato")
 
 
-source_url("funDistanciaImputar.R")
-#Imputar el estrato de la observación más cercana
-test_with_na$estrato_predominante <- nearest_estrato
-# Reintegrar el dataframe original
-test_sf_imputed <- rbind(test_without_na, test_with_na)
-
+#Convertimos de nuevo los objetos sf en dataframe
+test_join<-as.data.frame(test_sf)
+train_join<-as.data.frame(train_sf)
 
 
 
