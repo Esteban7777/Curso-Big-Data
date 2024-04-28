@@ -1,4 +1,4 @@
-    #Cargamos las librerias
+#Cargamos las librerias
 library(tidyverse)
 library(sf)
 library(readxl)
@@ -177,6 +177,48 @@ test_estrato_map<-ggplot() + geom_sf(data = test_sf, aes(color = factor(estrato_
   labs(
     title="Viviendas en Test por estrato")
 
+#Extraemos del id_manzana los codigos sectores y los codigos secciones utilizados por el DANE 
+
+train_sf$cod_sector<-substr(train_sf$id_manzana,1,4)
+test_sf$cod_sector<-substr(test_sf$id_manzana,1,4)
+
+train_sf$cod_seccion<-substr(train_sf$id_manzana,1,6)
+test_sf$cod_seccion<-substr(test_sf$id_manzana,1,6)
+
+#Ploteamos los sectores y las secciones
+
+train_sector_map<-ggplot() + geom_sf(data = train_sf, aes(color = factor(cod_sector)))+
+  labs(
+    title="Viviendas en Train por sector")+
+  guides(color = "none")
+
+test_sector_map<-ggplot() + geom_sf(data = test_sf, aes(color = factor(cod_sector)))+
+  labs(
+    title="Viviendas en Test por sector")+
+  guides(color = "none")
+
+
+train_seccion_map<-ggplot() + geom_sf(data = train_sf, aes(color = factor(cod_seccion)))+
+  labs(
+    title="Viviendas en Train por sección")+
+  guides(color = "none")
+
+test_seccion_map<-ggplot() + geom_sf(data = test_sf, aes(color = factor(cod_seccion)))+
+  labs(
+    title="Viviendas en Test por sección")+
+  guides(color = "none")
+
+length(unique(train_sf$cod_sector))
+length(unique(train_sf$cod_seccion))
+length(unique(train_sf$id_manzana))
+
+length(unique(test_sf$cod_sector))
+length(unique(test_sf$cod_seccion))
+length(unique(test_sf$id_manzana))
+
+#Tenemos 432 sectores, 1351 secciones y 4695 manzanas en Train 
+#Tenemos 58 sectores, 115 secciones y 688 manzanas en Test  
+
 
 #Convertimos de nuevo los objetos sf en dataframe
 test_join<-as.data.frame(test_sf)
@@ -187,3 +229,4 @@ train_join<-as.data.frame(train_sf)
 #Guardamos las datas con el estrato asignado.
 write.csv(train_join,file = "C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/0.Insumos/train_join.csv")
 write.csv(test_join,file = "C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/0.Insumos/test_join.csv")
+
