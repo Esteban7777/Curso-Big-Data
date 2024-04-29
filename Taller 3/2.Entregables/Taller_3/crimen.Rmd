@@ -1,0 +1,128 @@
+---
+title: "analisis crimen"
+author: "John Esteban"
+date: "2024-04-29"
+output: html_document
+---
+
+```{r}
+library(sf)
+library(tidyverse)
+```
+
+```{r}
+shp_data <- st_read("crimen/DAILoc.shp")
+shp_df <- st_read("crimen/DAILoc.dbf")
+data <- read.csv('train.csv')
+```
+
+```{r}
+train <- st_as_sf(data,coords=c('lon','lat'),crs=4326)
+train<-st_transform(train,4686)
+
+shp_data <- st_as_sf(shp_data,coords='geometry',crs=4326)
+shp_data<-st_transform(shp_data,4686)
+```
+
+
+
+
+
+#### Robos
+
+```{r}
+hurtos_vivienda <- grep("HR", names(shp_data), value = TRUE)
+hurtos_vivienda <- shp_data[, hurtos_vivienda]
+hurtos_vivienda <- hurtos_vivienda %>% select(CMHR22CONT)
+hurtos_vivienda
+```
+
+```{r}
+hurtos_personas <- grep("HP", names(shp_data), value = TRUE)
+hurtos_personas <- shp_data[, hurtos_personas]
+hurtos_personas <- hurtos_personas %>% select(CMHP22CONT)
+hurtos_personas
+```
+
+
+
+```{r}
+matriz_dist_hv<-st_distance(hurtos_vivienda,train)
+matriz_dist_hp<-st_distance(hurtos_personas,train)
+
+```
+
+```{r}
+distancia_minima_hv <- apply(matriz_dist_hv, 2, min, na.rm = TRUE)
+distancia_minima_hv
+```
+
+```{r}
+minimo_valor <- min(matriz_dist_hv, na.rm = TRUE)
+
+which(matriz_dist_hv == minimo_valor, arr.ind = TRUE)[1, "row"]
+```
+
+
+```{r}
+minimo_valor
+```
+
+
+
+
+### POlicia
+
+
+```{r}
+require("pacman")
+p_load("osmdata")
+```
+
+
+
+```{r}
+bogota<-opq(bbox = getbb("Bogotá Colombia"))
+seguridad<- bogota %>% 
+                add_osm_feature(key="amenity",value="police") %>% 
+  osmdata_sf()
+seguridad<-seguridad$osm_point
+```
+
+
+```{r}
+
+seguridad <- st_as_sf(seguridad,coords='geometry',crs=4326)
+seguridad<-st_transform(seguridad,4686)
+
+seguridad <- seguridad %>% select(osm_id,geometry)
+```
+
+
+```{r}
+matriz_dist<-st_distance(seguridad,train)
+distancia_minima <- apply(matriz_dist, 2, min, na.rm = TRUE)
+train <- train %>% 
+  mutate(distancia_minima = distancia_estacion_policia)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
