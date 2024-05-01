@@ -44,13 +44,82 @@ hurtos_personas <- hurtos_personas %>% select(CMHP22CONT)
 hurtos_personas
 ```
 
+```{r}
+distancia_minima_hv <- apply(matriz_dist_hv, 2, function(row) {
+  min_dist <- min(row, na.rm = TRUE)
+  min_index <- which.min(row)
+  return(c(valor_minimo = min_dist, valor_primera_columna = hurtos_vivienda[min_index, 1]))
+})
+
+distancia_minima_hv_df <- t(sapply(distancia_minima_hv, unlist))
+
+robos_vivienda <- list()
+for (i in seq_len(nrow(train))) {
+  valor_robos_vivienda <- distancia_minima_hv[[i]][[2]]
+  robos_vivienda[[i]] <- valor_robos_vivienda
+}
+robos_vivienda_df <-do.call(rbind, robos_vivienda)
+robos_vivienda_df <- as.data.frame(robos_vivienda_df)
+colnames(robos_vivienda_df) <-'Robos_vivienda'
+
+####################### Robos personas
+distancia_minima_hp <- apply(matriz_dist_hp, 2, function(row) {
+  min_dist <- min(row, na.rm = TRUE)
+  min_index <- which.min(row)
+  return(c(valor_minimo = min_dist, valor_primera_columna = hurtos_personas[min_index, 1]))
+})
+
+distancia_minima_hp_df <- t(sapply(distancia_minima_hp, unlist))
+
+robos_personas <- list()
+for (i in seq_len(nrow(train))) {
+  valor_robos_personas<- distancia_minima_hp[[i]][[2]]
+  robos_personas[[i]] <- valor_robos_personas
+}
+robos_personas_df <-do.call(rbind, robos_personas)
+robos_personas_df <- as.data.frame(robos_personas_df)
+colnames(robos_personas_df) <-'Robos_personas'
+```
+
+```{r}
+train <-cbind.data.frame(train,robos_vivienda_df,robos_personas_df)
+```
+
 
 
 ```{r}
 matriz_dist_hv<-st_distance(hurtos_vivienda,train)
 matriz_dist_hp<-st_distance(hurtos_personas,train)
-
 ```
+
+
+
+```{r}
+df_hp<-as.data.frame(matriz_dist_hv)
+```
+
+```{r}
+df_hp
+```
+
+```{r}
+hurtos_vivienda
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 distancia_minima_hv <- apply(matriz_dist_hv, 2, min, na.rm = TRUE)
