@@ -253,6 +253,28 @@ if (window.hljs) {
 
 
 
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
 
 
 
@@ -362,23 +384,103 @@ display: none;
 </div>
 <div id="introduccion" class="section level1">
 <h1>Introduccion</h1>
-<p>La inversion mas importante para la mayoria de las personas es tener
-casa propia y este es una de la fuente mas comun en la acomulacion de
-capital. Por esto conocer cuales son los elementos que determinan el
-valor de este bien puede servir de guia para el proceso de planificacion
+<p>La inversión más importante para la mayoría de las personas es tener
+casa propia, y esta es una de las fuentes más comunes en la acumulación
+de capital. Por esto, conocer cuáles son los elementos que determinan el
+valor de este bien puede servir de guía para el proceso de planificación
 financiera.</p>
-<p>Para la determinacion de los precios de las viviendas en la
-literatura se han logrado avances significativos. Primero , en relacion
-a las variables, en donde los principales trabajos se han concentrado en
-utilizar las caracteristicas propias del hogar y con menor impacto de
-las caracteristicas externas al hogar aparte del lugar donde estan
-ubicadas. Luego, en relacion a los modelos utilizados, se usan los
-principales algoritmos como regresion lineal que ayuda en la
-interpretacion pero tambien todos los algorimos basados en arboles de
-desicion.</p>
+<p>Para la determinación de los precios de las viviendas, en la
+literatura se han logrado avances significativos. Primero, en relación a
+las variables, donde los principales trabajos se han concentrado en
+utilizar las características propias del hogar, con menor impacto de las
+características externas al hogar aparte del lugar donde están ubicadas.
+Luego, en relación a los modelos utilizados, se usan los principales
+algoritmos como regresión lineal, que ayuda en la interpretación, pero
+también todos los algoritmos basados en árboles de decisión.</p>
+<p>Para la selección de variables, se han tomado varias alternativas
+clasificadas en 3 grupos: características propias del hogar y
+características del entorno donde está ubicado el hogar. Las más
+importantes o que más aportan para determinar el precio de la vivienda
+son: el número de habitaciones, el área del hogar, planta, cantidad de
+baños, si tiene garaje, edad de la propiedad, área construida, aire
+acondicionado y el estrato de la vivienda. Los trabajos llegan a la
+conclusión de que las mejores variables para explicar el precio son:
+número de habitaciones y de baños, junto con área construida y el
+estrato.</p>
+<p>El segundo grupo de variables está relacionado con las
+características del entorno donde está ubicada la vivienda. Se utilizan
+variables como la distancia a estaciones de transporte y de educación,
+proporción de personas de bajos recursos que viven cerca, porcentaje de
+centros de negocio y la localización. La distancia al transporte es la
+característica que más peso tiene.</p>
+<p>El modelo que mejor rendimiento ha presentado para la predicción de
+los precios es el Random Forest. El trabajo desarrollado por <span class="citation">Cueto (2022)</span>, utilizando solo características de
+la vivienda en 5 modelos, entre ellos redes neuronales y modelos basados
+en árboles, encuentra que el que tiene mejor rendimiento es el random
+forest. De la misma forma, el trabajo de <span class="citation">Choy and
+Ho (2023)</span>, en donde, además de las características, se utiliza la
+variable de la distancia al transporte, encuentra que el mejor modelo es
+el random forest. <span class="citation">Alfaro-Navarro et al.
+(2020)</span>, <span class="citation">Alzate (2019)</span> y <span class="citation">Giraldo (n.d.)</span> también encuentran que el random
+forest es el mejor modelo.</p>
+<p>Sin embargo, hay otros algoritmos que también han tenido buen
+desempeño para predecir el precio de las viviendas. EN el trabajo de
+<span class="citation">Mohamed, Ibrahim, and Hagras (2023)</span>, como
+las redes neuronales, el <span class="citation">Jha et al. (n.d.)</span>
+sugiere trabajar con XGBoost, el modelo Ripper gano en rendimiento en el
+trabajo de <span class="citation">Park and Bae (2015)</span> y el
+gradient boosting junto con el random forest en el trabajo de <span class="citation">Alzate (2019)</span> .</p>
+<p>El propósito de este artículo es realizar la predicción de precios de
+vivienda en Bogotá. En este proceso, se utilizan variables propias de la
+vivienda, pero en la misma medida, variables que describan el entorno
+donde está ubicada la vivienda, y también se hace uso extensivo de las
+técnicas de procesamiento de lenguaje que permiten aprovechar las
+descripciones de la vivienda.</p>
 </div>
-<div id="data" class="section level1">
-<h1>Data</h1>
+<div id="data" class="section level1 unnumbered">
+<h1 class="unnumbered">Data</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Navarro2020" class="csl-entry">
+Alfaro-Navarro, Jose Luis, Emilio L. Cano, Esteban Alfaro-Cortes, Noelia
+Garcia, Matias Gamez, and Beatriz Larraz. 2020. <span>“A Fully Automated
+Adjustment of Ensemble Methods in Machine Learning for Modeling Complex
+Real Estate Systems.”</span> <em>Complexity</em> 2020. <a href="https://doi.org/10.1155/2020/5287263">https://doi.org/10.1155/2020/5287263</a>.
+</div>
+<div id="ref-Alzate2019" class="csl-entry">
+Alzate, Yuri. 2019. <span>“Modelo Predicción Precios Viviendas.”</span>
+</div>
+<div id="ref-Choy2023" class="csl-entry">
+Choy, Lennon H. T., and Winky K. O. Ho. 2023. <span>“The Use of Machine
+Learning in Real Estate Research.”</span> <em>Land</em> 12 (March): 740.
+<a href="https://doi.org/10.3390/land12040740">https://doi.org/10.3390/land12040740</a>.
+</div>
+<div id="ref-Cueto2022" class="csl-entry">
+Cueto, Ana Bruno. 2022. <span>“ANÁLISIS PREDICTIVO DEL PRECIO DE LA
+VIVIENDA EN LOS DISTRITOS DE CIUDAD LINEAL y LA LATINA CON MODELOS DE
+MACHINE LEARNING.”</span>
+</div>
+<div id="ref-Angie" class="csl-entry">
+Giraldo, Angie. n.d. <span>“Prediccioin de Los Precios de Vivienda En La
+Ciudad de Medellin y El Area Metropolitana.”</span>
+</div>
+<div id="ref-bushan2010" class="csl-entry">
+Jha, Shashi Bhushan, Radu F Babiceanu, Vijay Pandey, and Rajesh Kumar
+Jha. n.d. <span>“Housing Market Prediction Problem Using Different
+Machine Learning Algorithms: A Case Study.”</span>
+</div>
+<div id="ref-Mohamed2023" class="csl-entry">
+Mohamed, Hossam H., Ahmed H. Ibrahim, and Omar A. Hagras. 2023.
+<span>“Forecasting the Real Estate Housing Prices Using a Novel Deep
+Learning Machine Model.”</span> <em>Civil Engineering Journal
+(Iran)</em> 9: 46–64. <a href="https://doi.org/10.28991/CEJ-SP2023-09-04">https://doi.org/10.28991/CEJ-SP2023-09-04</a>.
+</div>
+<div id="ref-Park2015" class="csl-entry">
+Park, Byeonghwa, and Jae Kwon Bae. 2015. <span>“Using Machine Learning
+Algorithms for Housing Price Prediction: The Case of Fairfax County,
+Virginia Housing Data.”</span> <em>Expert Systems with Applications</em>
+42 (April): 2928–34. <a href="https://doi.org/10.1016/j.eswa.2014.11.040">https://doi.org/10.1016/j.eswa.2014.11.040</a>.
+</div>
+</div>
 </div>
 
 

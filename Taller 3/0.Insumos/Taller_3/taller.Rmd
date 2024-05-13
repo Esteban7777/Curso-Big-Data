@@ -3,24 +3,28 @@ title: "Taller_3"
 author: "John Esteban"
 date: "2024-04-27"
 output: html_document
+bibliography: bibliografia.bib
 ---
 
 # Entorno
 
 # Introduccion
 
-La inversion mas importante para la mayoria de las personas es tener casa propia y este es una de la fuente mas comun en la acomulacion de capital. Por esto conocer cuales son los elementos que determinan el valor de este bien puede servir de guia para el proceso de planificacion financiera.
 
-Para la determinacion de los precios de las viviendas en la literatura se han logrado avances significativos. Primero , en relacion a las variables, en donde los principales trabajos se han concentrado en utilizar las caracteristicas propias del hogar y con menor impacto de las caracteristicas externas al hogar aparte del lugar donde estan ubicadas. Luego, en relacion a los modelos utilizados, se usan los principales algoritmos como regresion lineal que ayuda en la interpretacion pero tambien todos los algorimos basados en arboles de desicion.
 
-Para la seleccion de variables se han tomado varias alternativas clasificadas en 3 grupos. Caracteristicas propias del hogar y caracteristicas del entorno en donde esta ubicado el hogar. Las mas importantes o que mas aportan para determinar el precio de la vivienda son: El numero de habitaciones, el area del hogar, planta, cantidad de banos, tiene garaje, edad de la propiedad, area construida, aire acondicionado y el estrato de la vivienda, en donde los trabajos llegan a la conclusion de que las mejores variables para explicar el precio son: Numero de habitaciones y de banos junto con area construida y el estrato.
+La inversión más importante para la mayoría de las personas es tener casa propia, y esta es una de las fuentes más comunes en la acumulación de capital. Por esto, conocer cuáles son los elementos que determinan el valor de este bien puede servir de guía para el proceso de planificación financiera.
 
-El segundo grupo de variables esta relacionado con las caracteristicas del entorno en donde esta ubicada la vivienda. Se utilizan variables como la distancia al estaciones de transporte y de educacion , proporcion de personas de bajos recursos que viven cerca, porcentaje de centros de negocio y la localizacion. En donde la distancia al trasnporte es la caracertistica que mas pesa.
+Para la determinación de los precios de las viviendas, en la literatura se han logrado avances significativos. Primero, en relación a las variables, donde los principales trabajos se han concentrado en utilizar las características propias del hogar, con menor impacto de las características externas al hogar aparte del lugar donde están ubicadas. Luego, en relación a los modelos utilizados, se usan los principales algoritmos como regresión lineal, que ayuda en la interpretación, pero también todos los algoritmos basados en árboles de decisión.
 
-El modelo que mejor rendimiento ha presentado para la prediccion de los precios es el Random Forest. El trabajo desarrallado por 1 utilizando solo caracteristicas de la vivienda en 5 modelos entre ellos redes neuronales y modelos basados en arboles encuentra que el que tiene mejor rendimiento es el random forest, de la misma forma el trabajo de 2 en donde a parte de las caracteristicas se utiliza la variable de la distancia al transporte encuentra que el mejor modelo es el random forest. 4 ,8 y 9 tambien encuentran que el random forest es el emjro modelo.
+Para la selección de variables, se han tomado varias alternativas clasificadas en 3 grupos: características propias del hogar y características del entorno donde está ubicado el hogar. Las más importantes o que más aportan para determinar el precio de la vivienda son: el número de habitaciones, el área del hogar, planta, cantidad de baños, si tiene garaje, edad de la propiedad, área construida, aire acondicionado y el estrato de la vivienda. Los trabajos llegan a la conclusión de que las mejores variables para explicar el precio son: número de habitaciones y de baños, junto con área construida y el estrato.
 
-Sin embargo hay otros algoritmos que tambien han tenido buen desempeno como las redes neuronales , el XGboost , el modelo Ripper y el gradient boosting.
+El segundo grupo de variables está relacionado con las características del entorno donde está ubicada la vivienda. Se utilizan variables como la distancia a estaciones de transporte y de educación, proporción de personas de bajos recursos que viven cerca, porcentaje de centros de negocio y la localización. La distancia al transporte es la característica que más peso tiene.
 
-El proposito de este articulo es realizar la prediccion de precios de vivienda en Bogota, en este proceso de utilizan variables propias de la vivienda pero en la misma medida variables que describan el entorno donde esta ubicada la vivienda y tambien se hace uso extensivo de las tecnicas de procesamiento de lenguaje
+El modelo que mejor rendimiento ha presentado para la predicción de los precios es el Random Forest. El trabajo desarrollado por @Cueto2022, utilizando solo características de la vivienda en 5 modelos, entre ellos redes neuronales y modelos basados en árboles, encuentra que el que tiene mejor rendimiento es el random forest. De la misma forma, el trabajo de @Choy2023, en donde, además de las características, se utiliza la variable de la distancia al transporte, encuentra que el mejor modelo es el random forest. @Navarro2020, @Alzate2019 y @Angie también encuentran que el random forest es el mejor modelo.
+
+
+Sin embargo, hay otros algoritmos que también han tenido buen desempeño para predecir el precio de las viviendas. En el trabajo de @Mohamed2023, se destaca el uso de redes neuronales. @Bushan2010 sugiere trabajar con XGBoost, mientras que el modelo Ripper mostró un rendimiento destacado en el trabajo de @Park2015. Además, tanto el gradient boosting como el random forest demostraron eficacia en el estudio de @Alzate2019.
+
+El propósito de este artículo es realizar la predicción de precios de vivienda en Bogotá. En este proceso, se utilizan variables propias de la vivienda, pero en la misma medida, variables que describan el entorno donde está ubicada la vivienda, y también se hace uso extensivo de las técnicas de procesamiento de lenguaje que permiten aprovechar las descripciones de la vivienda.
 
 # Data
