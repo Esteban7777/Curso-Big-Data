@@ -9,4 +9,18 @@ output: html_document
 
 # Introduccion
 
+La inversion mas importante para la mayoria de las personas es tener casa propia y este es una de la fuente mas comun en la acomulacion de capital. Por esto conocer cuales son los elementos que determinan el valor de este bien puede servir de guia para el proceso de planificacion financiera.
+
+Para la determinacion de los precios de las viviendas en la literatura se han logrado avances significativos. Primero , en relacion a las variables, en donde los principales trabajos se han concentrado en utilizar las caracteristicas propias del hogar y con menor impacto de las caracteristicas externas al hogar aparte del lugar donde estan ubicadas. Luego, en relacion a los modelos utilizados, se usan los principales algoritmos como regresion lineal que ayuda en la interpretacion pero tambien todos los algorimos basados en arboles de desicion.
+
+Para la seleccion de variables se han tomado varias alternativas clasificadas en 3 grupos. Caracteristicas propias del hogar y caracteristicas del entorno en donde esta ubicado el hogar. Las mas importantes o que mas aportan para determinar el precio de la vivienda son: El numero de habitaciones, el area del hogar, planta, cantidad de banos, tiene garaje, edad de la propiedad, area construida, aire acondicionado y el estrato de la vivienda, en donde los trabajos llegan a la conclusion de que las mejores variables para explicar el precio son: Numero de habitaciones y de banos junto con area construida y el estrato.
+
+El segundo grupo de variables esta relacionado con las caracteristicas del entorno en donde esta ubicada la vivienda. Se utilizan variables como la distancia al estaciones de transporte y de educacion , proporcion de personas de bajos recursos que viven cerca, porcentaje de centros de negocio y la localizacion. En donde la distancia al trasnporte es la caracertistica que mas pesa.
+
+El modelo que mejor rendimiento ha presentado para la prediccion de los precios es el Random Forest. El trabajo desarrallado por 1 utilizando solo caracteristicas de la vivienda en 5 modelos entre ellos redes neuronales y modelos basados en arboles encuentra que el que tiene mejor rendimiento es el random forest, de la misma forma el trabajo de 2 en donde a parte de las caracteristicas se utiliza la variable de la distancia al transporte encuentra que el mejor modelo es el random forest. 4 ,8 y 9 tambien encuentran que el random forest es el emjro modelo.
+
+Sin embargo hay otros algoritmos que tambien han tenido buen desempeno como las redes neuronales , el XGboost , el modelo Ripper y el gradient boosting.
+
+El proposito de este articulo es realizar la prediccion de precios de vivienda en Bogota, en este proceso de utilizan variables propias de la vivienda pero en la misma medida variables que describan el entorno donde esta ubicada la vivienda y tambien se hace uso extensivo de las tecnicas de procesamiento de lenguaje
+
 # Data
