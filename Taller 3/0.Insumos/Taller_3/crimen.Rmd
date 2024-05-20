@@ -13,7 +13,7 @@ library(tidyverse)
 ```{r}
 shp_data <- st_read("crimen/DAILoc.shp")
 shp_df <- st_read("crimen/DAILoc.dbf")
-data <- read.csv('train.csv')
+data <- read.csv('train_join.csv')
 ```
 
 ```{r}
@@ -43,6 +43,15 @@ hurtos_personas <- shp_data[, hurtos_personas]
 hurtos_personas <- hurtos_personas %>% select(CMHP22CONT)
 hurtos_personas
 ```
+
+```{r}
+matriz_dist_hv<-st_distance(hurtos_vivienda,train)
+matriz_dist_hp<-st_distance(hurtos_personas,train)
+```
+
+
+
+
 
 ```{r}
 distancia_minima_hv <- apply(matriz_dist_hv, 2, function(row) {
@@ -87,10 +96,7 @@ train <-cbind.data.frame(train,robos_vivienda_df,robos_personas_df)
 
 
 
-```{r}
-matriz_dist_hv<-st_distance(hurtos_vivienda,train)
-matriz_dist_hp<-st_distance(hurtos_personas,train)
-```
+
 
 
 
