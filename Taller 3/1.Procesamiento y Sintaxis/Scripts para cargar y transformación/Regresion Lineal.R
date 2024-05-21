@@ -76,6 +76,6 @@ test$precio_lm<-predict(modelo,newdata=test)
 
 sub_lm<-test %>% select(id,precio_lm)
 table(is.na(sub_lm$precio_lm))
-table(is.na(sub_lm$id)
+table(is.na(sub_lm$id))
       
 write_csv(x = sub9,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submission linear regression.csv",)
