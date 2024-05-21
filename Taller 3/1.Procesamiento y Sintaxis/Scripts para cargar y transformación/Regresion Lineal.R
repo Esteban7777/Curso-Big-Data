@@ -10,23 +10,6 @@ test<-read_csv("ruta del test")
 sectores<-unique(train$COD_Sector)
 folds<-createFolds(sectores,k=length(sectores),list = TRUE,returnTrain = TRUE)
 
-cv_modelo<-function(fold,predictores){
-  train_data<-datos %>% filter(COD_Sector %in% fold)
-  test_data<- datos %>% filter(!COD_Sector %in% fold)
-  modelo<-lm("price~",
-             paste(predictores_modelo, collapse = " + "), data=train)
-  prediccciones<-predict(modelo,newdata=test_data)
-  
-  MAE<-mean(abs(train$price-train$precio_lm_1))
-  
-  return(MAE)
-
-}
-
-MAE<-mean(sapply(folds,cv_modelo))
-
-
-
 #Modelos####
 
 #Modelo 1
