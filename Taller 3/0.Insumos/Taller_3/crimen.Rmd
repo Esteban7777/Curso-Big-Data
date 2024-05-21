@@ -113,20 +113,6 @@ hurtos_vivienda
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ```{r}
 distancia_minima_hv <- apply(matriz_dist_hv, 2, min, na.rm = TRUE)
 distancia_minima_hv
@@ -157,7 +143,7 @@ p_load("osmdata")
 
 
 ```{r}
-bogota<-opq(bbox = getbb("Bogotá Colombia"))
+bogota<-opq(bbox = getbb("Bogota Colombia"))
 seguridad<- bogota %>% 
                 add_osm_feature(key="amenity",value="police") %>% 
   osmdata_sf()
@@ -171,6 +157,16 @@ seguridad <- st_as_sf(seguridad,coords='geometry',crs=4326)
 seguridad<-st_transform(seguridad,4686)
 
 seguridad <- seguridad %>% select(osm_id,geometry)
+```
+
+```{r}
+seguridad
+```
+
+```{r}
+train <- st_as_sf(train,coords=c('lon','lat'),crs=4326)
+train<-st_transform(train,4686)
+train <- st_transform(train, st_crs(seguridad))
 ```
 
 

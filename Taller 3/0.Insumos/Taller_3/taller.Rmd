@@ -8,9 +8,11 @@ bibliography: bibliografia.bib
 
 # Entorno
 
+```{r}
+data <- read.csv('train_join.csv')
+```
+
 # Introduccion
-
-
 
 La inversión más importante para la mayoría de las personas es tener casa propia, y esta es una de las fuentes más comunes en la acumulación de capital. Por esto, conocer cuáles son los elementos que determinan el valor de este bien puede servir de guía para el proceso de planificación financiera.
 
@@ -22,9 +24,42 @@ El segundo grupo de variables está relacionado con las características del ent
 
 El modelo que mejor rendimiento ha presentado para la predicción de los precios es el Random Forest. El trabajo desarrollado por @Cueto2022, utilizando solo características de la vivienda en 5 modelos, entre ellos redes neuronales y modelos basados en árboles, encuentra que el que tiene mejor rendimiento es el random forest. De la misma forma, el trabajo de @Choy2023, en donde, además de las características, se utiliza la variable de la distancia al transporte, encuentra que el mejor modelo es el random forest. @Navarro2020, @Alzate2019 y @Angie también encuentran que el random forest es el mejor modelo.
 
-
 Sin embargo, hay otros algoritmos que también han tenido buen desempeño para predecir el precio de las viviendas. En el trabajo de @Mohamed2023, se destaca el uso de redes neuronales. @Bushan2010 sugiere trabajar con XGBoost, mientras que el modelo Ripper mostró un rendimiento destacado en el trabajo de @Park2015. Además, tanto el gradient boosting como el random forest demostraron eficacia en el estudio de @Alzate2019.
 
 El propósito de este artículo es realizar la predicción de precios de vivienda en Bogotá. En este proceso, se utilizan variables propias de la vivienda, pero en la misma medida, variables que describan el entorno donde está ubicada la vivienda, y también se hace uso extensivo de las técnicas de procesamiento de lenguaje que permiten aprovechar las descripciones de la vivienda.
 
 # Data
+
+## Agregacion de las nuevas variables
+
+Para modelar el precio de las viviendas en Bogota en primer lugar se cuenta con las caracteristicas propias del hogar. En primer lugar tenemos el precio de la vivienda que es la variable que se va a modelar y luego algunos atributos escensiales para iniciar con el proceso de modelacion. Como es el area que tiene la vivienda , el numero de habitaciones de habitaciones para dormir y de banos. Tambien es posible caracterizar el tipo de vivienda si es casa o apartamento. Y luego tambien se tiene a disposicion la descripcion de la vivienda de donde se pueden tomar datos que ayuden a describir mejor la vivienda.
+
+Para conocer mejor el contexto en el que se ubica la vivienda , se crea la variable estrato a partir de la informacion del dane. ( William debe ampliar la explicacion)
+
+La percepcion de seguridad es tambien un aspecto clave para determinanr la dispocion a pagar por una casa. Se espera que si hay mayor seguridad entonces el precio de la vivienda sea mayor. Para esto se incluyeron una serie de variables que pueden ayudar a medir este fenomeno. Con las cifras oficiales de la alcaldia se trajeron informacion geolocalizada de hurtos a personas y viviendas, la informacion solo esta disponible a traves de localidades no georeferenciada en forma similar a la base de datos, para esto por medio de la distnacia se trae la informacion de hurtos mas cercanas. Ademas tambien por medio de  la informacion de google se trae la distnacia que existen entre las viviendas y las estaciones de policia.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
