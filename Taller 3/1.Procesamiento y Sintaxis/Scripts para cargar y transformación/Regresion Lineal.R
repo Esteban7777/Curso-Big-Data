@@ -57,3 +57,25 @@ MAE_lm_2<-mean(sapply(folds,cv_modelo))
 
 min(MAE_lm_1,MAE_lm_2)
 
+#Predicciones
+
+modelo<-function(fold){
+  train_data<-datos %>% filter(COD_Sector %in% fold)
+  test_data<- datos %>% filter(!COD_Sector %in% fold)
+  modelo<-lm("price~",
+             paste(PREDICTORES DEL MEJOR MODELO, collapse = " + "), data=train)
+  prediccciones<-predict(modelo,newdata=test_data)
+  
+  MAE<-mean(abs(train$price-train$precio_lm_1))
+  
+  return(modelo)
+  
+}
+
+test$precio_lm<-predict(modelo,newdata=test)
+
+sub_lm<-test %>% select(id,precio_lm)
+table(is.na(sub_lm$precio_lm))
+table(is.na(sub_lm$id)
+      
+write_csv(x = sub9,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submission linear regression.csv",)
