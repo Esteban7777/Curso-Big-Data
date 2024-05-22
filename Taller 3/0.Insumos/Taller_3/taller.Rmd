@@ -9,7 +9,13 @@ bibliography: bibliografia.bib
 # Entorno
 
 ```{r}
-data <- read.csv('train_join.csv')
+library(tidyverse)
+```
+
+```{r}
+train <- read.csv('train_join.csv')
+test <-  read.csv('test_join.csv')
+data <- rbind.data.frame(test,train)
 ```
 
 # Introduccion
@@ -39,10 +45,29 @@ Para conocer mejor el contexto en el que se ubica la vivienda , se crea la varia
 La percepcion de seguridad es tambien un aspecto clave para determinanr la dispocion a pagar por una casa. Se espera que si hay mayor seguridad entonces el precio de la vivienda sea mayor. Para esto se incluyeron una serie de variables que pueden ayudar a medir este fenomeno. Con las cifras oficiales de la alcaldia se trajeron informacion geolocalizada de hurtos a personas y viviendas, la informacion solo esta disponible a traves de localidades no georeferenciada en forma similar a la base de datos, para esto por medio de la distnacia se trae la informacion de hurtos mas cercanas. Ademas tambien por medio de  la informacion de google se trae la distnacia que existen entre las viviendas y las estaciones de policia.
 
 
+## Analisis descriptivo de los datos
+
+### Precio
+
+El objetivo de este articulo es predecir el precio de las viviendas en la ciudad de bogota. Esta variable esta medida a traves de 3 anos distintos, lo que en terminos reales no representa lo mismo, por esto en primer lugar el proceso que se realizo fue una deflactacion de estas variables en terminos reales de tal forma que esto no afectara el proceso de modelacion. con esto en cuenta tenemos que el precio de entrada para comprar vivienda en Bogota tomando como referencia esta base de datos  es de 300 millones y el maximo es de 1650 millones y el promedio del precio de la Vivienda es de aproximadamente 650 millones. Bogota en terminos de precios de vivienda se encuentra por debajo del promedio nacional, siguiendo el Indice de precios de Vivienda del DANE, el indice de precios es de 126 puntos mientras que el promedio nacional es de 130, y el aumento de precios entre estos 3 anos es moderado donde en promedio el precio se ha incrementado un 8 %.
+
+
+
+```{r}
+train %>%
+  count(month)
+```
+```{r}
+format(summary(train$city),scientific=FALSE)
+```
 
 
 
 
+```{r}
+train %>%
+  count(cod_sector)
+```
 
 
 
