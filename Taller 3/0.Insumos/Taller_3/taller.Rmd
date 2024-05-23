@@ -12,11 +12,25 @@ bibliography: bibliografia.bib
 library(tidyverse)
 library(gridExtra)
 library(knitr)
+library(sf)
+library(leaflet)
+library(leaflet.extras)
+library(tmap)
+library(tmaptools)
 ```
 
 ```{r}
 train <- read.csv('train_join2.csv')
 test <-  read.csv('test_join2.csv')
+shp_data <- st_read("Bogota/Loca.shp")
+```
+```{r}
+plot(shp_data)
+```
+
+
+```{r}
+train_sf <- st_as_sf(train, coords = c("Lon", "Lat"), crs = 4326)
 ```
 
 # Introduccion
@@ -39,17 +53,19 @@ El propósito de este artículo es realizar la predicción de precios de viviend
 
 ## Agregacion de las nuevas variables
 
-Para modelar el precio de las viviendas en Bogota en primer lugar se cuenta con las caracteristicas propias del hogar. En primer lugar tenemos el precio de la vivienda que es la variable que se va a modelar y luego algunos atributos escensiales para iniciar con el proceso de modelacion. Como es el area que tiene la vivienda , el numero de habitaciones de habitaciones para dormir y de banos. Tambien es posible caracterizar el tipo de vivienda si es casa o apartamento. Y luego tambien se tiene a disposicion la descripcion de la vivienda de donde se pueden tomar datos que ayuden a describir mejor la vivienda.
+Para modelar el precio de las viviendas en Bogotá, se cuenta con diversas características propias del hogar. En primer lugar, tenemos el precio de la vivienda, que es la variable que se va a modelar. Luego, disponemos de algunos atributos esenciales para iniciar el proceso de modelación, tales como el área de la vivienda, el número de habitaciones para dormir y el número de baños. También se puede caracterizar el tipo de vivienda, diferenciando si es una casa o un apartamento. Además, se tiene a disposición la descripción de la vivienda, de donde se pueden extraer datos que ayuden a describir mejor la propiedad.
 
-Para conocer mejor el contexto en el que se ubica la vivienda , se crea la variable estrato a partir de la informacion del dane. ( William debe ampliar la explicacion)
+Para conocer mejor el contexto en el que se ubica la vivienda, se crea la variable estrato a partir de la información del DANE. (William debe ampliar la explicación sobre la creación de esta variable).
 
-La percepcion de seguridad es tambien un aspecto clave para determinanr la dispocion a pagar por una casa. Se espera que si hay mayor seguridad entonces el precio de la vivienda sea mayor. Para esto se incluyeron una serie de variables que pueden ayudar a medir este fenomeno. Con las cifras oficiales de la alcaldia se trajeron informacion geolocalizada de hurtos a personas y viviendas, la informacion solo esta disponible a traves de localidades no georeferenciada en forma similar a la base de datos, para esto por medio de la distnacia se trae la informacion de hurtos mas cercanas. Ademas tambien por medio de la informacion de google se trae la distnacia que existen entre las viviendas y las estaciones de policia.
+La percepción de seguridad también es un aspecto clave para determinar la disposición a pagar por una vivienda. Se espera que, si hay mayor seguridad, el precio de la vivienda sea mayor. Para medir este fenómeno, se incluyeron una serie de variables relevantes. Con las cifras oficiales de la alcaldía, se obtuvo información geolocalizada de hurtos a personas y viviendas. Esta información solo está disponible a nivel de localidades y no georreferenciada de manera similar a la base de datos. Por ello, se utilizó la distancia para integrar la información de hurtos más cercanos. Además, a través de la información de Google, se calculó la distancia entre las viviendas y las estaciones de policía.
 
 ## Analisis descriptivo de los datos
 
 ### Precio
 
-El objetivo de este articulo es predecir el precio de las viviendas en la ciudad de bogota. Esta variable esta medida a traves de 3 anos distintos, lo que en terminos reales no representa lo mismo, por esto en primer lugar el proceso que se realizo fue una deflactacion de estas variables en terminos reales de tal forma que esto no afectara el proceso de modelacion. con esto en cuenta tenemos que el precio de entrada para comprar vivienda en Bogota tomando como referencia esta base de datos es de 300 millones y el maximo es de 1650 millones y el promedio del precio de la Vivienda es de aproximadamente 650 millones. Bogota en terminos de precios de vivienda se encuentra por debajo del promedio nacional, siguiendo el Indice de precios de Vivienda del DANE, el indice de precios es de 126 puntos mientras que el promedio nacional es de 130, y el aumento de precios entre estos 3 anos es moderado donde en promedio el precio se ha incrementado un 8 %.
+El objetivo de este artículo es predecir el precio de las viviendas en la ciudad de Bogotá. Esta variable está medida a lo largo de tres años distintos, lo que en términos reales no representa lo mismo. Por esta razón, el primer paso fue realizar una deflactación de estas variables a términos reales, de modo que esto no afectara el proceso de modelación.
+
+Teniendo esto en cuenta, se observa que el precio de entrada para comprar una vivienda en Bogotá, tomando como referencia esta base de datos, es de 300 millones de pesos, con un máximo de 1650 millones y un precio promedio de aproximadamente 650 millones. En términos de precios de vivienda, Bogotá se encuentra por debajo del promedio nacional. Según el Índice de Precios de Vivienda del DANE, el índice de precios en Bogotá es de 126 puntos, mientras que el promedio nacional es de 130 puntos. Además, el aumento de precios durante estos tres años ha sido moderado, con un incremento promedio del 8%.
 
 ```{r}
 train %>%
@@ -103,7 +119,7 @@ bar_plots <- lapply(variables, function(var) generate_barplot(vars_imputed, var)
 # Crear una grilla de gráficos
 do.call("grid.arrange", c(bar_plots, ncol = 2))
 ```
-
+La cantidad de habitaciones mas comun que tienen las viviendas que estan puestas en venta son 3 , lo mismo que para el numero de habitaciones para dormir, para el caso de los baños en este proceso la cantidad es igual, esto se explicar debido a que la mayoria de tipos de vivienda son apartamentos.  La cantidad de numero de baños es muy similar pero en este caso se concentran mucho mas en 2 y 3 habitaciones. Un punto interesante es que en la muestra de datos que tenemos  disposición la mayoria son apartamentos que estan ubicandos en zonas de Estrato 4, 5 y 6. 
 
 ```{r}
 
@@ -128,3 +144,32 @@ plots <- lapply(variables, function(var) generate_boxplot(vars_imputed, var))
 # Crear una grilla de gráficos
 do.call("grid.arrange", c(plots, ncol = 2))
 ```
+Cuando se analiza la relacion que existen entre las caracterisitcas de las viviendas con el logaritmo del precio de las viviendas se encuentra que existen relaciones estadisticias con el numero de balis, de habitaciones, con el tipo de la vivienda y el estrato socioeconomico.
+
+Estos resultados son consistentes con los hallazgos que se ven en la literatura en donde mas habitaciones tenga una vivienda su precio tiende a aumentar y el mismo caso tambien para la cantidad de baños. Para esta muestra se tiene que el tipo de vivienda mas costoso son las casas , pero entendiendo que se tienen muy pocos registros para este tipo de vivienda. POr ultimo se nota que conforme aumenta el estrato el promedio de precio de la vivienda comienza a aumentar, desde el estrato 4 al 6, que es donde mas datos disponibles se tienen.
+
+```{r}
+
+train_coords <- train_sf %>%
+  st_coordinates() %>%
+  as.data.frame() %>%
+  rename(Lon = X, Lat = Y) %>%
+  bind_cols(train)
+
+# Calcular los valores de log(price) para la leyenda
+train_coords$log_price <- log(train_coords$price)
+
+# Inicializar el mapa centrado en Bogotá
+mapa <- leaflet() %>%
+  addTiles() %>%
+  setView(lng = -74.08175, lat = 4.60971, zoom = 12) %>%
+  addPolygons(data = shp_data, color = "blue", weight = 2, opacity = 0.5) %>%
+  addHeatmap(lng = ~Lon...41, lat = ~Lat...42, intensity = ~log_price, blur = 20, max = 0.05, radius = 15, data = train_coords) %>%
+  addControl("<img src='https://leafletjs.com/examples/custom-icons/leaf-red.png' style='width:24px;height:24px;'>", position = "topright", className = "compass")
+
+mapa
+```
+
+Este mapa muestra la concetración de las viviendas que estan siendo analizadas en este estudio. En primer lugar, la mayoria de las viviendas que esna en venta se encuentran en al oeste , norte y sur de la ciudad. Como se nota en el mapa de calor, donde se coloca el logartimo de precios de la vivienda como entre las viviendas se encuentres mas cerca de la periferia de la ciudad la intensidad del precio es mayor.Lo que evidencia que la ubicación es importante para la predicción de precios.
+
+
