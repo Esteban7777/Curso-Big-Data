@@ -13,11 +13,11 @@ library(tidyverse)
 ```{r}
 shp_data <- st_read("crimen/DAILoc.shp")
 shp_df <- st_read("crimen/DAILoc.dbf")
-data <- read.csv('train_join.csv')
+data <- read.csv('train_join2.csv')
 ```
 
 ```{r}
-train <- st_as_sf(data,coords=c('lon','lat'),crs=4326)
+train <- st_as_sf(data,coords=c('Lon','Lat'),crs=4326)
 train<-st_transform(train,4686)
 
 shp_data <- st_as_sf(shp_data,coords='geometry',crs=4326)
@@ -155,13 +155,10 @@ seguridad<-seguridad$osm_point
 
 seguridad <- st_as_sf(seguridad,coords='geometry',crs=4326)
 seguridad<-st_transform(seguridad,4686)
-
 seguridad <- seguridad %>% select(osm_id,geometry)
 ```
 
-```{r}
-seguridad
-```
+
 
 ```{r}
 train <- st_as_sf(train,coords=c('lon','lat'),crs=4326)
