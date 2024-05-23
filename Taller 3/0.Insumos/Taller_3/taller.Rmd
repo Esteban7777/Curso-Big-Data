@@ -10,12 +10,13 @@ bibliography: bibliografia.bib
 
 ```{r}
 library(tidyverse)
+library(gridExtra)
+library(knitr)
 ```
 
 ```{r}
-train <- read.csv('train_join.csv')
-test <-  read.csv('test_join.csv')
-data <- rbind.data.frame(test,train)
+train <- read.csv('train_join2.csv')
+test <-  read.csv('test_join2.csv')
 ```
 
 # Introduccion
@@ -42,49 +43,88 @@ Para modelar el precio de las viviendas en Bogota en primer lugar se cuenta con 
 
 Para conocer mejor el contexto en el que se ubica la vivienda , se crea la variable estrato a partir de la informacion del dane. ( William debe ampliar la explicacion)
 
-La percepcion de seguridad es tambien un aspecto clave para determinanr la dispocion a pagar por una casa. Se espera que si hay mayor seguridad entonces el precio de la vivienda sea mayor. Para esto se incluyeron una serie de variables que pueden ayudar a medir este fenomeno. Con las cifras oficiales de la alcaldia se trajeron informacion geolocalizada de hurtos a personas y viviendas, la informacion solo esta disponible a traves de localidades no georeferenciada en forma similar a la base de datos, para esto por medio de la distnacia se trae la informacion de hurtos mas cercanas. Ademas tambien por medio de  la informacion de google se trae la distnacia que existen entre las viviendas y las estaciones de policia.
-
+La percepcion de seguridad es tambien un aspecto clave para determinanr la dispocion a pagar por una casa. Se espera que si hay mayor seguridad entonces el precio de la vivienda sea mayor. Para esto se incluyeron una serie de variables que pueden ayudar a medir este fenomeno. Con las cifras oficiales de la alcaldia se trajeron informacion geolocalizada de hurtos a personas y viviendas, la informacion solo esta disponible a traves de localidades no georeferenciada en forma similar a la base de datos, para esto por medio de la distnacia se trae la informacion de hurtos mas cercanas. Ademas tambien por medio de la informacion de google se trae la distnacia que existen entre las viviendas y las estaciones de policia.
 
 ## Analisis descriptivo de los datos
 
 ### Precio
 
-El objetivo de este articulo es predecir el precio de las viviendas en la ciudad de bogota. Esta variable esta medida a traves de 3 anos distintos, lo que en terminos reales no representa lo mismo, por esto en primer lugar el proceso que se realizo fue una deflactacion de estas variables en terminos reales de tal forma que esto no afectara el proceso de modelacion. con esto en cuenta tenemos que el precio de entrada para comprar vivienda en Bogota tomando como referencia esta base de datos  es de 300 millones y el maximo es de 1650 millones y el promedio del precio de la Vivienda es de aproximadamente 650 millones. Bogota en terminos de precios de vivienda se encuentra por debajo del promedio nacional, siguiendo el Indice de precios de Vivienda del DANE, el indice de precios es de 126 puntos mientras que el promedio nacional es de 130, y el aumento de precios entre estos 3 anos es moderado donde en promedio el precio se ha incrementado un 8 %.
-
-
+El objetivo de este articulo es predecir el precio de las viviendas en la ciudad de bogota. Esta variable esta medida a traves de 3 anos distintos, lo que en terminos reales no representa lo mismo, por esto en primer lugar el proceso que se realizo fue una deflactacion de estas variables en terminos reales de tal forma que esto no afectara el proceso de modelacion. con esto en cuenta tenemos que el precio de entrada para comprar vivienda en Bogota tomando como referencia esta base de datos es de 300 millones y el maximo es de 1650 millones y el promedio del precio de la Vivienda es de aproximadamente 650 millones. Bogota en terminos de precios de vivienda se encuentra por debajo del promedio nacional, siguiendo el Indice de precios de Vivienda del DANE, el indice de precios es de 126 puntos mientras que el promedio nacional es de 130, y el aumento de precios entre estos 3 anos es moderado donde en promedio el precio se ha incrementado un 8 %.
 
 ```{r}
 train %>%
-  count(month)
+  count(year)
 ```
-```{r}
-format(summary(train$city),scientific=FALSE)
-```
-
-
-
 
 ```{r}
-train %>%
-  count(cod_sector)
+format(summary(train$precio_2019),scientific=FALSE)
+```
+
+### Caracteristicas del hogar
+
+En primer lugar vamos a analizar como se relacionan las principales variables del hogar frente al precio de venta que tiene disponible, para este analisis se toman el numero de habitaciones, numero de banos, numero de alcobas, tipo de propiedad, estrato y el piso donde se encuentra ubicado. En primer lugar vamos a imputar de forma sencilla las variables que tienen N'A y luego procedemos con un analisis descriptivo bivariado.
+
+```{r}
+train <-train %>%
+  filter(rooms <5, bathrooms<5,bedrooms<5,nbanios<5,nhabitaciones<5,piso_apartamento<5)
+
+vars <- train %>% 
+  select(rooms, bedrooms, bathrooms, property_type, estrato_predominante, nbanios, nhabitaciones, piso_apartamento,price) %>%
+  mutate(log_price = log(price))
+
+
+
+# Imputar los valores NA con la media redondeada de cada columna numérica
+vars_imputed <- vars %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), round(mean(., na.rm = TRUE)), .)))
+
+vars_imputed <- vars_imputed %>%
+  mutate(across(-log_price, as.factor))
+
+
+
+# Función para generar gráficos de barras de conteo
+generate_barplot <- function(data, x_var) {
+  ggplot(data, aes_string(x = x_var)) +
+    geom_bar(fill = "steelblue") +
+    labs(title = paste("Count of", x_var),
+         x = x_var, 
+         y = "Count") +
+    theme_minimal()
+}
+
+# Lista de variables cualitativas
+variables <- c("rooms", "bedrooms", "bathrooms", "property_type", 
+               "estrato_predominante", "nbanios", "nhabitaciones", "piso_apartamento")
+
+# Generar gráficos de barras y guardarlos en una lista
+bar_plots <- lapply(variables, function(var) generate_barplot(vars_imputed, var))
+
+# Crear una grilla de gráficos
+do.call("grid.arrange", c(bar_plots, ncol = 2))
 ```
 
 
+```{r}
 
 
+# Crear una función para generar los boxplots
+generate_boxplot <- function(data, x_var, y_var = "log_price") {
+  ggplot(data, aes_string(x = x_var, y = y_var)) +
+    geom_boxplot() +
+    labs(title = paste("Boxplot of", x_var, "vs", y_var),
+         x = x_var, 
+         y = y_var) +
+    theme_minimal()
+}
 
+# Lista de variables cualitativas (excluyendo 'price' y 'log_price')
+variables <- c("rooms", "bedrooms", "bathrooms", "property_type", 
+               "estrato_predominante", "nbanios", "nhabitaciones", "piso_apartamento")
 
+# Generar los boxplots y guardarlos en una lista
+plots <- lapply(variables, function(var) generate_boxplot(vars_imputed, var))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Crear una grilla de gráficos
+do.call("grid.arrange", c(plots, ncol = 2))
+```
