@@ -23,7 +23,10 @@ library(tmaptools)
 train <- read.csv('train_join2.csv')
 test <-  read.csv('test_join2.csv')
 shp_data <- st_read("Bogota/Loca.shp")
+robos <- read.csv('robos.csv')
+train <- cbind.data.frame(train,robos)
 ```
+
 ```{r}
 plot(shp_data)
 ```
@@ -171,5 +174,11 @@ mapa
 ```
 
 Este mapa muestra la concetración de las viviendas que estan siendo analizadas en este estudio. En primer lugar, la mayoria de las viviendas que esna en venta se encuentran en al oeste , norte y sur de la ciudad. Como se nota en el mapa de calor, donde se coloca el logartimo de precios de la vivienda como entre las viviendas se encuentres mas cerca de la periferia de la ciudad la intensidad del precio es mayor.Lo que evidencia que la ubicación es importante para la predicción de precios.
+
+## Seguridad
+
+Se espera que entre mas seguro sea el lugar donde este ubicada la vivienda el costo sea mayor. Para explorar esta variable se trabaja desde dos enfoques, en primer lugar se toma la informacionde la alcaldia de bogota sobre la cantidad de robos a personas y a casas georeferenciadas a nivel de localidad y luego por medio de la distancia se agrega la cantidad de robos que mas cerca se presentan.  Luego vamos a trabajar con la distancia minima que se encuentra entre el hogar con una estacion de policia
+
+
 
 

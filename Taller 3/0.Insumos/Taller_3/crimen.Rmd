@@ -15,7 +15,8 @@ shp_data <- st_read("crimen/DAILoc.shp")
 shp_df <- st_read("crimen/DAILoc.dbf")
 data <- read.csv('train_join2.csv')
 ```
-
+ # Se transforman los datos en formato espacial 
+ 
 ```{r}
 train <- st_as_sf(data,coords=c('Lon','Lat'),crs=4326)
 train<-st_transform(train,4686)
@@ -28,19 +29,20 @@ shp_data<-st_transform(shp_data,4686)
 
 
 
+
 #### Robos
 
 ```{r}
 hurtos_vivienda <- grep("HR", names(shp_data), value = TRUE)
 hurtos_vivienda <- shp_data[, hurtos_vivienda]
-hurtos_vivienda <- hurtos_vivienda %>% select(CMHR22CONT)
+hurtos_vivienda <- hurtos_vivienda %>% select(CMHR21CONT)
 hurtos_vivienda
 ```
 
 ```{r}
 hurtos_personas <- grep("HP", names(shp_data), value = TRUE)
 hurtos_personas <- shp_data[, hurtos_personas]
-hurtos_personas <- hurtos_personas %>% select(CMHP22CONT)
+hurtos_personas <- hurtos_personas %>% select(CMHP21CONT)
 hurtos_personas
 ```
 
@@ -90,44 +92,28 @@ robos_personas_df <- as.data.frame(robos_personas_df)
 colnames(robos_personas_df) <-'Robos_personas'
 ```
 
+
+
+
+
 ```{r}
 train <-cbind.data.frame(train,robos_vivienda_df,robos_personas_df)
 ```
 
 
 
-
-
-
-
 ```{r}
-df_hp<-as.data.frame(matriz_dist_hv)
+train %>%
+  select(price,Robos_vivienda,Robos_personas) %>%
+  cor()
 ```
 
 ```{r}
-df_hp
-```
 
-```{r}
-hurtos_vivienda
 ```
 
 
-```{r}
-distancia_minima_hv <- apply(matriz_dist_hv, 2, min, na.rm = TRUE)
-distancia_minima_hv
-```
 
-```{r}
-minimo_valor <- min(matriz_dist_hv, na.rm = TRUE)
-
-which(matriz_dist_hv == minimo_valor, arr.ind = TRUE)[1, "row"]
-```
-
-
-```{r}
-minimo_valor
-```
 
 
 
@@ -161,7 +147,7 @@ seguridad <- seguridad %>% select(osm_id,geometry)
 
 
 ```{r}
-train <- st_as_sf(train,coords=c('lon','lat'),crs=4326)
+train <- st_as_sf(data,coords=c('Lon','Lat'),crs=4326)
 train<-st_transform(train,4686)
 train <- st_transform(train, st_crs(seguridad))
 ```
@@ -171,16 +157,27 @@ train <- st_transform(train, st_crs(seguridad))
 matriz_dist<-st_distance(seguridad,train)
 distancia_minima <- apply(matriz_dist, 2, min, na.rm = TRUE)
 train <- train %>% 
-  mutate(distancia_minima = distancia_estacion_policia)
+  mutate(distancia_estacion_policia = distancia_minima)
 ```
 
 
 
 
+```{r}
+train_en <- as.data.frame(train)
+train_en %>%
+  select(price,distancia_estacion_policia) %>%
+  cor
+```
 
 
 
 
+```{r}
+robos <- train %>% select(Robos_vivienda,Robos_personas,distancia_estacion_policia)
+
+write.csv(robos,'seguridad.csv')
+```
 
 
 
