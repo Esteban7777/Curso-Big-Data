@@ -194,15 +194,19 @@ seguridad<-seguridad$osm_point
 seguridad <- st_as_sf(seguridad,coords='geometry',crs=4326)
 seguridad<-st_transform(seguridad,4686)
 seguridad <- seguridad %>% select(osm_id,geometry)
-```
 
-
-
-```{r}
 train <- st_as_sf(data,coords=c('Lon','Lat'),crs=4326)
 train<-st_transform(train,4686)
 train <- st_transform(train, st_crs(seguridad))
+
+matriz_dist<-st_distance(seguridad,train)
+distancia_minima <- apply(matriz_dist, 2, min, na.rm = TRUE)
+train <- train %>% 
+  mutate(distancia_estacion_policia = distancia_minima)
 ```
+
+
+
 
 ```{r}
 test <- st_as_sf(data_t,coords=c('lon','lat'),crs=4326)
@@ -224,12 +228,7 @@ test_en %>%
   cor
 ```
 
-```{r}
-matriz_dist<-st_distance(seguridad,train)
-distancia_minima <- apply(matriz_dist, 2, min, na.rm = TRUE)
-train <- train %>% 
-  mutate(distancia_estacion_policia = distancia_minima)
-```
+
 
 
 
@@ -262,8 +261,109 @@ write.csv(robos_test,'seguridad_test.csv')
 
 
 
+```{r}
+bogota<-opq(bbox = getbb("Bogota Colombia")) 
+
+parques <- bogota %>%
+  add_osm_feature(key = "highway", value = "bus_stop") %>% 
+  osmdata_sf()
+parques<-parques$osm_point
+```
 
 
+```{r}
+parques <- st_as_sf(parques,coords='geometry',crs=4326)
+parques<-st_transform(parques,4686)
+parques <- parques %>% select(osm_id,geometry)
+
+train <- st_as_sf(data,coords=c('Lon','Lat'),crs=4326)
+train<-st_transform(train,4686)
+train <- st_transform(train, st_crs(parques))
+
+matriz_dist<-st_distance(parques,train)
+distancia_minima <- apply(matriz_dist, 2, min, na.rm = TRUE)
+train <- train %>% 
+  mutate(distancia_parques = distancia_minima)
+```
+
+
+
+```{r}
+train_en <- as.data.frame(train)
+train_en %>%
+  select(price,distancia_parques) %>%
+  cor
+```
+
+## Distancia con los hospitales
+
+
+
+```{r}
+hospital <- bogota %>%
+  add_osm_feature(key = "amenity", value = "hospital") %>% 
+  osmdata_sf()
+hospital<-hospital$osm_point
+```
+
+
+```{r}
+hospital <- st_as_sf(hospital,coords='geometry',crs=4326)
+hospital<-st_transform(hospital,4686)
+hospital <- hospital %>% select(osm_id,geometry)
+
+train <- st_as_sf(data,coords=c('Lon','Lat'),crs=4326)
+train<-st_transform(train,4686)
+train <- st_transform(train, st_crs(hospital))
+
+matriz_dist<-st_distance(hospital,train)
+distancia_minima <- apply(matriz_dist, 2, min, na.rm = TRUE)
+train <- train %>% 
+  mutate(distancia_hospital = distancia_minima)
+```
+
+
+
+```{r}
+hospital <- bogota %>%
+  add_osm_feature(key = "amenity", value = "hospital") %>% 
+  osmdata_sf()
+hospital<-hospital$osm_point
+```
+
+
+```{r}
+hospital <- st_as_sf(hospital,coords='geometry',crs=4326)
+hospital<-st_transform(hospital,4686)
+hospital <- hospital %>% select(osm_id,geometry)
+
+test <- st_as_sf(data_t,coords=c('lon','lat'),crs=4326)
+test<-st_transform(test,4686)
+test <- st_transform(test, st_crs(hospital))
+
+matriz_dist<-st_distance(hospital,test)
+distancia_minima <- apply(matriz_dist, 2, min, na.rm = TRUE)
+test <- test %>% 
+  mutate(distancia_hospital = distancia_minima)
+```
+
+
+
+
+```{r}
+distancia_hospital <- train$distancia_hospital
+distancia_hospital_t <- test$distancia_hospital
+```
+
+```{r}
+distancia_hospital_t
+```
+
+
+```{r}
+write.csv(distancia_hospital_t,'Distancia_hospital_test.csv')
+write.csv(distancia_hospital,'Distancia_hospital_train.csv')
+```
 
 
 

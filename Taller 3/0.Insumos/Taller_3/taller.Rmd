@@ -17,14 +17,17 @@ library(leaflet)
 library(leaflet.extras)
 library(tmap)
 library(tmaptools)
+library(reshape2)
 ```
 
 ```{r}
 train <- read.csv('train_join2.csv')
 test <-  read.csv('test_join2.csv')
 shp_data <- st_read("Bogota/Loca.shp")
-robos <- read.csv('robos.csv')
-train <- cbind.data.frame(train,robos)
+robos <- read.csv('seguridad.csv')
+hospital <- read.csv('Distancia_hospital_train.csv')
+train <- cbind.data.frame(train,robos,hospital)
+
 ```
 
 ```{r}
@@ -58,7 +61,7 @@ El propósito de este artículo es realizar la predicción de precios de viviend
 
 Para modelar el precio de las viviendas en Bogotá, se cuenta con diversas características propias del hogar. En primer lugar, tenemos el precio de la vivienda, que es la variable que se va a modelar. Luego, disponemos de algunos atributos esenciales para iniciar el proceso de modelación, tales como el área de la vivienda, el número de habitaciones para dormir y el número de baños. También se puede caracterizar el tipo de vivienda, diferenciando si es una casa o un apartamento. Además, se tiene a disposición la descripción de la vivienda, de donde se pueden extraer datos que ayuden a describir mejor la propiedad.
 
-Para conocer mejor el contexto en el que se ubica la vivienda, se crea la variable estrato a partir de la información del DANE. (William debe ampliar la explicación sobre la creación de esta variable).
+Para conocer mejor el contexto en el que se ubica la vivienda, se creó la variable "estrato" a partir de la información del DANE. En primer lugar, se descargó la cartografía del Marco Geoestadístico Nacional del DANE y el Censo 2018 a nivel de manzana. Luego, se hizo un join espacial entre cada uno de los inmuebles y el Marco Geoestadístico Nacional para identificar la manzana de cada una de las viviendas. Posteriormente, con el código de manzana, se realizó un join con el Censo 2018 para identificar el estrato predominante.
 
 La percepción de seguridad también es un aspecto clave para determinar la disposición a pagar por una vivienda. Se espera que, si hay mayor seguridad, el precio de la vivienda sea mayor. Para medir este fenómeno, se incluyeron una serie de variables relevantes. Con las cifras oficiales de la alcaldía, se obtuvo información geolocalizada de hurtos a personas y viviendas. Esta información solo está disponible a nivel de localidades y no georreferenciada de manera similar a la base de datos. Por ello, se utilizó la distancia para integrar la información de hurtos más cercanos. Además, a través de la información de Google, se calculó la distancia entre las viviendas y las estaciones de policía.
 
@@ -76,7 +79,7 @@ train %>%
 ```
 
 ```{r}
-format(summary(train$precio_2019),scientific=FALSE)
+format(summary(train$price),scientific=FALSE)
 ```
 
 ### Caracteristicas del hogar
@@ -122,6 +125,7 @@ bar_plots <- lapply(variables, function(var) generate_barplot(vars_imputed, var)
 # Crear una grilla de gráficos
 do.call("grid.arrange", c(bar_plots, ncol = 2))
 ```
+
 La cantidad de habitaciones mas comun que tienen las viviendas que estan puestas en venta son 3 , lo mismo que para el numero de habitaciones para dormir, para el caso de los baños en este proceso la cantidad es igual, esto se explicar debido a que la mayoria de tipos de vivienda son apartamentos.  La cantidad de numero de baños es muy similar pero en este caso se concentran mucho mas en 2 y 3 habitaciones. Un punto interesante es que en la muestra de datos que tenemos  disposición la mayoria son apartamentos que estan ubicandos en zonas de Estrato 4, 5 y 6. 
 
 ```{r}
@@ -175,10 +179,32 @@ mapa
 
 Este mapa muestra la concetración de las viviendas que estan siendo analizadas en este estudio. En primer lugar, la mayoria de las viviendas que esna en venta se encuentran en al oeste , norte y sur de la ciudad. Como se nota en el mapa de calor, donde se coloca el logartimo de precios de la vivienda como entre las viviendas se encuentres mas cerca de la periferia de la ciudad la intensidad del precio es mayor.Lo que evidencia que la ubicación es importante para la predicción de precios.
 
-## Seguridad
+## Seguridad y salud
 
-Se espera que entre mas seguro sea el lugar donde este ubicada la vivienda el costo sea mayor. Para explorar esta variable se trabaja desde dos enfoques, en primer lugar se toma la informacionde la alcaldia de bogota sobre la cantidad de robos a personas y a casas georeferenciadas a nivel de localidad y luego por medio de la distancia se agrega la cantidad de robos que mas cerca se presentan.  Luego vamos a trabajar con la distancia minima que se encuentra entre el hogar con una estacion de policia
-
-
+Se espera que entre mas seguro sea el lugar donde este ubicada la vivienda el costo sea mayor. Para explorar esta variable se trabaja desde dos enfoques, en primer lugar se toma la informacionde la alcaldia de bogota sobre la cantidad de robos a personas y a casas georeferenciadas a nivel de localidad y luego por medio de la distancia se agrega la cantidad de robos que mas cerca se presentan.  Luego vamos a trabajar con la distancia minima que se encuentra entre el hogar con una estacion de policia, se espera que entre mas cerca se encuentre una vivienda de una estacion de policia entonces la percepcion de seguridad sea mayor y el precio de la vivienda aumente.
 
 
+```{r}
+train <- train %>% mutate(price_l = log(price))
+cor_matrix <- cor(train %>% select(price_l, Robos_vivienda, Robos_personas,distancia_estacion_policia,dista)) 
+
+# Convertir la matriz de correlación a un formato largo adecuado para ggplot2
+melted_cor_matrix <- melt(cor_matrix)
+
+# Crear el gráfico de calor
+ggplot(data = melted_cor_matrix, aes(x=Var1, y=Var2, fill=value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       midpoint = 0, limit = c(-1,1), space = "Lab", 
+                       name="Correlación") +
+  geom_text(aes(label = round(value, 2)), color = "black", size = 4) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1)) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1)) +
+  coord_fixed()
+```
+
+Con esta gráfica, podemos observar que existe una relación negativa entre el valor de una vivienda y la cantidad de robos cercanos que se han producido. Esto indica que la percepción de seguridad es un factor a tener en cuenta al momento de entender el valor de la vivienda. Del mismo modo, cuanto mayor sea la distancia entre la vivienda y la estación de policía, el precio de la vivienda tiende a bajar. Por lo tanto, se puede comprobar la hipótesis de que la percepción de seguridad es importante para entender el precio de la vivienda.
