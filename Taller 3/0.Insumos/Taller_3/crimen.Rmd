@@ -356,7 +356,8 @@ distancia_hospital_t <- test$distancia_hospital
 ```
 
 ```{r}
-distancia_hospital_t
+distancia_hospital<-as.data.frame(distancia_hospital)
+distancia_hospital_t<-as.data.frame(distancia_hospital_t)
 ```
 
 
