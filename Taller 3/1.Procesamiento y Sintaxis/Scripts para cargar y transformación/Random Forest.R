@@ -9,7 +9,6 @@ test<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/mai
 
 
 #Predictores
-
 train <- train %>% mutate(estrato = as.numeric(substr(estrato_predominante, 8, nchar(estrato_predominante))))
 test <- test %>% mutate(estrato = as.numeric(substr(estrato_predominante, 8, nchar(estrato_predominante))))
 
@@ -22,11 +21,11 @@ modelo_rf<- ranger(formula = as.formula(paste("price~",
                                        paste(predictores_modelo_rf_1, collapse = " + "))), 
             data = train,
             num.trees= 500, ## Numero de bootstrap samples y arboles a estimar. Default 500  
-            mtry= 4,   # N. var aleatoriamente seleccionadas en cada partición. Baggin usa todas las vars.
+            mtry= 4,   # N. var aleatoriamente seleccionadas en cada partici?n. Baggin usa todas las vars.
             min.node.size  = 1, ## Numero minimo de observaciones en un nodo para intentar 
             ) 
 
-#Predicción dentro de muestra
+#Predicci?n dentro de muestra
 
 X<-train %>% select(predictores_modelo_rf_1)
 
@@ -115,11 +114,11 @@ modelo_rf_2<- ranger(formula = as.formula(paste("price~",
                                               paste(predictores_modelo_rf_2, collapse = " + "))), 
                    data = train,
                    num.trees= 500, ## Numero de bootstrap samples y arboles a estimar. Default 500  
-                   mtry= 4,   # N. var aleatoriamente seleccionadas en cada partición. Baggin usa todas las vars.
+                   mtry= 4,   # N. var aleatoriamente seleccionadas en cada partici?n. Baggin usa todas las vars.
                    min.node.size  = 1, ## Numero minimo de observaciones en un nodo para intentar 
 ) 
 
-#Predicción dentro de muestra
+#Predicci?n dentro de muestra
 
 X<-train %>% select(predictores_modelo_rf_2)
 
@@ -178,11 +177,11 @@ modelo_rf_3<- ranger(formula = as.formula(paste("precio_log~",
                                                 paste(predictores_modelo_rf_3, collapse = " + "))), 
                      data = train,
                      num.trees= 500, ## Numero de bootstrap samples y arboles a estimar. Default 500  
-                     mtry= 4,   # N. var aleatoriamente seleccionadas en cada partición. Baggin usa todas las vars.
+                     mtry= 4,   # N. var aleatoriamente seleccionadas en cada partici?n. Baggin usa todas las vars.
                      min.node.size  = 1, ## Numero minimo de observaciones en un nodo para intentar 
 ) 
 
-#Predicción dentro de muestra
+#Predicci?n dentro de muestra
 
 X<-train %>% select(predictores_modelo_rf_3)
 
@@ -229,5 +228,47 @@ write_csv(x = sub_rf_3,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Talle
 
 
 
+#Utilizando cross-validation con Caret
 
+folds <- createFolds(train$cod_sector, k = length(unique(train$cod_sector)))
+
+#Predictores
+predictores_modelo_rf_4 <- c("nbanios","nhabitaciones","piso_apartamento",
+                             "estrato","Periodo","Robos_vivienda","Robos_personas",
+                             "distancia_estacion_policia")
+# Configurar la validaciÃ³n cruzada con caret
+train_control <- trainControl(method = "cv", index = folds)
+
+
+tune_grid <- expand.grid(.mtry = sqrt(ncol(train) - 2))
+
+
+modelo_rf_4 <- train(as.formula(paste("price ~",paste(predictores_modelo_rf_4,collapse = "+"))), data = train, method = "rf", 
+               trControl = train_control, tuneGrid = tune_grid, ntree = 500)
+
+
+train$precio_rf_4 <- predict(modelo_rf_4, newdata = train)
+
+MAE_rf_4_insample <- mean(abs(train$price -train$precio_rf_4))
+
+summary(train$precio_rf_4)
+
+#PredicciÃ³n fuera de muestra
+
+test$precio_rf_4 <- predict(modelo_rf_4, newdata = test)
+
+table(is.na(test$precio_rf_4))
+
+summary(test$precio_rf_4)
+
+
+#Exportar predicciÃ³n
+sub_rf_4<-test %>% select(property_id,precio_rf_4)
+table(is.na(sub_rf_4$precio_rf_4))
+table(is.na(sub_rf_4$property_id))
+
+sub_rf_4<-sub_rf_4 %>% mutate(price=precio_rf_4)%>% select(property_id,price)
+summary(sub_rf_4$price)
+
+write_csv(x = sub_rf_4,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submit/Submit_rf_4.csv",)
 
