@@ -360,16 +360,16 @@ amenities_test<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Bi
 names(amenities_train) <- c("distancia_centro_comercial","distancia_escuela","distancia_universidad",
                             "distancia_cesped","distancia_bosques","distancia_parque",
                             "distancia_cine","distancia_discoteca","distancia_transporte",
-                            "distancia_iglesia","distancia_supermercado","distancia_supermercado",
-                            "distancia_restaurante","distancia_restaurante","distancia_comida_rapida",
+                            "distancia_iglesia","distancia_supermercado",
+                            "distancia_restaurante","distancia_comida_rapida",
                             "distancia_cafeteria","distancia_banco","distancia_cajero",
                             "distancia_gym","geometry","geometry2")
 
 names(amenities_test) <- c("distancia_centro_comercial","distancia_escuela","distancia_universidad",
                            "distancia_cesped","distancia_bosques","distancia_parque",
                            "distancia_cine","distancia_discoteca","distancia_transporte",
-                           "distancia_iglesia","distancia_supermercado","distancia_supermercado",
-                           "distancia_restaurante","distancia_restaurante","distancia_comida_rapida",
+                           "distancia_iglesia","distancia_supermercado",
+                           "distancia_restaurante","distancia_comida_rapida",
                            "distancia_cafeteria","distancia_banco","distancia_cajero",
                            "distancia_gym","geometry","geometry2")
 
@@ -377,14 +377,13 @@ test<-cbind(test,amenities_test)
 
 train<-cbind(train,amenities_train)
 
-predictores_modelo_rf_6 <- c("nbanios","nhabitaciones","piso_apartamento",
-                             "estrato","Periodo","Robos_vivienda","Robos_personas",
-                             "distancia_estacion_policia","distancia_hospital",
-                             "distancia_centro_comercial","distancia_escuela",
-                             "distancia_universidad","distancia_cesped",
-                             "distancia_bosques","distancia_parque",
-                             "distancia_cine","distancia_discoteca",
-                             "distancia_transporte")
+predictores_modelo_rf_6 <- c("distancia_centro_comercial","distancia_escuela","distancia_universidad",
+                             "distancia_cesped","distancia_bosques","distancia_parque",
+                             "distancia_cine","distancia_discoteca","distancia_transporte",
+                             "distancia_iglesia","distancia_supermercado",
+                             "distancia_restaurante","distancia_comida_rapida",
+                             "distancia_cafeteria","distancia_banco","distancia_cajero",
+                             "distancia_gym","geometry","geometry2")
 
 
 
@@ -436,5 +435,5 @@ table(is.na(sub_rf_6$property_id))
 sub_rf_6<-sub_rf_6 %>% mutate(price=precio_rf_6)%>% select(property_id,price)
 summary(sub_rf_6$price)
 
-write_csv(x = sub_rf_6,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submit/Submit_rf_6.csv",)
+write_csv(x = sub_rf_6,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submit/Submit_rf_6_2.csv",)
 
