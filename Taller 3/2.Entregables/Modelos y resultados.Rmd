@@ -38,19 +38,8 @@ print(summary_resultados)
 
 ```{r, echo=FALSE}
 summary_resultados %>%
-  kable("latex", caption = "Resumen de resultados", booktabs = TRUE) %>%
-  kable_styling(latex_options = c("striped", "hold_position")) %>%
-  as_image() %>%
-  save_kable("table.png")
-
-# Insertar la imagen de la tabla redimensionada
-cat("
-\\begin{figure}[H]
-\\centering
-\\includegraphics[width=\\textwidth]{table.png}
-\\caption{Resumen de resultados}
-\\end{figure}
-")
+  kable("latex", caption = "Resumen de resultados") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T,font_size = 8)
 ```
 
 \
