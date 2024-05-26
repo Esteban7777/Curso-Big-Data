@@ -272,3 +272,81 @@ summary(sub_rf_4$price)
 
 write_csv(x = sub_rf_4,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submit/Submit_rf_4.csv",)
 
+
+#Modelo 5
+
+
+#Incluyendo distancia a hospítal
+
+#En train
+hospital_train<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%203/0.Insumos/Taller_3/Distancia_hospital_train.csv")
+train<-cbind(train,hospital_train)
+
+
+#En test
+hospital_test<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%203/0.Insumos/Taller_3/Distancia_hospital_test.csv")
+test<-cbind(test,hospital_test)
+
+names(test)[duplicated(names(test))] <- paste0(names(test)[duplicated(names(test))], "_duplicate")
+
+test<-test %>% rename(distancia_hospital=distancia_hospital_t)
+
+#Nuevos predictores
+
+predictores_modelo_rf_5 <- c("nbanios","nhabitaciones","piso_apartamento",
+                             "estrato","Periodo","Robos_vivienda","Robos_personas",
+                             "distancia_estacion_policia","distancia_hospital")
+
+
+
+
+modelo_rf_5<- ranger(formula = as.formula(paste("price~",
+                                                paste(predictores_modelo_rf_5, collapse = " + "))), 
+                     data = train,
+                     num.trees= 500, ## Numero de bootstrap samples y arboles a estimar. Default 500  
+                     mtry= 4,   # N. var aleatoriamente seleccionadas en cada partici?n. Baggin usa todas las vars.
+                     min.node.size  = 1, ## Numero minimo de observaciones en un nodo para intentar 
+) 
+
+#Predicci?n dentro de muestra
+
+X<-train %>% select(predictores_modelo_rf_5)
+
+precio_rf_5<-predict(modelo_rf_5,X)
+
+precio_rf_5$predictions
+
+train$precio_rf_5<-precio_rf_5$predictions
+
+
+table(is.na(train$precio_rf_5))
+str(train$precio_rf_5)
+
+MAE_rf_5_insample <- mean(abs(train$price -train$precio_rf_5))
+
+##
+X_test<-test %>% select(predictores_modelo_rf_5)
+
+precio_rf_5_test<-predict(modelo_rf_5,X_test)
+
+precio_rf_5_test$predictions
+
+test$precio_rf_5<-precio_rf_5_test$predictions
+
+
+table(is.na(test$precio_rf_5))
+summary(test$precio_rf_5)
+str(train$precio_rf_5)
+
+
+
+#Exportar el submition
+sub_rf_5<-test %>% select(property_id,precio_rf_5)
+table(is.na(sub_rf_5$precio_rf_5))
+table(is.na(sub_rf_5$property_id))
+
+sub_rf_5<-sub_rf_5 %>% mutate(price=precio_rf_5)%>% select(property_id,price)
+summary(sub_rf_5$price)
+
+write_csv(x = sub_rf_5,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submit/Submit_rf_5.csv",)
+
