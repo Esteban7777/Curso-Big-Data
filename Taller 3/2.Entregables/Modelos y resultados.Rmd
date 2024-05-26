@@ -36,12 +36,12 @@ summary_resultados<-summary_resultados %>%
 print(summary_resultados)
 ```
 
-Los algoritmos utilizados para las predicciones fueron *Regresión lineal*[[\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Regresion%20Lineal.R "Sintáxis de regresión lineal"), *Elastic net* [[\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Elastic%20net.R "Sintáxis de Elastic Net")*, Random forest* [[\*\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Random%20Forest.R "Sintáxis de Random Forest")y *Xgboost* [[\*\*\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Xgboost.R "Sintáxis de Xgboost")*.* Cada uno de estos se entrenó realizando la validación cruzada con los folds anteriormente señalados que pueden ser observados en [Mapa de folds](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Imagenes/Viviendas%20en%20Train%20por%20Sector.png).
+Los algoritmos utilizados para las predicciones fueron *Regresión lineal*[[\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Regresion%20Lineal.R "Sintáxis de regresión lineal"), *Elastic net* [[\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Elastic%20net.R "Sintáxis de Elastic Net")*, Random forest* [[\*\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Random%20Forest.R "Sintáxis de Random Forest")y *Xgboost* [[\*\*\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Xgboost.R "Sintáxis de Xgboost")*.* Cada uno de estos se entrenó realizando la validación cruzada con los folds anteriormente señalados que pueden ser observados en [Mapa de folds](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Imagenes/Viviendas%20en%20Train%20por%20Sector.png). Adicionalmente se entrenaron *Redes neuronales*[[\*\*\*\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Redes_neuronales.ipynb "Sintáxis de redes neuronales"), para estas redes se partió de una primera con una sola capa oculta y 25 nodos, la cual se fue complejizando hasta llegar una de tres capas ocultas, la primera de 25 nodos reduciendose diez nodos para la siguiente. En todos los casos el MAE obtenido no se redujo significativamente.
 
 ```{r, echo=FALSE}
 summary_resultados %>%
   kable("latex", caption = "Resumen de resultados") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T,font_size = 8)
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T,font_size = 6)
 ```
 
 # Conclusiones y recomendaciones
@@ -50,6 +50,4 @@ Se logra evidenciar que las caracteristicas de una vivienda son un buen predicto
 
 También observamos que en este tipo de problemas algoritmos que tienen un poca carga computacional como Elastic Net y la propia regresión lineal tienen un rendimiento aceptable frente a algunos modelos más complejos como Xgboost. Por lo que el tiempo dedicado a entrenar modelos podría bien utilizarse en mejorar la modelación en una regresión y obtener resultados mucho mejores y menos costosos.
 
-La cantidad de variables del entorno incluidas impacta significativamente el rendimiento de los modelos, por lo que se recomienda en estos problemas dedicar un mayor tiempo a la construcción de un set de datos lo más completo posible. En este sentido, por restricciones de tiempo no fue posible incluir otras variables que podrían mejorar la predicción como la distancia a centros comerciales y zonas verdes.
-
-\
+La cantidad de variables del entorno incluidas impacta significativamente el rendimiento de los modelos, por lo que se recomienda en estos problemas dedicar un mayor tiempo a la construcción de un set de datos lo más completo posible. En este sentido, por restricciones de tiempo no fue posible incluir otras variables que podrían mejorar la predicción como la distancia a centros comerciales y zonas verdes. \

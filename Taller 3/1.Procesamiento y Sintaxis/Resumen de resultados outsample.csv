@@ -53,3 +53,15 @@ piso_apartamento, estrato,
 Periodo, Robos_vivienda, 
 Robos_personas, 
 distancia_estacion_policia";277450159
+Red neuronal una capa oculta;log(price);"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia, 
+distancia_hospital";274199430
+Red neuronal tres capas ocultas;log(price);"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia, 
+distancia_hospital";269680313
