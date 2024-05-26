@@ -1,0 +1,201 @@
+---
+title: "graficos"
+author: "John Esteban"
+date: "2024-05-26"
+output: html_document
+---
+```{r,echo=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(knitr)
+library(sf)
+library(leaflet)
+library(leaflet.extras)
+library(tmap)
+library(tmaptools)
+library(reshape2)
+library(gt)
+library(htmlwidgets)
+library(webshot)
+```
+
+```{r}
+train <- read.csv('train_join2.csv')
+test <-  read.csv('test_join2.csv')
+shp_data <- st_read("Bogota/Loca.shp")
+robos <- read.csv('seguridad.csv')
+hospital <- read.csv('Distancia_hospital_train.csv')
+train <- cbind.data.frame(train,robos,hospital)
+train <- train %>%
+  select(-starts_with("X"))
+train_sf <- st_as_sf(train, coords = c("Lon", "Lat"), crs = 4326)
+```
+```{r}
+format(summary(train$price),scientific=FALSE)
+```
+```{r}
+summary_price <- summary(train$price)
+
+# Convertir el resumen en un dataframe
+summary_df <- data.frame(
+  Estadístico = names(summary_price),
+  Precio = as.numeric(summary_price)
+)
+
+
+summary_table <- gt(summary_df) %>%
+  tab_header(
+    title = md("**Resumen del Precio de las Viviendas**")
+  ) %>%
+  fmt_currency(
+    columns = vars(Precio),
+    currency = "COP",
+    use_seps = TRUE,
+    accounting = FALSE
+  )
+
+
+gtsave(summary_table, "tabla_resumen_precio.png")
+
+```
+
+```{r}
+train_l <-train %>%
+  filter(rooms <5, bathrooms<5,bedrooms<5,nbanios<5,nhabitaciones<5,piso_apartamento<5)
+
+vars <- train_l %>% 
+  select(rooms, bedrooms, bathrooms, property_type, estrato_predominante, nbanios, nhabitaciones, piso_apartamento,price) %>%
+  mutate(log_price = log(price))
+
+
+
+
+vars_imputed <- vars %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), round(mean(., na.rm = TRUE)), .)))
+
+vars_imputed <- vars_imputed %>%
+  mutate(across(-log_price, as.factor))
+
+
+
+
+generate_barplot <- function(data, x_var) {
+  ggplot(data, aes_string(x = x_var)) +
+    geom_bar(fill = "steelblue") +
+    labs(title = paste("Count of", x_var),
+         x = x_var, 
+         y = "Count") +
+    theme_minimal()
+}
+
+
+variables <- c("rooms", "bedrooms", "bathrooms", "property_type", 
+               "estrato_predominante", "nbanios", "nhabitaciones", "piso_apartamento")
+
+
+bar_plots <- lapply(variables, function(var) generate_barplot(vars_imputed, var))
+
+png("bar_plots.png", width = 10, height = 8, units = "in", res = 300)
+do.call("grid.arrange", c(bar_plots, ncol = 2))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+generate_boxplot <- function(data, x_var, y_var = "log_price") {
+  ggplot(data, aes_string(x = x_var, y = y_var)) +
+    geom_boxplot() +
+    labs(title = paste("Boxplot of", x_var, "vs", y_var),
+         x = x_var, 
+         y = y_var) +
+    theme_minimal()
+}
+
+
+variables <- c("rooms", "bedrooms", "bathrooms", "property_type", 
+               "estrato_predominante", "nbanios", "nhabitaciones", "piso_apartamento")
+
+
+plots <- lapply(variables, function(var) generate_boxplot(vars_imputed, var))
+
+png("bar_plots_n.png", width = 10, height = 8, units = "in", res = 300)
+do.call("grid.arrange", c(plots, ncol = 2))
+```
+
+
+
+
+```{r}
+train_coords <- train_sf %>%
+  st_coordinates() %>%
+  as.data.frame() %>%
+  rename(Lon = X, Lat = Y) %>%
+  bind_cols(train)
+
+
+train_coords$log_price <- log(train_coords$price)
+
+
+mapa <- leaflet() %>%
+  addTiles() %>%
+  setView(lng = -74.08175, lat = 4.60971, zoom = 12) %>%
+  addPolygons(data = shp_data, color = "blue", weight = 2, opacity = 0.5) %>%
+  addHeatmap(lng = ~Lon...41, lat = ~Lat...42, intensity = ~log_price, blur = 20, max = 0.05, radius = 15, data = train_coords) %>%
+  addControl("<img src='https://leafletjs.com/examples/custom-icons/leaf-red.png' style='width:24px;height:24px;'>", position = "topright", className = "compass")
+
+mapa
+saveWidget(mapa, file = "mapa.html", selfcontained = TRUE)
+```
+
+
+
+
+```{r}
+webshot::webshot("mapa.html", file = "mapa.png", delay = 5)
+```
+
+```{r}
+#train <- train %>% mutate(price_l = log(price))
+cor_matrix <- cor(train %>% select(price, Robos_vivienda, Robos_personas,distancia_estacion_policia,distancia_hospital)) 
+
+# Convertir la matriz de correlación a un formato largo adecuado para ggplot2
+melted_cor_matrix <- melt(cor_matrix)
+
+# Crear el gráfico de calor
+ggplot(data = melted_cor_matrix, aes(x=Var1, y=Var2, fill=value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       midpoint = 0, limit = c(-1,1), space = "Lab", 
+                       name="Correlacion") +
+  geom_text(aes(label = round(value, 2)), color = "black", size = 4) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1)) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                   size = 12, hjust = 1)) +
+  coord_fixed()
+ggsave("heatmap.png",width = 8, height = 6)
+```
+
+
+
+
+
+
+
