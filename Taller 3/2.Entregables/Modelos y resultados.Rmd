@@ -41,7 +41,7 @@ Los algoritmos utilizados para las predicciones fueron *Regresión lineal*[[\*]]
 ```{r, echo=FALSE}
 summary_resultados %>%
   kable("latex", caption = "Resumen de resultados") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T,font_size = 6)
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed","responsive"), full_width = T,font_size = 8)
 ```
 
 # Conclusiones y recomendaciones
