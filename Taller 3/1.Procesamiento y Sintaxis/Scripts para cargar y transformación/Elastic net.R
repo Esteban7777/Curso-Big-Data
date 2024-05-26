@@ -295,4 +295,45 @@ summary(sub_en_3$price)
 
 write_csv(x = sub_en_3,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submit/Submit_elastic_net_3.csv",)
 
+#Modelo 4
+#Con Caret
+predictores_modelo_en_4 <- c("nbanios", "nhabitaciones","piso_apartamento", "estrato","Periodo",
+                             "Robos_vivienda","Robos_personas","distancia_estacion_policia")
+
+train_control <- trainControl(method = "cv", index = folds)
+
+# Configurar el grid de hiperparámetros
+tune_grid <- expand.grid(.alpha = seq(0, 1, length = 10), 
+                         .lambda = 10^seq(-3, 3, length = 100))
+
+# Entrenar el modelo Elastic Net
+modelo_en_4 <- train(as.formula(paste("price ~", paste(predictores_modelo_en_4, collapse = "+"))), 
+                            data = train, 
+                            method = "glmnet", 
+                            trControl = train_control, 
+                            tuneGrid = tune_grid)
+
+
+train$precio_en_4<-predict(modelo_en_4, newdata = train)
+
+#MAE dentro de muestra
+MAE_en_4_insample<- mean(abs(train$price - train$precio_en_4))
+print(MAE_en_4_insample)
+
+
+#predecir fuera de muestra
+test$precio_en_4<-predict(modelo_en_4, newdata = test)
+
+summary(test$precio_en_4)
+
+sub_en_4<-test %>% select(property_id,precio_en_4)
+
+table(is.na(sub_en_4$property_id))
+table(is.na(sub_en_4$precio_en_4))
+
+sub_en_4<-sub_en_4 %>% mutate(price=as.vector(precio_en_4))%>% select(property_id,price)
+
+summary(sub_en_4$price)
+
+write_csv(x = sub_en_4,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submit/Submit_elastic_net_4.csv",)
 
