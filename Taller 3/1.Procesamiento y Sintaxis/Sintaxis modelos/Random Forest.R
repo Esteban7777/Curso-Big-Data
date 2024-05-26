@@ -236,7 +236,7 @@ folds <- createFolds(train$cod_sector, k = length(unique(train$cod_sector)))
 predictores_modelo_rf_4 <- c("nbanios","nhabitaciones","piso_apartamento",
                              "estrato","Periodo","Robos_vivienda","Robos_personas",
                              "distancia_estacion_policia")
-# Configurar la validación cruzada con caret
+# Configurar la validaciC3n cruzada con caret
 train_control <- trainControl(method = "cv", index = folds)
 
 
@@ -253,7 +253,7 @@ MAE_rf_4_insample <- mean(abs(train$price -train$precio_rf_4))
 
 summary(train$precio_rf_4)
 
-#Predicción fuera de muestra
+#PredicciC3n fuera de muestra
 
 test$precio_rf_4 <- predict(modelo_rf_4, newdata = test)
 
@@ -262,7 +262,7 @@ table(is.na(test$precio_rf_4))
 summary(test$precio_rf_4)
 
 
-#Exportar predicción
+#Exportar predicciC3n
 sub_rf_4<-test %>% select(property_id,precio_rf_4)
 table(is.na(sub_rf_4$precio_rf_4))
 table(is.na(sub_rf_4$property_id))
@@ -276,7 +276,7 @@ write_csv(x = sub_rf_4,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Talle
 #Modelo 5
 
 
-#Incluyendo distancia a hospítal
+#Incluyendo distancia a hospC-tal
 
 #En train
 hospital_train<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%203/0.Insumos/Taller_3/Distancia_hospital_train.csv")
@@ -349,4 +349,92 @@ sub_rf_5<-sub_rf_5 %>% mutate(price=precio_rf_5)%>% select(property_id,price)
 summary(sub_rf_5$price)
 
 write_csv(x = sub_rf_5,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submit/Submit_rf_5.csv",)
+
+#####
+
+#Agregando m??s amenities
+amenities_train<-NULL
+amenities_train<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%203/0.Insumos/Taller_3/amenities_train.csv")
+amenities_test<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%203/0.Insumos/Taller_3/amenities_test.csv")
+
+names(amenities_train) <- c("distancia_centro_comercial","distancia_escuela","distancia_universidad",
+                            "distancia_cesped","distancia_bosques","distancia_parque",
+                            "distancia_cine","distancia_discoteca","distancia_transporte",
+                            "distancia_iglesia","distancia_supermercado","distancia_supermercado",
+                            "distancia_restaurante","distancia_restaurante","distancia_comida_rapida",
+                            "distancia_cafeteria","distancia_banco","distancia_cajero",
+                            "distancia_gym","geometry","geometry2")
+
+names(amenities_test) <- c("distancia_centro_comercial","distancia_escuela","distancia_universidad",
+                           "distancia_cesped","distancia_bosques","distancia_parque",
+                           "distancia_cine","distancia_discoteca","distancia_transporte",
+                           "distancia_iglesia","distancia_supermercado","distancia_supermercado",
+                           "distancia_restaurante","distancia_restaurante","distancia_comida_rapida",
+                           "distancia_cafeteria","distancia_banco","distancia_cajero",
+                           "distancia_gym","geometry","geometry2")
+
+test<-cbind(test,amenities_test)
+
+train<-cbind(train,amenities_train)
+
+predictores_modelo_rf_6 <- c("nbanios","nhabitaciones","piso_apartamento",
+                             "estrato","Periodo","Robos_vivienda","Robos_personas",
+                             "distancia_estacion_policia","distancia_hospital",
+                             "distancia_centro_comercial","distancia_escuela",
+                             "distancia_universidad","distancia_cesped",
+                             "distancia_bosques","distancia_parque",
+                             "distancia_cine","distancia_discoteca",
+                             "distancia_transporte")
+
+
+
+
+modelo_rf_6<- ranger(formula = as.formula(paste("price~",
+                                                paste(predictores_modelo_rf_6, collapse = " + "))), 
+                     data = train,
+                     num.trees= 500, ## Numero de bootstrap samples y arboles a estimar. Default 500  
+                     mtry= 4,   # N. var aleatoriamente seleccionadas en cada partici?n. Baggin usa todas las vars.
+                     min.node.size  = 1, ## Numero minimo de observaciones en un nodo para intentar 
+) 
+
+#Predicci?n dentro de muestra
+
+X<-train %>% select(predictores_modelo_rf_6)
+
+precio_rf_6<-predict(modelo_rf_6,X)
+
+precio_rf_6$predictions
+
+train$precio_rf_6<-precio_rf_6$predictions
+
+table(is.na(train$precio_rf_6))
+str(train$precio_rf_6)
+
+MAE_rf_6_insample <- mean(abs(train$price -train$precio_rf_6))
+
+##
+X_test<-test %>% select(predictores_modelo_rf_6)
+
+precio_rf_6_test<-predict(modelo_rf_6,X_test)
+
+precio_rf_6_test$predictions
+
+test$precio_rf_6<-precio_rf_6_test$predictions
+
+
+table(is.na(test$precio_rf_6))
+summary(test$precio_rf_6)
+str(train$precio_rf_6)
+
+
+
+#Exportar el submition
+sub_rf_6<-test %>% select(property_id,precio_rf_6)
+table(is.na(sub_rf_6$precio_rf_6))
+table(is.na(sub_rf_6$property_id))
+
+sub_rf_6<-sub_rf_6 %>% mutate(price=precio_rf_6)%>% select(property_id,price)
+summary(sub_rf_6$price)
+
+write_csv(x = sub_rf_6,"C:/Users/HP-Laptop/Documents/GitHub/Curso-Big-Data/Taller 3/2.Entregables/Submit/Submit_rf_6.csv",)
 
