@@ -8,7 +8,7 @@ bibliography: bibliografia.bib
 
 # Entorno
 
-```{r}
+```{r,echo=FALSE}
 library(tidyverse)
 library(gridExtra)
 library(knitr)
@@ -20,58 +20,55 @@ library(tmaptools)
 library(reshape2)
 ```
 
-```{r}
+```{r,echo=FALSE}
 train <- read.csv('train_join2.csv')
 test <-  read.csv('test_join2.csv')
 shp_data <- st_read("Bogota/Loca.shp")
 robos <- read.csv('seguridad.csv')
 hospital <- read.csv('Distancia_hospital_train.csv')
 train <- cbind.data.frame(train,robos,hospital)
-
+train_sf <- st_as_sf(train, coords = c("Lon", "Lat"), crs = 4326)
 ```
 
 ```{r}
-train_sf <- st_as_sf(train, coords = c("Lon", "Lat"), crs = 4326)
+
 ```
 
 # Introduccion
 
 La inversión más importante para la mayoría de las personas es tener casa propia, y esta es una de las fuentes más comunes en la acumulación de capital. Por esto, conocer cuáles son los elementos que determinan el valor de este bien puede servir de guía para el proceso de planificación financiera.
 
-Para la determinación de los precios de las viviendas, en la literatura se han logrado avances significativos. Primero, en relación a las variables, donde los principales trabajos se han concentrado en utilizar las características propias del hogar, con menor impacto de las características externas al hogar aparte del lugar donde están ubicadas. Luego, en relación a los modelos utilizados, se usan los principales algoritmos como regresión lineal, que ayuda en la interpretación, pero también todos los algoritmos basados en árboles de decisión.
+Para determinar el valor de las viviendas, la literatura ha avanzado en dos aspectos principales: primero, en entender las variables más importantes, y segundo, en identificar el algoritmo que mejor se adapta a este tipo de problemas. En cuanto a las variables, los estudios utilizan las características propias del hogar, como el área construida y la cantidad de habitaciones, además de incluir variables que explican el entorno donde está ubicada la vivienda. En cuanto a los modelos utilizados, es común empezar con el modelo de regresión lineal y luego aumentar la complejidad, llegando hasta los algoritmos basados en árboles. (citas)
 
-Para la selección de variables, se han tomado varias alternativas clasificadas en 3 grupos: características propias del hogar y características del entorno donde está ubicado el hogar. Las más importantes o que más aportan para determinar el precio de la vivienda son: el número de habitaciones, el área del hogar, planta, cantidad de baños, si tiene garaje, edad de la propiedad, área construida, aire acondicionado y el estrato de la vivienda. Los trabajos llegan a la conclusión de que las mejores variables para explicar el precio son: número de habitaciones y de baños, junto con área construida y el estrato.
+Para determinar las variables que más aportan a la predicción de precios de la vivienda, estas se clasifican primero en dos grupos: características propias del hogar y características del entorno donde está ubicado el hogar. Las más importantes del primer grupo son: el número de habitaciones, el área del hogar, el piso donde está ubicada, la cantidad de baños, si tiene garaje, la edad de la propiedad, el área construida, si tiene aire acondicionado y el estrato. De este grupo, las variables que más contribuyen a predecir el precio son el número de habitaciones, la cantidad de baños, el área construida y el estrato. citas
 
-El segundo grupo de variables está relacionado con las características del entorno donde está ubicada la vivienda. Se utilizan variables como la distancia a estaciones de transporte y de educación, proporción de personas de bajos recursos que viven cerca, porcentaje de centros de negocio y la localización. La distancia al transporte es la característica que más peso tiene.
+El segundo grupo de variables está relacionado con las características del entorno donde está ubicada la vivienda. En este grupo se utilizan variables como la distancia a estaciones de transporte y de educación, la proporción de personas de bajos recursos que viven cerca, el porcentaje de centros de negocio y la localización. La distancia al transporte es la característica que más peso tiene en este grupo. (citas)
 
-El modelo que mejor rendimiento ha presentado para la predicción de los precios es el Random Forest. El trabajo desarrollado por @Cueto2022, utilizando solo características de la vivienda en 5 modelos, entre ellos redes neuronales y modelos basados en árboles, encuentra que el que tiene mejor rendimiento es el random forest. De la misma forma, el trabajo de @Choy2023, en donde, además de las características, se utiliza la variable de la distancia al transporte, encuentra que el mejor modelo es el random forest. @Navarro2020, @Alzate2019 y @Angie también encuentran que el random forest es el mejor modelo.
+El modelo que mejor rendimiento ha presentado para la predicción de los precios de las viviendas es el Random Forest. El trabajo desarrollado por \@Cueto2022, utilizando solo características de la vivienda en cinco modelos, entre ellos redes neuronales y modelos basados en árboles, encuentra que el que tiene mejor rendimiento es el Random Forest. De la misma forma, el trabajo de \@Choy2023, en el que además de las características de la vivienda se utiliza la variable de la distancia al transporte, concluye que el mejor modelo es el Random Forest. \@Navarro2020, \@Alzate2019 y \@Angie también encuentran que el Random Forest es el mejor modelo.
 
-Sin embargo, hay otros algoritmos que también han tenido buen desempeño para predecir el precio de las viviendas. En el trabajo de @Mohamed2023, se destaca el uso de redes neuronales. @Bushan2010 sugiere trabajar con XGBoost, mientras que el modelo Ripper mostró un rendimiento destacado en el trabajo de @Park2015. Además, tanto el gradient boosting como el random forest demostraron eficacia en el estudio de @Alzate2019.
+Sin embargo, hay otros algoritmos que también han tenido buen desempeño para predecir el precio de las viviendas. En el trabajo de \@Mohamed2023, se destaca el uso de redes neuronales. \@Bushan2010 sugiere trabajar con XGBoost, mientras que el modelo Ripper mostró un rendimiento destacado en el trabajo de \@Park2015. Además, tanto el Gradient Boosting como el Random Forest demostraron eficacia en el estudio de \@Alzate2019.
 
-El propósito de este artículo es realizar la predicción de precios de vivienda en Bogotá. En este proceso, se utilizan variables propias de la vivienda, pero en la misma medida, variables que describan el entorno donde está ubicada la vivienda, y también se hace uso extensivo de las técnicas de procesamiento de lenguaje que permiten aprovechar las descripciones de la vivienda.
+El propósito de este artículo es realizar la predicción de precios de vivienda en Bogotá. En este proceso, se utilizan tanto variables propias de la vivienda como variables que describen el entorno donde está ubicada. Además, se hace uso extensivo de técnicas de procesamiento de lenguaje natural para aprovechar las descripciones de las viviendas.
 
-# Data
+# Datos
 
-## Agregacion de las nuevas variables
+## **Agregación de las Nuevas Variables**
 
-Para modelar el precio de las viviendas en Bogotá, se cuenta con diversas características propias del hogar. En primer lugar, tenemos el precio de la vivienda, que es la variable que se va a modelar. Luego, disponemos de algunos atributos esenciales para iniciar el proceso de modelación, tales como el área de la vivienda, el número de habitaciones para dormir y el número de baños. También se puede caracterizar el tipo de vivienda, diferenciando si es una casa o un apartamento. Además, se tiene a disposición la descripción de la vivienda, de donde se pueden extraer datos que ayuden a describir mejor la propiedad.
+Para modelar el precio de las viviendas en Bogotá, se cuenta con diversas características propias del hogar. En primer lugar, tenemos el precio de la vivienda, que es la variable que se va a modelar. Luego, disponemos de algunos atributos esenciales para iniciar el proceso de modelación, tales como el área de la vivienda, el número de habitaciones para dormir y el número de baños. También se puede caracterizar el tipo de vivienda, diferenciando si es una casa o un apartamento. Además, se tiene a disposición la descripción de la vivienda, de donde se pueden extraer datos que ayuden a describir mejor la propiedad. A partir de esta descripción, se ha agregado el número de habitaciones que tiene la vivienda.
 
 Para conocer mejor el contexto en el que se ubica la vivienda, se creó la variable "estrato" a partir de la información del DANE. En primer lugar, se descargó la cartografía del Marco Geoestadístico Nacional del DANE y el Censo 2018 a nivel de manzana. Luego, se hizo un join espacial entre cada uno de los inmuebles y el Marco Geoestadístico Nacional para identificar la manzana de cada una de las viviendas. Posteriormente, con el código de manzana, se realizó un join con el Censo 2018 para identificar el estrato predominante.
 
 La percepción de seguridad también es un aspecto clave para determinar la disposición a pagar por una vivienda. Se espera que, si hay mayor seguridad, el precio de la vivienda sea mayor. Para medir este fenómeno, se incluyeron una serie de variables relevantes. Con las cifras oficiales de la alcaldía, se obtuvo información geolocalizada de hurtos a personas y viviendas. Esta información solo está disponible a nivel de localidades y no georreferenciada de manera similar a la base de datos. Por ello, se utilizó la distancia para integrar la información de hurtos más cercanos. Además, a través de la información de Google, se calculó la distancia entre las viviendas y las estaciones de policía.
 
+En resumen, para modelar el precio de las viviendas en Bogotá, se consideran variables propias de la vivienda, como el área, el número de habitaciones, el número de baños y el tipo de vivienda, además de variables contextuales como el estrato y la percepción de seguridad. Estas últimas se obtienen mediante un join espacial con datos del DANE y la alcaldía, así como a través de la distancia a estaciones de policía y zonas con mayor incidencia de hurtos. Este enfoque integral permite una mejor descripción y predicción del precio de las viviendas.
+
 ## Analisis descriptivo de los datos
 
-### Precio
+### Precio de la vivienda
 
-El objetivo de este artículo es predecir el precio de las viviendas en la ciudad de Bogotá. Esta variable está medida a lo largo de tres años distintos, lo que en términos reales no representa lo mismo. Por esta razón, el primer paso fue realizar una deflactación de estas variables a términos reales, de modo que esto no afectara el proceso de modelación.
+El objetivo de este artículo es predecir el precio de las viviendas en la ciudad de Bogotá. Esta variable está medida a lo largo de tres años distintos, lo que en términos reales no representa lo mismo debido a la inflación. Inicialmente, se intentó ajustar los precios a términos reales deflactándolos por la inflación, pero los resultados no fueron coherentes. Por ello, se optó por utilizar efectos fijos, lo que mejoró la predicción considerablemente.
 
 Teniendo esto en cuenta, se observa que el precio de entrada para comprar una vivienda en Bogotá, tomando como referencia esta base de datos, es de 300 millones de pesos, con un máximo de 1650 millones y un precio promedio de aproximadamente 650 millones. En términos de precios de vivienda, Bogotá se encuentra por debajo del promedio nacional. Según el Índice de Precios de Vivienda del DANE, el índice de precios en Bogotá es de 126 puntos, mientras que el promedio nacional es de 130 puntos. Además, el aumento de precios durante estos tres años ha sido moderado, con un incremento promedio del 8%.
-
-```{r}
-train %>%
-  count(year)
-```
 
 ```{r}
 format(summary(train$price),scientific=FALSE)
@@ -79,9 +76,9 @@ format(summary(train$price),scientific=FALSE)
 
 ### Caracteristicas del hogar
 
-En primer lugar vamos a analizar como se relacionan las principales variables del hogar frente al precio de venta que tiene disponible, para este analisis se toman el numero de habitaciones, numero de banos, numero de alcobas, tipo de propiedad, estrato y el piso donde se encuentra ubicado. En primer lugar vamos a imputar de forma sencilla las variables que tienen N'A y luego procedemos con un analisis descriptivo bivariado.
+En primer lugar, vamos a analizar cómo se relacionan las principales variables del hogar con el precio de venta. Para este análisis, tomaremos en cuenta el número de habitaciones, el número de baños, el número de alcobas, el tipo de propiedad, el estrato y el piso donde se encuentra ubicada la vivienda. Inicialmente, imputaremos de forma sencilla las variables que tienen valores NA y luego procederemos con un análisis descriptivo bivariado.
 
-```{r}
+```{r,echo=FALSE}
 train <-train %>%
   filter(rooms <5, bathrooms<5,bedrooms<5,nbanios<5,nhabitaciones<5,piso_apartamento<5)
 
@@ -91,7 +88,7 @@ vars <- train %>%
 
 
 
-# Imputar los valores NA con la media redondeada de cada columna numérica
+
 vars_imputed <- vars %>%
   mutate(across(where(is.numeric), ~ ifelse(is.na(.), round(mean(., na.rm = TRUE)), .)))
 
@@ -100,7 +97,7 @@ vars_imputed <- vars_imputed %>%
 
 
 
-# Función para generar gráficos de barras de conteo
+
 generate_barplot <- function(data, x_var) {
   ggplot(data, aes_string(x = x_var)) +
     geom_bar(fill = "steelblue") +
@@ -110,23 +107,23 @@ generate_barplot <- function(data, x_var) {
     theme_minimal()
 }
 
-# Lista de variables cualitativas
+
 variables <- c("rooms", "bedrooms", "bathrooms", "property_type", 
                "estrato_predominante", "nbanios", "nhabitaciones", "piso_apartamento")
 
-# Generar gráficos de barras y guardarlos en una lista
+
 bar_plots <- lapply(variables, function(var) generate_barplot(vars_imputed, var))
 
-# Crear una grilla de gráficos
+
 do.call("grid.arrange", c(bar_plots, ncol = 2))
 ```
 
-La cantidad de habitaciones mas comun que tienen las viviendas que estan puestas en venta son 3 , lo mismo que para el numero de habitaciones para dormir, para el caso de los baños en este proceso la cantidad es igual, esto se explicar debido a que la mayoria de tipos de vivienda son apartamentos. La cantidad de numero de baños es muy similar pero en este caso se concentran mucho mas en 2 y 3 habitaciones. Un punto interesante es que en la muestra de datos que tenemos disposición la mayoria son apartamentos que estan ubicandos en zonas de Estrato 4, 5 y 6.
+Es interesante observar que la cantidad de habitaciones más común tanto para las habitaciones en general como para las habitaciones para dormir es 3. Además, la cantidad de baños tiende a ser similar, lo que podría explicarse por el hecho de que la mayoría de las viviendas en venta son apartamentos. Esta distribución de baños se concentra principalmente en 2 y 3, lo que sugiere una preferencia por una distribución equilibrada en los espacios de descanso y aseo.
 
-```{r}
+Es importante resaltar que la muestra de datos que tenemos disponible muestra una predominancia de apartamentos ubicados en zonas de Estrato 4, 5 y 6. Esto puede indicar una tendencia hacia viviendas de mayor estatus socioeconómico en la muestra analizada.
 
+```{r,echo=FALSE}
 
-# Crear una función para generar los boxplots
 generate_boxplot <- function(data, x_var, y_var = "log_price") {
   ggplot(data, aes_string(x = x_var, y = y_var)) +
     geom_boxplot() +
@@ -136,20 +133,22 @@ generate_boxplot <- function(data, x_var, y_var = "log_price") {
     theme_minimal()
 }
 
-# Lista de variables cualitativas (excluyendo 'price' y 'log_price')
+
 variables <- c("rooms", "bedrooms", "bathrooms", "property_type", 
                "estrato_predominante", "nbanios", "nhabitaciones", "piso_apartamento")
 
-# Generar los boxplots y guardarlos en una lista
+
 plots <- lapply(variables, function(var) generate_boxplot(vars_imputed, var))
 
-# Crear una grilla de gráficos
+
 do.call("grid.arrange", c(plots, ncol = 2))
 ```
 
-Cuando se analiza la relacion que existen entre las caracterisitcas de las viviendas con el logaritmo del precio de las viviendas se encuentra que existen relaciones estadisticias con el numero de balis, de habitaciones, con el tipo de la vivienda y el estrato socioeconomico.
+Es interesante observar que al analizar la relación entre las características de las viviendas y el logaritmo del precio de las viviendas, se encuentran relaciones estadísticas significativas con el número de baños, el número de habitaciones, el tipo de vivienda y el estrato socioeconómico.
 
-Estos resultados son consistentes con los hallazgos que se ven en la literatura en donde mas habitaciones tenga una vivienda su precio tiende a aumentar y el mismo caso tambien para la cantidad de baños. Para esta muestra se tiene que el tipo de vivienda mas costoso son las casas , pero entendiendo que se tienen muy pocos registros para este tipo de vivienda. POr ultimo se nota que conforme aumenta el estrato el promedio de precio de la vivienda comienza a aumentar, desde el estrato 4 al 6, que es donde mas datos disponibles se tienen.
+Estos hallazgos son consistentes con lo que se ha observado en la literatura previa, donde se muestra que a medida que una vivienda tiene más habitaciones, su precio tiende a aumentar, lo mismo ocurre con la cantidad de baños. Además, para esta muestra en particular, se observa que el tipo de vivienda más costoso son las casas, aunque se debe tener en cuenta que hay pocos registros para este tipo de vivienda, lo que podría sesgar los resultados.
+
+Por último, se nota que a medida que aumenta el estrato socioeconómico, el precio promedio de la vivienda tiende a aumentar, especialmente en los estratos 4 al 6, donde se tienen más datos disponibles. Esto sugiere una relación positiva entre el estrato y el precio de la vivienda en esta muestra analizada.
 
 ```{r}
 
@@ -159,10 +158,10 @@ train_coords <- train_sf %>%
   rename(Lon = X, Lat = Y) %>%
   bind_cols(train)
 
-# Calcular los valores de log(price) para la leyenda
+
 train_coords$log_price <- log(train_coords$price)
 
-# Inicializar el mapa centrado en Bogotá
+
 mapa <- leaflet() %>%
   addTiles() %>%
   setView(lng = -74.08175, lat = 4.60971, zoom = 12) %>%
@@ -173,14 +172,22 @@ mapa <- leaflet() %>%
 mapa
 ```
 
-Este mapa muestra la concetración de las viviendas que estan siendo analizadas en este estudio. En primer lugar, la mayoria de las viviendas que esna en venta se encuentran en al oeste , norte y sur de la ciudad. Como se nota en el mapa de calor, donde se coloca el logartimo de precios de la vivienda como entre las viviendas se encuentres mas cerca de la periferia de la ciudad la intensidad del precio es mayor.Lo que evidencia que la ubicación es importante para la predicción de precios.
+El mapa muestra la concentración de las viviendas que están siendo analizadas en este estudio. En primer lugar, la mayoría de las viviendas en venta se encuentran en el oeste, norte y sur de la ciudad. Como se puede observar en el mapa de calor, donde se coloca el logaritmo de los precios de las viviendas, entre más cerca estén las viviendas de la periferia de la ciudad, mayor es la intensidad del precio. Esto evidencia que la ubicación es un factor importante para la predicción de precios.
 
 ### Seguridad y salud
 
-Se espera que entre mas seguro sea el lugar donde este ubicada la vivienda el costo sea mayor. Para explorar esta variable se trabaja desde dos enfoques, en primer lugar se toma la informacionde la alcaldia de bogota sobre la cantidad de robos a personas y a casas georeferenciadas a nivel de localidad y luego por medio de la distancia se agrega la cantidad de robos que mas cerca se presentan. Luego vamos a trabajar con la distancia minima que se encuentra entre el hogar con una estacion de policia, se espera que entre mas cerca se encuentre una vivienda de una estacion de policia entonces la percepcion de seguridad sea mayor y el precio de la vivienda aumente.
+Explorar la relación entre la seguridad del lugar donde está ubicada la vivienda y su costo es un enfoque importante en el análisis. Para esto, se trabajará desde dos perspectivas:
 
-```{r}
-train <- train %>% mutate(price_l = log(price))
+1.  **Cantidad de Robos Georeferenciados**: Se utilizará la información proporcionada por la alcaldía de Bogotá sobre la cantidad de robos a personas y a casas georeferenciadas a nivel de localidad. Luego, mediante la distancia, se agregará la cantidad de robos que ocurren más cerca de la vivienda. Se espera que entre más cerca estén los robos, menor sea la percepción de seguridad y, por lo tanto, menor sea el precio de la vivienda.
+
+2.  **Distancia a la Estación de Policía más Cercana**: Se calculará la distancia mínima entre cada hogar y la estación de policía más cercana. Se espera que entre más cerca esté una vivienda de una estación de policía, mayor sea la percepción de seguridad y, por ende, mayor sea el precio de la vivienda.
+
+3.  **Distancia al Hospital más Cercano**: Además de la seguridad, la accesibilidad a servicios de salud también puede influir en el precio de una vivienda. Se calculará la distancia mínima entre cada hogar y el hospital más cercano. Se espera que una mayor proximidad a un hospital aumente la percepción de comodidad y seguridad para los residentes, lo que podría reflejarse en un aumento en el precio de la vivienda. La presencia de hospitales cercanos también puede aumentar el atractivo de la ubicación para potenciales compradores, especialmente para familias con niños pequeños o personas mayores que valoran la accesibilidad a la atención médica.
+
+Estos enfoques nos permitirán explorar cómo la seguridad del entorno y la proximidad a servicios de salud influyen en el precio de las viviendas, y si estas percepciones se traducen en un mayor valor para las propiedades.
+
+```{r,echo=FALSE}
+#train <- train %>% mutate(price_l = log(price))
 cor_matrix <- cor(train %>% select(price, Robos_vivienda, Robos_personas,distancia_estacion_policia,distancia_hospital)) 
 
 # Convertir la matriz de correlación a un formato largo adecuado para ggplot2
@@ -202,7 +209,7 @@ ggplot(data = melted_cor_matrix, aes(x=Var1, y=Var2, fill=value)) +
   coord_fixed()
 ```
 
-Con esta gráfica, podemos observar que existe una relación negativa entre el valor de una vivienda y la cantidad de robos cercanos que se han producido. Esto indica que la percepción de seguridad es un factor a tener en cuenta al momento de entender el valor de la vivienda. Del mismo modo, cuanto mayor sea la distancia entre la vivienda y la estación de policía, el precio de la vivienda tiende a bajar. Por lo tanto, se puede comprobar la hipótesis de que la percepción de seguridad es importante para entender el precio de la vivienda. Del mismo modo existe una relacion negativa entre el precio de la vivienda y la distancia a los centros de salud, como se explicaba en la revision de literatura este tipo de variables tienen impacto significativo sobre el precio de la vivienda.
+Con esta gráfica, podemos observar que existe una relación negativa entre el valor de una vivienda y la cantidad de robos cercanos que se han producido. Esto indica que la percepción de seguridad es un factor a tener en cuenta al momento de entender el valor de la vivienda. Del mismo modo, cuanto mayor sea la distancia entre la vivienda y la estación de policía, el precio de la vivienda tiende a bajar. Por lo tanto, se puede comprobar la hipótesis de que la percepción de seguridad es importante para entender el precio de la vivienda. Además, existe una relación negativa entre el precio de la vivienda y la distancia a los centros de salud. Como se explicaba en la revisión de literatura, este tipo de variables tienen un impacto significativo sobre el precio de la vivienda.
 
 # Modelos y resultados.
 
