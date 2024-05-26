@@ -1,4 +1,4 @@
-﻿Algoritmo ;Variable objetivo;Predictores utilizados;MAE fuera de muestra
+﻿Algoritmo ;"""Variable objetivo""";"""Predictores utilizados""";"""MAE fuera de muestra"""
 Regresión lineal;price;nbanios, nhabitaciones, piso_apartamento, estrato;860024814
 Regresión lineal;log(price);nbanios, nhabitaciones, piso_apartamento, estrato;295197752
 Regresión lineal;log(price);nbanios, nhabitaciones, piso_apartamento, estrato, Periodo;294830576
