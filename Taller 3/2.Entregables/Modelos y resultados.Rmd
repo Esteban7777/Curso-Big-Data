@@ -1,0 +1,56 @@
+---
+title: "Modelos y resultados"
+author: "William Alexander Aguirre A"
+date: "2024-05-26"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(kableExtra)
+```
+
+# Modelos y resultados
+
+Para entrenar los modelos se utilizó la técnica de validación cruzada, de manera que se pudiera reducir el efecto de la autocorrelación espacial sobre el aprendizaje de cada modelo. Teniendo en cuenta que el Marco Geoestadístico Nacional del DANE provee una agrupación geográfica a nivel de manzana, sección (conjuntos de manzanas) y sectores (conjuntos de secciones), se pudo utilizar cada sección como un fold que rompiera con la dependencia espacial del precio.
+
+```{r, eval=FALSE}
+sectores<-unique(train$cod_sector)
+folds<-createFolds(sectores,k=length(sectores),list = TRUE,returnTrain = TRUE)
+```
+
+Los modelos se entrenaron en primera instancia con la información extraida de la base de datos y del censo del DANE `nbanios`, `nhabitaciones`, `piso_apartamento` ; `estrato` . Dado que los precios de las viviendas también corresponden a diferentes meses de un horizonte de tiempo de tres años, se tuvo que incluir la variable `periodo` para tratar de establecer un efecto fijo del tiempo sobre el precio. Posteriormente se fueron incluyendo las variables de seguridad y salud, encontrando que hubo una mejora significativa en la predicción al incluir este tipo de variables.
+
+```{r, include=FALSE}
+summary_resultados<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Resumen%20de%20resultados%20outsample.csv",sep = ";")
+summary_resultados<-summary_resultados %>% 
+  rename(
+    'Variable objetivo'=X.Variable.objetivo.,
+    'Predictores utilizados'=X.Predictores.utilizados.,
+    'MAE fuera de muestra'=X.MAE.fuera.de.muestra.)
+
+print(summary_resultados)
+```
+
+```{r, echo=FALSE}
+summary_resultados %>%
+  kable("latex", caption = "Resumen de resultados", booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  as_image() %>%
+  save_kable("table.png")
+
+# Insertar la imagen de la tabla redimensionada
+cat("
+\\begin{figure}[H]
+\\centering
+\\includegraphics[width=\\textwidth]{table.png}
+\\caption{Resumen de resultados}
+\\end{figure}
+")
+```
+
+\

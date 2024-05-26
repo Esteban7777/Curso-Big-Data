@@ -1,14 +1,55 @@
 ﻿Algoritmo ;"""Variable objetivo""";"""Predictores utilizados""";"""MAE fuera de muestra"""
-Regresión lineal;price;nbanios, nhabitaciones, piso_apartamento, estrato;860024814
-Regresión lineal;log(price);nbanios, nhabitaciones, piso_apartamento, estrato;295197752
-Regresión lineal;log(price);nbanios, nhabitaciones, piso_apartamento, estrato, Periodo;294830576
-Elastic net;price;nbanios, nhabitaciones, piso_apartamento, estrato, Periodo;283134955
-Elastic net;price;nbanios, nhabitaciones,piso_apartamento, estrato,Periodo, Robos_vivienda, Robos_personas, distancia_estacion_policia;268696039
-Elastic net;log(price);nbanios, nhabitaciones,piso_apartamento, estrato,Periodo, Robos_vivienda, Robos_personas, distancia_estacion_policia;276791195
-Elastic net (caret);price;nbanios, nhabitaciones,piso_apartamento, estrato,Periodo, Robos_vivienda, Robos_personas, distancia_estacion_policia;264342673
-Random forest;price;nbanios, nhabitaciones, piso_apartamento, estrato, Periodo;274216139
-Random forest;price;nbanios, nhabitaciones,piso_apartamento, estrato,Periodo, Robos_vivienda, Robos_personas, distancia_estacion_policia;244889109
-Random forest;log(price);nbanios, nhabitaciones,piso_apartamento, estrato,Periodo, Robos_vivienda, Robos_personas, distancia_estacion_policia;252533214
-Random forest (caret);price;nbanios, nhabitaciones,piso_apartamento, estrato,Periodo, Robos_vivienda, Robos_personas, distancia_estacion_policia;249855878
-Random forest;price;nbanios, nhabitaciones,piso_apartamento, estrato,Periodo, Robos_vivienda, Robos_personas, distancia_estacion_policia, distancia_hospital;235325152
-Xgboost;price;nbanios, nhabitaciones,piso_apartamento, estrato,Periodo, Robos_vivienda, Robos_personas, distancia_estacion_policia;277450159
+Regresión lineal;price;"nbanios, nhabitaciones,
+piso_apartamento, estrato";860024814
+Regresión lineal;log(price);"nbanios, nhabitaciones, 
+piso_apartamento, estrato";295197752
+Regresión lineal;log(price);"nbanios, nhabitaciones, 
+piso_apartamento, estrato, 
+Periodo";294830576
+Elastic net;price;"nbanios, nhabitaciones, 
+piso_apartamento, estrato, 
+Periodo";283134955
+Elastic net;price;"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia";268696039
+Elastic net;log(price);"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia";276791195
+Elastic net (caret);price;"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia";264342673
+Random forest;price;"nbanios, nhabitaciones, 
+piso_apartamento, estrato, 
+Periodo";274216139
+Random forest;price;"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia";244889109
+Random forest;log(price);"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia";252533214
+Random forest (caret);price;"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia";249855878
+Random forest;price;"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia, 
+distancia_hospital";235325152
+Xgboost;price;"nbanios, nhabitaciones,
+piso_apartamento, estrato,
+Periodo, Robos_vivienda, 
+Robos_personas, 
+distancia_estacion_policia";277450159
