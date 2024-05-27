@@ -80,7 +80,7 @@ Es interesante observar que la cantidad de habitaciones más común tanto para l
 Es importante resaltar que la muestra de datos que tenemos disponible muestra una predominancia de apartamentos ubicados en zonas de Estrato 4, 5 y 6. Esto puede indicar una tendencia hacia viviendas de mayor estatus socioeconómico en la muestra analizada.
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-img <- image_read("bar_plots_n.png")
+img <- image_read("box_plots.png")
 img
 ```
 

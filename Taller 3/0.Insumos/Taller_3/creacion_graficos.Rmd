@@ -14,6 +14,7 @@ library(leaflet.extras)
 library(tmap)
 library(tmaptools)
 library(reshape2)
+library(grid) 
 library(gt)
 library(htmlwidgets)
 library(webshot)
@@ -99,6 +100,56 @@ png("bar_plots.png", width = 10, height = 8, units = "in", res = 300)
 do.call("grid.arrange", c(bar_plots, ncol = 2))
 ```
 
+```{r}
+train_l <- train %>%
+  filter(rooms < 5, bathrooms < 5, bedrooms < 5, nbanios < 5, nhabitaciones < 5, piso_apartamento < 5)
+
+vars <- train_l %>% 
+  select(rooms, bedrooms, bathrooms, property_type, estrato_predominante, nbanios, nhabitaciones, piso_apartamento, price) %>%
+  mutate(log_price = log(price))
+
+vars_imputed <- vars %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), round(mean(., na.rm = TRUE)), .)))
+
+vars_imputed <- vars_imputed %>%
+  mutate(across(-log_price, as.factor))
+
+# Función para generar gráficos de barras
+generate_barplot <- function(data, x_var, title) {
+  ggplot(data, aes_string(x = x_var)) +
+    geom_bar(fill = "steelblue") +
+    labs(title = title, x = NULL, y = NULL) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(hjust = 0.5, face = "bold"),
+      axis.text.x = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks = element_blank()
+    )
+}
+
+# Títulos de los gráficos en español
+titles <- c(
+  "Número de Habitaciones",
+  "Número de Dormitorios",
+  "Número de Baños",
+  "Tipo de Propiedad",
+  "Estrato Predominante",
+  "Número de Baños (imputado)",
+  "Número de Habitaciones (imputado)",
+  "Piso del Apartamento"
+)
+
+# Generar gráficos de barras
+variables <- c("rooms", "bedrooms", "bathrooms", "property_type", 
+               "estrato_predominante", "nbanios", "nhabitaciones", "piso_apartamento")
+
+bar_plots <- mapply(generate_barplot, MoreArgs = list(data = vars_imputed), variables, titles, SIMPLIFY = FALSE)
+
+# Guardar gráficos en archivo PNG
+png("bar_plots.png", width = 10, height = 8, units = "in", res = 300)
+grid.arrange(grobs = bar_plots, ncol = 2, top = textGrob("Distribución de Variables de la Vivienda", gp = gpar(fontsize = 20, fontface = "bold")))
+```
 
 
 
@@ -117,24 +168,42 @@ do.call("grid.arrange", c(bar_plots, ncol = 2))
 
 
 ```{r}
-generate_boxplot <- function(data, x_var, y_var = "log_price") {
+generate_boxplot <- function(data, x_var, y_var = "log_price", title) {
   ggplot(data, aes_string(x = x_var, y = y_var)) +
     geom_boxplot() +
-    labs(title = paste("Boxplot of", x_var, "vs", y_var),
-         x = x_var, 
-         y = y_var) +
-    theme_minimal()
+    labs(title = title, x = NULL, y = NULL) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(hjust = 0.5, face = "bold"),
+      axis.text.x = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks = element_blank()
+    )
 }
 
-
+# Lista de variables y títulos
 variables <- c("rooms", "bedrooms", "bathrooms", "property_type", 
                "estrato_predominante", "nbanios", "nhabitaciones", "piso_apartamento")
 
+titles <- c(
+  "Número de Habitaciones vs Precio",
+  "Número de Dormitorios vs Precio",
+  "Número de Baños vs Precio",
+  "Tipo de Propiedad vs Precio",
+  "Estrato Predominante vs Precio",
+  "Número de Baños (imputado) vs Precio",
+  "Número de Habitaciones (imputado) vs Precio",
+  "Piso del Apartamento vs Precio"
+)
 
-plots <- lapply(variables, function(var) generate_boxplot(vars_imputed, var))
+# Generar gráficos de boxplots
+box_plots <- lapply(seq_along(variables), function(i) {
+  generate_boxplot(vars_imputed, variables[i], "log_price", titles[i])
+})
 
-png("bar_plots_n.png", width = 10, height = 8, units = "in", res = 300)
-do.call("grid.arrange", c(plots, ncol = 2))
+# Guardar gráficos en archivo PNG
+png("box_plots.png", width = 10, height = 8, units = "in", res = 300)
+grid.arrange(grobs = box_plots, ncol = 2, top = textGrob("Distribución de Variables de la Vivienda vs Precio", gp = gpar(fontsize = 20, fontface = "bold")))
 ```
 
 
@@ -170,27 +239,30 @@ webshot::webshot("mapa.html", file = "mapa.png", delay = 5)
 ```
 
 ```{r}
-#train <- train %>% mutate(price_l = log(price))
-cor_matrix <- cor(train %>% select(price, Robos_vivienda, Robos_personas,distancia_estacion_policia,distancia_hospital)) 
+cor_matrix <- cor(train %>% select(price, Robos_vivienda, Robos_personas, distancia_estacion_policia, distancia_hospital)) 
 
 # Convertir la matriz de correlación a un formato largo adecuado para ggplot2
 melted_cor_matrix <- melt(cor_matrix)
 
 # Crear el gráfico de calor
-ggplot(data = melted_cor_matrix, aes(x=Var1, y=Var2, fill=value)) +
+heatmap <- ggplot(data = melted_cor_matrix, aes(x = Var1, y = Var2, fill = value)) +
   geom_tile(color = "white") +
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-                       midpoint = 0, limit = c(-1,1), space = "Lab", 
-                       name="Correlacion") +
+                       midpoint = 0, limit = c(-1, 1), space = "Lab", 
+                       name = "Correlación") +
   geom_text(aes(label = round(value, 2)), color = "black", size = 4) +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
                                    size = 12, hjust = 1)) +
-  theme_minimal() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1)) +
-  coord_fixed()
-ggsave("heatmap.png",width = 8, height = 6)
+  theme(axis.text.y = element_text(size = 12)) +
+  coord_fixed() +
+  labs(title = "Mapa de Calor de la Matriz de Correlación",
+       x = "Variables",
+       y = "Variables") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+# Guardar el gráfico de calor en un archivo PNG
+ggsave("heatmap.png", plot = heatmap, width = 10, height = 8, units = "in", dpi = 300)
 ```
 
 
