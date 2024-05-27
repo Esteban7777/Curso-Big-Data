@@ -1,8 +1,11 @@
 ---
 title: "Taller_3"
-author: "John Esteban"
+author: "John Esteban Londoño & William Aguirre"
 date: "2024-04-27"
-output: html_document
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
 bibliography: bibliografia.bib
 ---
 
@@ -20,12 +23,11 @@ library(tmaptools)
 library(reshape2)
 library(rvest)
 library(magick)
+library(tidyverse)
+library(kableExtra)
 ```
 
-
-
-
-# Introduccion
+# Introducción
 
 La inversión más importante para la mayoría de las personas es tener casa propia, y esta es una de las fuentes más comunes en la acumulación de capital. Por esto, conocer cuáles son los elementos que determinan el valor de este bien puede servir de guía para el proceso de planificación financiera.
 
@@ -37,7 +39,7 @@ El segundo grupo de variables está relacionado con las características del ent
 
 El modelo que mejor rendimiento ha presentado para la predicción de los precios de las viviendas es el Random Forest. El trabajo desarrollado por @Cueto2022, utilizando solo características de la vivienda en cinco modelos, entre ellos redes neuronales y modelos basados en árboles, encuentra que el que tiene mejor rendimiento es el Random Forest. De la misma forma, el trabajo de @Choy2023, en el que además de las características de la vivienda se utiliza la variable de la distancia al transporte, concluye que el mejor modelo es el Random Forest. @Navarro2020, @Alzate2019 y @Angie también encuentran que el Random Forest es el mejor modelo.
 
-Sin embargo, hay otros algoritmos que también han tenido buen desempeño para predecir el precio de las viviendas. En el trabajo de @Mohamed2023, se destaca el uso de redes neuronales. @Bushan2010 sugiere trabajar con XGBoost, mientras que el modelo Ripper mostró un rendimiento destacado en el trabajo de @Park2015. Además, tanto el Gradient Boosting como el Random Forest demostraron eficacia en el estudio de @Alzate2019.
+Sin embargo, hay otros algoritmos que también han tenido buen desempeño para predecir el precio de las viviendas. En el trabajo de @Mohamed2023, se destaca el uso de redes neuronales. @bushan2010 sugiere trabajar con XGBoost, mientras que el modelo Ripper mostró un rendimiento destacado en el trabajo de @Park2015. Además, tanto el Gradient Boosting como el Random Forest demostraron eficacia en el estudio de @Alzate2019.
 
 El propósito de este artículo es realizar la predicción de precios de vivienda en Bogotá. En este proceso, se utilizan tanto variables propias de la vivienda como variables que describen el entorno donde está ubicada. Además, se hace uso extensivo de técnicas de procesamiento de lenguaje natural para aprovechar las descripciones de las viviendas.
 
@@ -61,7 +63,7 @@ El objetivo de este artículo es predecir el precio de las viviendas en la ciuda
 
 Teniendo esto en cuenta, se observa que el precio de entrada para comprar una vivienda en Bogotá, tomando como referencia esta base de datos, es de 300 millones de pesos, con un máximo de 1650 millones y un precio promedio de aproximadamente 650 millones. En términos de precios de vivienda, Bogotá se encuentra por debajo del promedio nacional. Según el Índice de Precios de Vivienda del DANE, el índice de precios en Bogotá es de 126 puntos, mientras que el promedio nacional es de 130 puntos. Además, el aumento de precios durante estos tres años ha sido moderado, con un incremento promedio del 8%.
 
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
+```{r,echo=FALSE,warning=FALSE,message=FALSE,fig.width=6,fig.height=4}
 img <- image_read("tabla_resumen_precio.png")
 img
 ```
@@ -70,7 +72,7 @@ img
 
 En primer lugar, vamos a analizar cómo se relacionan las principales variables del hogar con el precio de venta. Para este análisis, tomaremos en cuenta el número de habitaciones, el número de baños, el número de alcobas, el tipo de propiedad, el estrato y el piso donde se encuentra ubicada la vivienda. Inicialmente, imputaremos de forma sencilla las variables que tienen valores NA y luego procederemos con un análisis descriptivo bivariado.
 
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
+```{r,echo=FALSE,warning=FALSE,message=FALSE,fig.width=6,fig.height=4}
 img <- image_read("bar_plots.png")
 img
 ```
@@ -79,7 +81,7 @@ Es interesante observar que la cantidad de habitaciones más común tanto para l
 
 Es importante resaltar que la muestra de datos que tenemos disponible muestra una predominancia de apartamentos ubicados en zonas de Estrato 4, 5 y 6. Esto puede indicar una tendencia hacia viviendas de mayor estatus socioeconómico en la muestra analizada.
 
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
+```{r,echo=FALSE,warning=FALSE,message=FALSE,fig.width=6,fig.height=4}
 img <- image_read("box_plots.png")
 img
 ```
@@ -90,7 +92,7 @@ Estos hallazgos son consistentes con lo que se ha observado en la literatura pre
 
 Por último, se nota que a medida que aumenta el estrato socioeconómico, el precio promedio de la vivienda tiende a aumentar, especialmente en los estratos 4 al 6, donde se tienen más datos disponibles. Esto sugiere una relación positiva entre el estrato y el precio de la vivienda en esta muestra analizada.
 
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
+```{r,echo=FALSE,warning=FALSE,message=FALSE,fig.width=6,fig.height=4}
 img <- image_read("mapa.png")
 img
 ```
@@ -109,13 +111,41 @@ Explorar la relación entre la seguridad del lugar donde está ubicada la vivien
 
 Estos enfoques nos permitirán explorar cómo la seguridad del entorno y la proximidad a servicios de salud influyen en el precio de las viviendas, y si estas percepciones se traducen en un mayor valor para las propiedades.
 
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
+```{r,echo=FALSE,warning=FALSE,message=FALSE,fig.width=6,fig.height=4}
 img <- image_read("heatmap.png")
 img
 ```
 
 Con esta gráfica, podemos observar que existe una relación negativa entre el valor de una vivienda y la cantidad de robos cercanos que se han producido. Esto indica que la percepción de seguridad es un factor a tener en cuenta al momento de entender el valor de la vivienda. Del mismo modo, cuanto mayor sea la distancia entre la vivienda y la estación de policía, el precio de la vivienda tiende a bajar. Por lo tanto, se puede comprobar la hipótesis de que la percepción de seguridad es importante para entender el precio de la vivienda. Además, existe una relación negativa entre el precio de la vivienda y la distancia a los centros de salud. Como se explicaba en la revisión de literatura, este tipo de variables tienen un impacto significativo sobre el precio de la vivienda.
 
-# Modelos y resultados.
+# Modelos y resultados
 
-# Conclusiones
+Para entrenar los modelos se utilizó la técnica de validación cruzada, de manera que se pudiera reducir el efecto de la autocorrelación espacial sobre el aprendizaje de cada modelo. Teniendo en cuenta que el Marco Geoestadístico Nacional del DANE provee una agrupación geográfica a nivel de manzana, sección (conjuntos de manzanas) y sectores (conjuntos de secciones), se pudo utilizar cada sección como un fold que rompiera con la dependencia espacial del precio.
+
+```{r, eval=FALSE}
+sectores<-unique(train$cod_sector)
+folds<-createFolds(sectores,k=length(sectores),list = TRUE,returnTrain = TRUE)
+```
+
+Los modelos se entrenaron en primera instancia con la información extraida de la base de datos y del censo del DANE `nbanios`, `nhabitaciones`, `piso_apartamento` ; `estrato` . Dado que los precios de las viviendas también corresponden a diferentes meses de un horizonte de tiempo de tres años, se tuvo que incluir la variable `periodo` para tratar de establecer un efecto fijo del tiempo sobre el precio. Posteriormente se fueron incluyendo las variables de seguridad y salud, encontrando que hubo una mejora significativa en la predicción al incluir este tipo de variables.
+
+```{r, include=FALSE}
+summary_resultados<-read.csv("https://raw.githubusercontent.com/Esteban7777/Curso-Big-Data/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Resumen%20de%20resultados%20outsample.csv",sep = ";")
+summary_resultados<-summary_resultados %>% 
+  rename(
+    'Variable objetivo'=X.Variable.objetivo.,
+    'Predictores utilizados'=X.Predictores.utilizados.,
+    'MAE fuera de muestra'=X.MAE.fuera.de.muestra.)
+
+print(summary_resultados)
+```
+
+Los algoritmos utilizados para las predicciones fueron *Regresión lineal*[[\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Regresion%20Lineal.R "Sintáxis de regresión lineal"), *Elastic net* [[\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Elastic%20net.R "Sintáxis de Elastic Net")*, Random forest* [[\*\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Random%20Forest.R "Sintáxis de Random Forest")y *Xgboost* [[\*\*\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Xgboost.R "Sintáxis de Xgboost")*.* Cada uno de estos se entrenó realizando la validación cruzada con los folds anteriormente señalados que pueden ser observados en [Mapa de folds](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Imagenes/Viviendas%20en%20Train%20por%20Sector.png). Adicionalmente se entrenaron *Redes neuronales*[[\*\*\*\*\*]](https://github.com/Esteban7777/Curso-Big-Data/blob/main/Taller%203/1.Procesamiento%20y%20Sintaxis/Sintaxis%20modelos/Redes_neuronales.ipynb "Sintáxis de redes neuronales"), para estas redes se partió de una primera con una sola capa oculta y 25 nodos, la cual se fue complejizando hasta llegar una de tres capas ocultas, la primera de 25 nodos reduciendose diez nodos para la siguiente. En todos los casos el MAE obtenido no se redujo significativamente.
+
+```{r, echo=FALSE}
+summary_resultados %>%
+  kable("latex", caption = "Resumen de resultados") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed","responsive"), full_width = T,font_size = 8,latex_options ="HOLD_position" )
+```
+
+# Referencias
